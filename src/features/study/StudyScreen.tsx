@@ -52,6 +52,16 @@ export function StudyScreen({ onBack }: { onBack: () => void }) {
     });
   }
 
+  function markDone(trackId: string, topicId: string) {
+    const key = topicKey(trackId, topicId);
+    setProgress((prev) => {
+      if (prev[key]) return prev;
+      const next = { ...prev, [key]: true };
+      void saveStudyProgress(next);
+      return next;
+    });
+  }
+
   function openTopic(trackId: string, topicId: string) {
     setActiveTrackId(trackId);
     setActiveTopicId(topicId);
@@ -105,6 +115,7 @@ export function StudyScreen({ onBack }: { onBack: () => void }) {
             onToggle={() => toggleDone(activeTrack.id, activeTopic.id)}
             onPrevNext={(dir) => {
               const idx = activeTrack.topics.findIndex((t) => t.id === activeTopic.id);
+              if (dir === 1) markDone(activeTrack.id, activeTopic.id);
               const next = activeTrack.topics[idx + dir];
               if (next) setActiveTopicId(next.id);
             }}
