@@ -1270,13 +1270,16 @@ function McqSessionView({
 
   if (isMobile) {
     return (
-      <section className="mx-auto flex min-h-[calc(100vh-7.5rem)] max-w-lg flex-col px-4 pb-28 pt-6">
-        <button onClick={onBack} className="mb-5 flex items-center gap-2 text-sm text-zinc-400">
+      <section className="exam-session-scene exam-fade-up mx-auto flex min-h-[calc(100vh-7.5rem)] max-w-lg flex-col px-4 pb-28 pt-6">
+        <button
+          onClick={onBack}
+          className="mb-5 flex items-center gap-2 text-sm text-[var(--exam-muted)] hover:text-[var(--exam-text)]"
+        >
           <ArrowLeft size={15} /> Phases
         </button>
-        <p className="text-xs uppercase tracking-wider text-zinc-500">{session.phase}</p>
-        <h1 className="mt-1 text-lg font-semibold tracking-tight">{session.title}</h1>
-        <div className="mt-4 flex items-center justify-between text-xs text-zinc-500">
+        <p className="text-xs uppercase tracking-wider text-[var(--exam-faint)]">{session.phase}</p>
+        <h1 className="mt-1 text-lg font-semibold tracking-tight text-[var(--exam-text)]">{session.title}</h1>
+        <div className="mt-4 flex items-center justify-between text-xs text-[var(--exam-muted)]">
           <span>
             Question {step + 1} / {total}
           </span>
@@ -1284,16 +1287,16 @@ function McqSessionView({
             {answered}/{total} answered
           </span>
         </div>
-        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-800">
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[rgba(23,31,54,0.7)]">
           <div
-            className="h-full rounded-full bg-zinc-200 transition-all"
+            className="h-full rounded-full bg-[linear-gradient(90deg,var(--exam-accent),var(--exam-accent-2))] transition-all duration-500"
             style={{ width: `${((step + 1) / total) * 100}%` }}
           />
         </div>
 
-        <fieldset className="mt-6 flex-1 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5">
+        <fieldset className="exam-glass-card mt-6 flex-1 rounded-[1.75rem] border border-[var(--exam-border)] p-5 shadow-[0_24px_70px_rgba(2,6,23,0.28)]">
           <legend className="sr-only">Question {step + 1}</legend>
-          <p className="text-base font-medium leading-7 text-zinc-100">{question.prompt}</p>
+          <p className="text-base font-medium leading-7 text-[var(--exam-text)]">{question.prompt}</p>
           <div className="mt-5 space-y-2.5">
             {question.options.map((option) => {
               const selected = answers[question.id] === option.id;
@@ -1302,13 +1305,17 @@ function McqSessionView({
                   key={option.id}
                   type="button"
                   onClick={() => selectOption(question.id, option.id)}
-                  className={`flex w-full items-start gap-3 rounded-xl border px-4 py-3.5 text-left text-sm transition ${
-                    selected ? "border-zinc-400 bg-zinc-800" : "border-zinc-800 hover:border-zinc-700"
+                  className={`exam-btn flex w-full items-start gap-3 rounded-2xl border px-4 py-3.5 text-left text-sm ${
+                    selected
+                      ? "border-[var(--exam-accent)] bg-[var(--exam-accent-soft)] shadow-[0_0_24px_rgba(139,124,246,0.18)]"
+                      : "border-[var(--exam-border-soft)] bg-[rgba(17,24,43,0.55)] hover:border-[var(--exam-border)]"
                   }`}
                 >
                   <span
                     className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border text-[10px] ${
-                      selected ? "border-zinc-200 bg-zinc-100 text-zinc-900" : "border-zinc-600 text-zinc-500"
+                      selected
+                        ? "border-[var(--exam-accent-2)] bg-[var(--exam-accent-2)] text-[#070b16]"
+                        : "border-[var(--exam-faint)] text-[var(--exam-muted)]"
                     }`}
                   >
                     {option.id.toUpperCase()}
@@ -1318,16 +1325,16 @@ function McqSessionView({
               );
             })}
           </div>
-          {result && <p className="mt-4 text-xs leading-5 text-zinc-500">{question.explanation}</p>}
+          {result && <p className="mt-4 text-xs leading-5 text-[var(--exam-muted)]">{question.explanation}</p>}
         </fieldset>
 
-        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-zinc-800 bg-[#09090b]/95 px-4 py-3 backdrop-blur">
+        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-[var(--exam-border)] bg-[rgba(11,16,32,0.82)] px-4 py-3 backdrop-blur-xl">
           <div className="mx-auto flex max-w-lg gap-2">
             <button
               type="button"
               disabled={step === 0}
               onClick={() => setStep((s) => Math.max(0, s - 1))}
-              className="rounded-lg border border-zinc-700 px-4 py-3 text-sm disabled:opacity-30"
+              className="exam-btn rounded-xl border border-[var(--exam-border)] px-4 py-3 text-sm text-[var(--exam-muted)] disabled:opacity-30"
             >
               Previous
             </button>
@@ -1335,7 +1342,7 @@ function McqSessionView({
               <button
                 type="button"
                 onClick={() => setStep((s) => Math.min(total - 1, s + 1))}
-                className="flex-1 rounded-lg bg-zinc-100 py-3 text-sm font-medium text-zinc-950"
+                className="exam-btn exam-glow-button flex-1 rounded-xl py-3 text-sm font-semibold"
               >
                 Next
               </button>
@@ -1344,7 +1351,7 @@ function McqSessionView({
                 type="button"
                 onClick={submit}
                 disabled={answered < total && !result}
-                className="flex-1 rounded-lg bg-zinc-100 py-3 text-sm font-medium text-zinc-950 disabled:opacity-40"
+                className="exam-btn exam-glow-button flex-1 rounded-xl py-3 text-sm font-semibold disabled:opacity-40"
               >
                 {result ? `Submitted · ${result.score}%` : "Submit session"}
               </button>
@@ -1356,18 +1363,24 @@ function McqSessionView({
   }
 
   return (
-    <section className="mx-auto max-w-3xl px-5 py-8">
-      <button onClick={onBack} className="mb-6 flex items-center gap-2 text-sm text-zinc-400">
+    <section className="exam-session-scene exam-fade-up mx-auto max-w-3xl px-5 py-8">
+      <button
+        onClick={onBack}
+        className="mb-6 flex items-center gap-2 text-sm text-[var(--exam-muted)] hover:text-[var(--exam-text)]"
+      >
         <ArrowLeft size={15} /> Back to phases
       </button>
-      <p className="text-xs uppercase tracking-wider text-zinc-500">{session.phase}</p>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight">{session.title}</h1>
-      <p className="mt-2 text-sm text-zinc-500">{session.subtitle}</p>
+      <p className="text-xs uppercase tracking-wider text-[var(--exam-faint)]">{session.phase}</p>
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--exam-text)]">{session.title}</h1>
+      <p className="mt-2 text-sm text-[var(--exam-muted)]">{session.subtitle}</p>
 
       <div className="mt-8 space-y-6">
         {session.questions.map((q, index) => (
-          <fieldset key={q.id} className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
-            <legend className="px-1 text-sm font-medium text-zinc-200">
+          <fieldset
+            key={q.id}
+            className="exam-glass-card rounded-2xl border border-[var(--exam-border)] p-5 shadow-[0_18px_50px_rgba(2,6,23,0.22)]"
+          >
+            <legend className="px-1 text-sm font-medium text-[var(--exam-text)]">
               {index + 1}. {q.prompt}
             </legend>
             <div className="mt-4 space-y-2">
@@ -1376,8 +1389,10 @@ function McqSessionView({
                 return (
                   <label
                     key={option.id}
-                    className={`flex cursor-pointer gap-3 rounded-lg border px-3 py-2.5 text-sm transition ${
-                      selected ? "border-zinc-500 bg-zinc-800" : "border-zinc-800 hover:border-zinc-700"
+                    className={`exam-btn flex cursor-pointer gap-3 rounded-xl border px-3 py-2.5 text-sm transition ${
+                      selected
+                        ? "border-[var(--exam-accent)] bg-[var(--exam-accent-soft)]"
+                        : "border-[var(--exam-border-soft)] bg-[rgba(17,24,43,0.5)] hover:border-[var(--exam-border)]"
                     }`}
                   >
                     <input
@@ -1392,18 +1407,18 @@ function McqSessionView({
                 );
               })}
             </div>
-            {result && <p className="mt-3 text-xs text-zinc-500">{q.explanation}</p>}
+            {result && <p className="mt-3 text-xs text-[var(--exam-muted)]">{q.explanation}</p>}
           </fieldset>
         ))}
       </div>
 
       <div className="mt-8 flex flex-wrap items-center gap-3">
-        <button onClick={submit} className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950">
+        <button onClick={submit} className="exam-btn exam-glow-button rounded-xl px-4 py-2.5 text-sm font-semibold">
           Submit session
         </button>
         {result && (
-          <span className="text-sm text-zinc-400">
-            Result: <strong className="text-zinc-100">{result.score}%</strong> ({result.passed}/{result.total})
+          <span className="text-sm text-[var(--exam-muted)]">
+            Result: <strong className="text-[var(--exam-text)]">{result.score}%</strong> ({result.passed}/{result.total})
           </span>
         )}
       </div>
