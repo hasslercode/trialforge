@@ -9,32 +9,15 @@ import {
   getTopic,
   getTrack,
   studyTracks,
-  type ExamCoverage,
   type StudyTopic,
   type StudyTrack,
 } from "./curriculum";
-import { COVERAGE_KIND_LABEL, type ExamCoverageKind } from "./exam-coverage";
 import "./study.css";
 
 type StudyProgress = Record<string, boolean>;
 
 function topicKey(trackId: string, topicId: string) {
   return `${trackId}::${topicId}`;
-}
-
-function ExamCoverageBadge({ coverage, compact }: { coverage: ExamCoverage; compact?: boolean }) {
-  const tone: Record<ExamCoverageKind, string> = {
-    mcq: "study-coverage-mcq",
-    practical: "study-coverage-practical",
-    both: "study-coverage-both",
-    meta: "study-coverage-meta",
-  };
-  return (
-    <span className={`study-coverage-badge ${tone[coverage.kind]} ${compact ? "text-[10px]" : ""}`}>
-      {COVERAGE_KIND_LABEL[coverage.kind]}
-      {!compact && <span className="opacity-80"> · {coverage.label}</span>}
-    </span>
-  );
 }
 
 export function StudyScreen({ onBack }: { onBack: () => void }) {
@@ -184,8 +167,8 @@ function RoadmapHome({
           </h1>
           <p className="mt-4 max-w-xl font-[family-name:var(--font-study-body)] text-sm leading-7 text-[var(--study-muted)] sm:text-base">
             Temas del challenge contados con analogías de niño y dibujos de pizarra. Cada tema tiene una
-            pregunta o variante 1:1 en el simulacro — mira el badge de evaluación. Marca lo que ya
-            entiendes; se guarda en este dispositivo.
+            explicación corta para repasar antes del simulacro. Marca lo que ya entiendes; se guarda en
+            este dispositivo.
           </p>
 
           <div className="study-sticky study-sticky-lemon mt-6 inline-flex w-fit items-center gap-3 px-4 py-3">
@@ -434,9 +417,6 @@ function TrackView({
                   <button type="button" onClick={() => onOpenTopic(topic.id)} className="min-w-0 flex-1 text-left">
                     <p className="study-hand text-xs text-[var(--study-cyan)]">Tema {i + 1}</p>
                     <h3 className="study-hand text-xl leading-tight text-[var(--study-text)] sm:text-2xl">{topic.title}</h3>
-                    <div className="mt-2">
-                      <ExamCoverageBadge coverage={topic.examCoverage} compact />
-                    </div>
                     <p className="mt-2 line-clamp-2 font-[family-name:var(--font-study-body)] text-sm leading-6 text-[var(--study-muted)]">
                       {topic.kidAnalogy}
                     </p>
@@ -484,18 +464,6 @@ function TopicView({
       <p className="mt-3 font-[family-name:var(--font-study-body)] text-sm leading-7 text-[var(--study-muted)] sm:text-base">
         {topic.summary}
       </p>
-
-      <div className="study-sticky study-sticky-sky mt-6 p-4 sm:p-5">
-        <ExamCoverageBadge coverage={topic.examCoverage} />
-        <p className="mt-3 font-[family-name:var(--font-study-body)] text-sm text-[var(--study-text)]">
-          <strong className="study-hand">Ítem 1:1 en el simulacro:</strong>{" "}
-          <code className="study-inline-code">{topic.examCoverage.primaryId}</code>
-        </p>
-        <p className="mt-1 font-[family-name:var(--font-study-body)] text-xs text-[var(--study-muted)]">
-          Si sale en tu corrida (10 MCQ por sesión o 1 variante práctica), este ID evalúa directamente
-          este tema.
-        </p>
-      </div>
 
       <div className="study-glass mt-8 rounded-[1.5rem] p-5 sm:p-6">
         <p className="study-hand text-xl text-[#fdba74]">Como si tuvieras 8 años…</p>
@@ -559,29 +527,6 @@ function TopicView({
           </ol>
         </section>
       )}
-
-      <section className="study-glass mt-8 rounded-[1.5rem] p-5 sm:p-6">
-        <h2 className="study-hand text-2xl text-[var(--study-text)]">En el challenge</h2>
-        <p className="mt-1 font-[family-name:var(--font-study-body)] text-sm text-[var(--study-muted)]">
-          El chip resaltado es la evaluación 1:1; el resto refuerza el mismo tema.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {topic.bankLinks.map((id) => {
-            const isPrimary = id === topic.examCoverage.primaryId;
-            return (
-              <span
-                key={id}
-                className={`font-[family-name:var(--font-study-body)] ${
-                  isPrimary ? "study-chip-primary" : "study-chip"
-                }`}
-              >
-                {isPrimary ? "★ " : ""}
-                {id}
-              </span>
-            );
-          })}
-        </div>
-      </section>
 
       <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button

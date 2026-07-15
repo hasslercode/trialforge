@@ -107,10 +107,10 @@ export type ExamAttempt = {
 };
 
 /**
- * Enough history slots to cover the full bank
- * (bottleneck: 10 JS/SQL variants in session 3 · 1 per run).
+ * Enough history slots to cover the expanded MCQ bank
+ * (bottleneck for practicals remains ~10 JS/SQL variants in session 3).
  */
-export const MAX_ATTEMPT_SLOTS = 10;
+export const MAX_ATTEMPT_SLOTS = 15;
 
 export type AppState = {
   /** Length = MAX_ATTEMPT_SLOTS: null = free slot */
