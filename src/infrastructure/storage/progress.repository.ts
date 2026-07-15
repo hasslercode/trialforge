@@ -4,7 +4,15 @@ import { MAX_ATTEMPT_SLOTS } from "@/domain/exam";
 const DATABASE = "bancolombia-exam-v3";
 const STORE = "state";
 const KEY = "app";
+const LEGACY_STUDY_KEY = "trialforge-study-v1";
 const TOTAL_SECONDS = 180 * 60;
+
+export type StudyProgress = Record<string, boolean>;
+
+export type PersistedState = {
+  app: AppState;
+  study: StudyProgress;
+};
 
 export const emptyProgress = (): ExamProgress => ({
   startedAt: null,
@@ -21,6 +29,11 @@ export const emptySlots = (): (ExamAttempt | null)[] =>
 export const emptyAppState = (): AppState => ({
   slots: emptySlots(),
   activeSlot: null,
+});
+
+export const emptyPersistedState = (): PersistedState => ({
+  app: emptyAppState(),
+  study: {},
 });
 
 export function attemptToProgress(attempt: ExamAttempt | null): ExamProgress {
@@ -62,7 +75,7 @@ function openDatabase(): Promise<IDBDatabase> {
   });
 }
 
-function normalizeState(value: Partial<AppState> | undefined): AppState {
+function normalizeAppState(value: Partial<AppState> | undefined): AppState {
   const slots = emptySlots();
   if (!value) return { slots, activeSlot: null };
   const incoming = Array.isArray(value.slots) ? value.slots : [];
@@ -76,25 +89,119 @@ function normalizeState(value: Partial<AppState> | undefined): AppState {
   return { slots, activeSlot };
 }
 
-export async function loadAppState(): Promise<AppState> {
-  if (typeof window === "undefined" || !window.indexedDB) return emptyAppState();
+function normalizeStudyProgress(value: unknown): StudyProgress {
+  if (!value || typeof value !== "object") return {};
+  const out: StudyProgress = {};
+  for (const [key, done] of Object.entries(value as Record<string, unknown>)) {
+    if (done === true) out[key] = true;
+  }
+  return out;
+}
+
+function readLegacyStudyFromLocalStorage(): StudyProgress {
+  if (typeof window === "undefined") return {};
   try {
-    const db = await openDatabase();
-    return await new Promise<AppState>((resolve, reject) => {
-      const request = db.transaction(STORE, "readonly").objectStore(STORE).get(KEY);
-      request.onsuccess = () => resolve(normalizeState(request.result as Partial<AppState> | undefined));
-      request.onerror = () => reject(request.error);
-    });
+    const raw = localStorage.getItem(LEGACY_STUDY_KEY);
+    return raw ? normalizeStudyProgress(JSON.parse(raw)) : {};
   } catch {
-    return emptyAppState();
+    return {};
   }
 }
 
+function isLegacyAppPayload(value: unknown): value is Partial<AppState> {
+  return Boolean(value && typeof value === "object" && "slots" in value && !("app" in value));
+}
+
+function normalizePersisted(value: unknown): PersistedState {
+  if (!value || typeof value !== "object") {
+    return { app: emptyAppState(), study: readLegacyStudyFromLocalStorage() };
+  }
+
+  if (isLegacyAppPayload(value)) {
+    return {
+      app: normalizeAppState(value),
+      study: readLegacyStudyFromLocalStorage(),
+    };
+  }
+
+  const wrapped = value as Partial<PersistedState>;
+  const study = normalizeStudyProgress(wrapped.study);
+  const legacyStudy = Object.keys(study).length === 0 ? readLegacyStudyFromLocalStorage() : study;
+
+  return {
+    app: normalizeAppState(wrapped.app),
+    study: legacyStudy,
+  };
+}
+
+async function readPersistedState(): Promise<PersistedState> {
+  if (typeof window === "undefined" || !window.indexedDB) {
+    return { app: emptyAppState(), study: readLegacyStudyFromLocalStorage() };
+  }
+
+  try {
+    const db = await openDatabase();
+    return await new Promise<PersistedState>((resolve, reject) => {
+      const request = db.transaction(STORE, "readonly").objectStore(STORE).get(KEY);
+      request.onsuccess = () => resolve(normalizePersisted(request.result));
+      request.onerror = () => reject(request.error);
+    });
+  } catch {
+    return { app: emptyAppState(), study: readLegacyStudyFromLocalStorage() };
+  }
+}
+
+async function writePersistedState(state: PersistedState): Promise<void> {
+  if (typeof window === "undefined" || !window.indexedDB) return;
+
+  try {
+    const db = await openDatabase();
+    await new Promise<void>((resolve, reject) => {
+      const request = db
+        .transaction(STORE, "readwrite")
+        .objectStore(STORE)
+        .put(
+          {
+            app: normalizeAppState(state.app),
+            study: normalizeStudyProgress(state.study),
+          },
+          KEY,
+        );
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+
+    // Limpia copia legacy una vez migrada a IndexedDB.
+    try {
+      localStorage.removeItem(LEGACY_STUDY_KEY);
+    } catch {
+      /* ignore */
+    }
+  } catch {
+    /* IndexedDB no disponible (modo privado, cuota, etc.) */
+  }
+}
+
+export async function loadPersistedState(): Promise<PersistedState> {
+  return readPersistedState();
+}
+
+export async function loadAppState(): Promise<AppState> {
+  const persisted = await readPersistedState();
+  return persisted.app;
+}
+
 export async function saveAppState(state: AppState): Promise<void> {
-  const db = await openDatabase();
-  await new Promise<void>((resolve, reject) => {
-    const request = db.transaction(STORE, "readwrite").objectStore(STORE).put(normalizeState(state), KEY);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
-  });
+  const persisted = await readPersistedState();
+  await writePersistedState({ ...persisted, app: normalizeAppState(state) });
+}
+
+export async function loadStudyProgress(): Promise<StudyProgress> {
+  const persisted = await readPersistedState();
+  return persisted.study;
+}
+
+export async function saveStudyProgress(study: StudyProgress): Promise<void> {
+  const persisted = await readPersistedState();
+  await writePersistedState({ ...persisted, study: normalizeStudyProgress(study) });
 }

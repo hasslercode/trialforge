@@ -6,7 +6,7 @@ Plataforma local-first para **simular pruebas técnicas** reales. Hoy corre el t
 
 - Flujos por **fases** (MCQ + prácticas) con timer global y umbral de aprobación  
 - **Banco grande** con anti-repetición entre corridas  
-- Historial de intentos (5 slots)  
+- Historial de intentos (10 slots · banco completo)  
 - Escalable: contenido por cliente (`src/content/<cliente>`)
 
 ## Stack

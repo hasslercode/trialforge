@@ -93,7 +93,7 @@ export type ExamProgress = {
   submissions: Record<string, Record<string, string>>;
 };
 
-/** Una corrida completa del examen (ocupa 1 de 5 slots del panel) */
+/** Una corrida completa del examen (ocupa 1 slot del panel) */
 export type ExamAttempt = {
   id: string;
   startedAt: string;
@@ -106,10 +106,14 @@ export type ExamAttempt = {
   overallScore: number;
 };
 
-export const MAX_ATTEMPT_SLOTS = 5;
+/**
+ * Slots de historial suficientes para cubrir el banco completo
+ * (cuello de botella: 10 variantes JS/SQL en sesión 3 · 1 por corrida).
+ */
+export const MAX_ATTEMPT_SLOTS = 10;
 
 export type AppState = {
-  /** Siempre length 5: null = slot libre */
+  /** Length = MAX_ATTEMPT_SLOTS: null = slot libre */
   slots: (ExamAttempt | null)[];
   activeSlot: number | null;
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -14,6 +14,7 @@ import {
   BookOpen,
   Play,
   Plus,
+  RotateCcw,
   Smartphone,
   Trophy,
 } from "lucide-react";
@@ -165,6 +166,50 @@ export default function App() {
     persist({ ...app, slots });
   }
 
+  function saveDraftAnswers(answers: Record<string, string>) {
+    setApp((prev) => {
+      if (prev.activeSlot === null) return prev;
+      const existing = prev.slots[prev.activeSlot];
+      if (!existing) return prev;
+      const currentProgress = attemptToProgress(existing);
+      const nextProgress: ExamProgress = {
+        ...currentProgress,
+        answers: { ...currentProgress.answers, ...answers },
+      };
+      const examForSlot = buildExam(nextProgress.selection);
+      const score = weightedExamScore(examForSlot.sessions, nextProgress.results);
+      const attempt = progressToAttempt(nextProgress, score, existing.id);
+      if (!attempt) return prev;
+      const slots = [...prev.slots] as (ExamAttempt | null)[];
+      slots[prev.activeSlot] = attempt;
+      const next = { ...prev, slots };
+      void saveAppState(next);
+      return next;
+    });
+  }
+
+  function saveDraftSubmission(sessionId: string, files: Record<string, string>) {
+    setApp((prev) => {
+      if (prev.activeSlot === null) return prev;
+      const existing = prev.slots[prev.activeSlot];
+      if (!existing) return prev;
+      const currentProgress = attemptToProgress(existing);
+      const nextProgress: ExamProgress = {
+        ...currentProgress,
+        submissions: { ...currentProgress.submissions, [sessionId]: files },
+      };
+      const examForSlot = buildExam(nextProgress.selection);
+      const score = weightedExamScore(examForSlot.sessions, nextProgress.results);
+      const attempt = progressToAttempt(nextProgress, score, existing.id);
+      if (!attempt) return prev;
+      const slots = [...prev.slots] as (ExamAttempt | null)[];
+      slots[prev.activeSlot] = attempt;
+      const next = { ...prev, slots };
+      void saveAppState(next);
+      return next;
+    });
+  }
+
   function startInSlot(slotIndex: number) {
     // Excluye el slot actual (libre o a reiniciar) para no contar su selección vieja
     const others = app.slots.map((slot, index) => (index === slotIndex ? null : slot));
@@ -194,6 +239,31 @@ export default function App() {
       return;
     }
     startInSlot(freeIndex);
+  }
+
+  function resetAllAttempts() {
+    const ok = window.confirm(
+      `Se borrarán las ${MAX_ATTEMPT_SLOTS} corridas guardadas en este dispositivo. Empezarás de cero con preguntas y prácticas aleatorias nuevas. ¿Continuar?`,
+    );
+    if (!ok) return;
+    persist(emptyAppState());
+    setExamRunning(false);
+    setScreen("home");
+  }
+
+  function restartSlot(slotIndex: number) {
+    if (app.slots[slotIndex]) {
+      const ok = window.confirm(
+        `La corrida del slot #${slotIndex + 1} se reemplazará por una mezcla aleatoria nueva del banco. ¿Continuar?`,
+      );
+      if (!ok) return;
+    }
+    startInSlot(slotIndex);
+  }
+
+  function restartActiveSlot() {
+    if (app.activeSlot === null) return;
+    restartSlot(app.activeSlot);
   }
 
   function selectSlot(slotIndex: number) {
@@ -252,6 +322,7 @@ export default function App() {
           selectSlot(index);
           setSidebarPinnedOpen(false);
         }}
+        onResetAll={resetAllAttempts}
         onCollapse={() => setSidebarPinnedOpen(false)}
       />
 
@@ -325,6 +396,7 @@ export default function App() {
               activeSlot={app.activeSlot}
               passThreshold={examMeta.passThreshold}
               onSelect={selectSlot}
+              onResetAll={resetAllAttempts}
             />
           </div>
         )}
@@ -339,6 +411,7 @@ export default function App() {
               onStart={startExam}
               onResume={resumeExam}
               onStudy={() => setScreen("study")}
+              onResetAll={resetAllAttempts}
             />
           )}
           {screen === "study" && <StudyScreen onBack={() => setScreen("home")} />}
@@ -347,9 +420,13 @@ export default function App() {
               exam={exam}
               progress={progress}
               overall={overall}
+              freeSlots={freeSlots}
               isMobile={isMobile}
               onOpen={openSession}
               onResults={() => setScreen("results")}
+              onNewRun={startExam}
+              onResetAll={resetAllAttempts}
+              onRestartSlot={restartActiveSlot}
             />
           )}
           {screen === "session" && (
@@ -360,6 +437,8 @@ export default function App() {
               isMobile={isMobile}
               onBack={() => setScreen("roadmap")}
               onComplete={saveSessionResult}
+              onDraftAnswers={saveDraftAnswers}
+              onDraftSubmission={saveDraftSubmission}
             />
           )}
           {screen === "results" && (
@@ -367,8 +446,12 @@ export default function App() {
               exam={exam}
               progress={progress}
               overall={overall}
+              freeSlots={freeSlots}
               isMobile={isMobile}
               onRoadmap={() => setScreen("roadmap")}
+              onNewRun={startExam}
+              onResetAll={resetAllAttempts}
+              onRestartSlot={restartActiveSlot}
             />
           )}
         </div>
@@ -385,6 +468,7 @@ function AttemptsPanel({
   passThreshold,
   freeSlots,
   onSelect,
+  onResetAll,
   onCollapse,
 }: {
   collapsed: boolean;
@@ -394,6 +478,7 @@ function AttemptsPanel({
   passThreshold: number;
   freeSlots: number;
   onSelect: (index: number) => void;
+  onResetAll: () => void;
   onCollapse: () => void;
 }) {
   const open = !collapsed;
@@ -460,6 +545,22 @@ function AttemptsPanel({
               />
             ))}
           </div>
+
+          <div className="shrink-0 border-t border-zinc-800 p-3">
+            <button
+              type="button"
+              onClick={onResetAll}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-800 px-3 py-2 text-[11px] text-zinc-500 transition hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-300"
+            >
+              <RotateCcw size={12} />
+              Reiniciar las {MAX_ATTEMPT_SLOTS} corridas
+            </button>
+            {freeSlots === 0 && (
+              <p className="mt-2 px-1 text-center text-[10px] leading-4 text-zinc-600">
+                Slots llenos · reinicia para otra oleada del banco
+              </p>
+            )}
+          </div>
         </div>
       </aside>
     </>
@@ -471,25 +572,40 @@ function AttemptsStrip({
   activeSlot,
   passThreshold,
   onSelect,
+  onResetAll,
 }: {
   slots: (ExamAttempt | null)[];
   activeSlot: number | null;
   passThreshold: number;
   onSelect: (index: number) => void;
+  onResetAll: () => void;
 }) {
+  const allFull = slots.every(Boolean);
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1">
-      {slots.map((attempt, index) => (
-        <AttemptCard
-          key={attempt?.id ?? `m-empty-${index}`}
-          attempt={attempt}
-          index={index}
-          active={activeSlot === index}
-          passThreshold={passThreshold}
-          onSelect={onSelect}
-          compact
-        />
-      ))}
+    <div className="space-y-2">
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {slots.map((attempt, index) => (
+          <AttemptCard
+            key={attempt?.id ?? `m-empty-${index}`}
+            attempt={attempt}
+            index={index}
+            active={activeSlot === index}
+            passThreshold={passThreshold}
+            onSelect={onSelect}
+            compact
+          />
+        ))}
+      </div>
+      {allFull && (
+        <button
+          type="button"
+          onClick={onResetAll}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-800 py-2 text-xs text-zinc-500"
+        >
+          <RotateCcw size={12} />
+          Reiniciar {MAX_ATTEMPT_SLOTS} corridas
+        </button>
+      )}
     </div>
   );
 }
@@ -569,6 +685,7 @@ function Home({
   onStart,
   onResume,
   onStudy,
+  onResetAll,
 }: {
   overall: number;
   hasProgress: boolean;
@@ -577,6 +694,7 @@ function Home({
   onStart: () => void;
   onResume: () => void;
   onStudy: () => void;
+  onResetAll: () => void;
 }) {
   return (
     <section className="px-4 pb-24 pt-10 sm:px-10 sm:pt-24">
@@ -598,8 +716,9 @@ function Home({
         {examMeta.title}
       </h1>
       <p className="mt-5 max-w-2xl text-sm leading-7 text-zinc-400 sm:mt-6 sm:text-base">
-        Hasta <strong className="text-zinc-200">5 corridas</strong> en el historial. Cada una arma un
-        set distinto del banco. Ideal para practicar teoría en móvil y código en PC.
+        Hasta <strong className="text-zinc-200">{MAX_ATTEMPT_SLOTS} corridas</strong> en el historial —
+        suficientes para recorrer todo el banco (MCQ + prácticas) sin repetir hasta agotar. Ideal para
+        teoría en móvil y código en PC.
       </p>
 
       <button
@@ -667,6 +786,15 @@ function Home({
           <Play size={16} fill="currentColor" />
           {freeSlots === 0 ? "Sin slots libres" : isMobile ? "Nueva corrida (teoría)" : "Nueva corrida"}
         </button>
+        {freeSlots === 0 && (
+          <button
+            onClick={onResetAll}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-amber-800/60 bg-amber-950/20 px-5 py-3.5 text-sm font-medium text-amber-100 sm:w-auto"
+          >
+            <RotateCcw size={16} />
+            Reiniciar historial · {MAX_ATTEMPT_SLOTS} corridas nuevas
+          </button>
+        )}
         {hasProgress && (
           <button
             onClick={onResume}
@@ -691,16 +819,24 @@ function Roadmap({
   exam,
   progress,
   overall,
+  freeSlots,
   isMobile,
   onOpen,
   onResults,
+  onNewRun,
+  onResetAll,
+  onRestartSlot,
 }: {
   exam: Exam;
   progress: ExamProgress;
   overall: number;
+  freeSlots: number;
   isMobile: boolean;
   onOpen: (id: string) => void;
   onResults: () => void;
+  onNewRun: () => void;
+  onResetAll: () => void;
+  onRestartSlot: () => void;
 }) {
   const byId = new Map(progress.results.map((r) => [r.sessionId, r]));
   const theorySessions = exam.sessions.filter(isMobileFriendlySession);
@@ -809,6 +945,15 @@ function Roadmap({
         })}
       </ol>
 
+      <CorridaNextSteps
+        className="mt-10 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5"
+        allPhasesDone={progress.results.length === exam.sessions.length}
+        freeSlots={freeSlots}
+        onNewRun={onNewRun}
+        onResetAll={onResetAll}
+        onRestartSlot={onRestartSlot}
+      />
+
       <button onClick={onResults} className="mt-8 text-sm text-zinc-400 underline underline-offset-4">
         Ver resultado final
       </button>
@@ -822,12 +967,16 @@ function SessionView({
   isMobile,
   onBack,
   onComplete,
+  onDraftAnswers,
+  onDraftSubmission,
 }: {
   session: ExamSession;
   progress: ExamProgress;
   isMobile: boolean;
   onBack: () => void;
   onComplete: (result: SessionResult, answers?: Record<string, string>, submissions?: Record<string, string>) => void;
+  onDraftAnswers: (answers: Record<string, string>) => void;
+  onDraftSubmission: (sessionId: string, files: Record<string, string>) => void;
 }) {
   if (session.kind === "mcq") {
     return (
@@ -837,13 +986,22 @@ function SessionView({
         isMobile={isMobile}
         onBack={onBack}
         onComplete={onComplete}
+        onDraftAnswers={onDraftAnswers}
       />
     );
   }
   if (isMobile) {
     return <DesktopRequiredGate session={session} onBack={onBack} />;
   }
-  return <PracticalSessionView session={session} progress={progress} onBack={onBack} onComplete={onComplete} />;
+  return (
+    <PracticalSessionView
+      session={session}
+      progress={progress}
+      onBack={onBack}
+      onComplete={onComplete}
+      onDraftSubmission={onDraftSubmission}
+    />
+  );
 }
 
 function DesktopRequiredGate({
@@ -888,12 +1046,14 @@ function McqSessionView({
   isMobile,
   onBack,
   onComplete,
+  onDraftAnswers,
 }: {
   session: Extract<ExamSession, { kind: "mcq" }>;
   progress: ExamProgress;
   isMobile: boolean;
   onBack: () => void;
   onComplete: (result: SessionResult, answers?: Record<string, string>) => void;
+  onDraftAnswers: (answers: Record<string, string>) => void;
 }) {
   const prefix = `${session.id}:`;
   const initial = Object.fromEntries(
@@ -911,6 +1071,13 @@ function McqSessionView({
   const answered = session.questions.filter((q) => answers[q.id]).length;
   const question = session.questions[Math.min(step, total - 1)];
 
+  function persistAnswers(next: Record<string, string>) {
+    const namespaced = Object.fromEntries(
+      Object.entries(next).map(([key, value]) => [`${prefix}${key}`, value]),
+    );
+    onDraftAnswers(namespaced);
+  }
+
   function submit() {
     const evaluation = evaluateMcq(session.id, session.questions, answers);
     const stamped: SessionResult = { ...evaluation, completedAt: new Date().toISOString() };
@@ -920,7 +1087,11 @@ function McqSessionView({
   }
 
   function selectOption(questionId: string, optionId: string) {
-    setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
+    setAnswers((prev) => {
+      const next = { ...prev, [questionId]: optionId };
+      persistAnswers(next);
+      return next;
+    });
     if (isMobile && step < total - 1) {
       window.setTimeout(() => setStep((s) => Math.min(s + 1, total - 1)), 180);
     }
@@ -1074,11 +1245,13 @@ function PracticalSessionView({
   progress,
   onBack,
   onComplete,
+  onDraftSubmission,
 }: {
   session: Extract<ExamSession, { kind: "javascript" | "css" | "angular" | "sql" }>;
   progress: ExamProgress;
   onBack: () => void;
   onComplete: (result: SessionResult, _answers?: Record<string, string>, submissions?: Record<string, string>) => void;
+  onDraftSubmission: (sessionId: string, files: Record<string, string>) => void;
 }) {
   const saved = progress.submissions[session.id];
   const [files, setFiles] = useState<Record<string, string>>(() => {
@@ -1089,10 +1262,28 @@ function PracticalSessionView({
   const [result, setResult] = useState<Evaluation | null>(
     progress.results.find((r) => r.sessionId === session.id) ?? null,
   );
+  const skipDraftSave = useRef(true);
 
   const fileLocked =
     (session.kind === "css" && activeFile.endsWith(".html")) ||
     (session.kind === "sql" && activeFile === "schema.sql");
+
+  useEffect(() => {
+    if (skipDraftSave.current) {
+      skipDraftSave.current = false;
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      onDraftSubmission(session.id, files);
+    }, 500);
+    return () => window.clearTimeout(timer);
+  }, [files, onDraftSubmission, session.id]);
+
+  useEffect(() => {
+    const flush = () => onDraftSubmission(session.id, files);
+    window.addEventListener("pagehide", flush);
+    return () => window.removeEventListener("pagehide", flush);
+  }, [files, onDraftSubmission, session.id]);
 
   function submit() {
     const evaluation = evaluatePractical(session, files);
@@ -1205,14 +1396,22 @@ function Results({
   exam,
   progress,
   overall,
+  freeSlots,
   isMobile,
   onRoadmap,
+  onNewRun,
+  onResetAll,
+  onRestartSlot,
 }: {
   exam: Exam;
   progress: ExamProgress;
   overall: number;
+  freeSlots: number;
   isMobile: boolean;
   onRoadmap: () => void;
+  onNewRun: () => void;
+  onResetAll: () => void;
+  onRestartSlot: () => void;
 }) {
   const theory = exam.sessions.filter(isMobileFriendlySession);
   const theoryDone = theory.filter((s) => progress.results.some((r) => r.sessionId === s.id)).length;
@@ -1270,9 +1469,83 @@ function Results({
         })}
       </ul>
 
+      <CorridaNextSteps
+        className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5"
+        allPhasesDone={progress.results.length === exam.sessions.length}
+        freeSlots={freeSlots}
+        onNewRun={onNewRun}
+        onResetAll={onResetAll}
+        onRestartSlot={onRestartSlot}
+      />
+
       <button onClick={onRoadmap} className="mt-8 rounded-lg border border-zinc-700 px-4 py-2 text-sm">
         Volver a fases
       </button>
     </section>
+  );
+}
+
+function CorridaNextSteps({
+  allPhasesDone,
+  freeSlots,
+  onNewRun,
+  onResetAll,
+  onRestartSlot,
+  className = "",
+}: {
+  allPhasesDone: boolean;
+  freeSlots: number;
+  onNewRun: () => void;
+  onResetAll: () => void;
+  onRestartSlot?: () => void;
+  className?: string;
+}) {
+  if (!allPhasesDone) return null;
+
+  return (
+    <div className={className}>
+      <p className="text-sm font-medium text-zinc-200">Completaste las 5 fases de esta corrida</p>
+      <p className="mt-1 text-sm text-zinc-500">
+        {freeSlots > 0
+          ? "Puedes iniciar otra corrida con preguntas y prácticas aleatorias distintas."
+          : `Tus ${MAX_ATTEMPT_SLOTS} slots están llenos. Reinicia el historial o reemplaza este slot.`}
+      </p>
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+        {freeSlots > 0 ? (
+          <button
+            type="button"
+            onClick={onNewRun}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-100 px-4 py-2.5 text-sm font-medium text-zinc-950"
+          >
+            <Plus size={16} />
+            Nueva corrida aleatoria
+            <span className="text-zinc-600">
+              ({freeSlots} slot{freeSlots === 1 ? "" : "s"} libre{freeSlots === 1 ? "" : "s"})
+            </span>
+          </button>
+        ) : (
+          <>
+            {onRestartSlot && (
+              <button
+                type="button"
+                onClick={onRestartSlot}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-600 px-4 py-2.5 text-sm font-medium"
+              >
+                <RotateCcw size={16} />
+                Este slot · mezcla nueva
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onResetAll}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-amber-800/60 bg-amber-950/30 px-4 py-2.5 text-sm font-medium text-amber-100"
+            >
+              <RotateCcw size={16} />
+              Reiniciar historial · {MAX_ATTEMPT_SLOTS} corridas nuevas
+            </button>
+          </>
+        )}
+      </div>
+    </div>
   );
 }

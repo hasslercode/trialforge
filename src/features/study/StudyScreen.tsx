@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, Circle, Lightbulb, Map, Sparkles } from "lucide-react";
+import { ArrowLeft, Check, Circle, Code2, Lightbulb, Map, Sparkles } from "lucide-react";
+import { loadStudyProgress, saveStudyProgress } from "@/infrastructure/storage/progress.repository";
 import {
-  STUDY_STORAGE_KEY,
   allTopicIds,
   getTopic,
   getTrack,
   studyTracks,
+  type ExamCoverage,
   type StudyTopic,
   type StudyTrack,
 } from "./curriculum";
+import { COVERAGE_KIND_LABEL, type ExamCoverageKind } from "./exam-coverage";
 import "./study.css";
 
 type StudyProgress = Record<string, boolean>;
@@ -19,27 +21,35 @@ function topicKey(trackId: string, topicId: string) {
   return `${trackId}::${topicId}`;
 }
 
-function loadProgress(): StudyProgress {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = localStorage.getItem(STUDY_STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as StudyProgress) : {};
-  } catch {
-    return {};
-  }
-}
-
-function saveProgress(progress: StudyProgress) {
-  localStorage.setItem(STUDY_STORAGE_KEY, JSON.stringify(progress));
+function ExamCoverageBadge({ coverage, compact }: { coverage: ExamCoverage; compact?: boolean }) {
+  const tone: Record<ExamCoverageKind, string> = {
+    mcq: "study-coverage-mcq",
+    practical: "study-coverage-practical",
+    both: "study-coverage-both",
+    meta: "study-coverage-meta",
+  };
+  return (
+    <span className={`study-coverage-badge ${tone[coverage.kind]} ${compact ? "text-[10px]" : ""}`}>
+      {COVERAGE_KIND_LABEL[coverage.kind]}
+      {!compact && <span className="opacity-80"> · {coverage.label}</span>}
+    </span>
+  );
 }
 
 export function StudyScreen({ onBack }: { onBack: () => void }) {
   const [progress, setProgress] = useState<StudyProgress>({});
   const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
   const [activeTopicId, setActiveTopicId] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    setProgress(loadProgress());
+    void loadStudyProgress().then((stored) => {
+      setProgress(stored);
+      setLoaded(true);
+      if (Object.keys(stored).length > 0) {
+        void saveStudyProgress(stored);
+      }
+    });
   }, []);
 
   const keys = useMemo(() => allTopicIds(), []);
@@ -54,7 +64,7 @@ export function StudyScreen({ onBack }: { onBack: () => void }) {
     const key = topicKey(trackId, topicId);
     setProgress((prev) => {
       const next = { ...prev, [key]: !prev[key] };
-      saveProgress(next);
+      void saveStudyProgress(next);
       return next;
     });
   }
@@ -77,7 +87,12 @@ export function StudyScreen({ onBack }: { onBack: () => void }) {
     <div className="study-board min-h-[calc(100vh-3.5rem)]">
       <div className="study-noise" aria-hidden />
       <div className="relative mx-auto max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
-        {!activeTrack && (
+        {!loaded ? (
+          <p className="font-[family-name:var(--font-study-body)] text-sm text-[#57534e]">
+            Cargando tu progreso guardado…
+          </p>
+        ) : null}
+        {loaded && !activeTrack && (
           <RoadmapHome
             doneCount={doneCount}
             total={keys.length}
@@ -88,7 +103,7 @@ export function StudyScreen({ onBack }: { onBack: () => void }) {
           />
         )}
 
-        {activeTrack && !activeTopic && (
+        {loaded && activeTrack && !activeTopic && (
           <TrackView
             track={activeTrack}
             progress={progress}
@@ -98,7 +113,7 @@ export function StudyScreen({ onBack }: { onBack: () => void }) {
           />
         )}
 
-        {activeTrack && activeTopic && (
+        {loaded && activeTrack && activeTopic && (
           <TopicView
             track={activeTrack}
             topic={activeTopic}
@@ -144,8 +159,9 @@ function RoadmapHome({
           Roadmap para estudiar
         </h1>
         <p className="mt-4 max-w-xl font-[family-name:var(--font-study-body)] text-sm leading-7 text-[#44403c] sm:text-base">
-          Temas del banco de TrialForge, contados con analogías de niño y dibujos de pizarra. Marca lo
-          que ya entiendes y vuelve cuando quieras — se guarda en este dispositivo.
+          Temas del banco de TrialForge, contados con analogías de niño y dibujos de pizarra. Cada tema
+          tiene una pregunta o variante 1:1 en el simulacro — mira el badge de evaluación. Marca lo que
+          ya entiendes; se guarda en este dispositivo.
         </p>
 
         <div className="study-sticky study-sticky-lemon mt-6 inline-flex rotate-[-1.5deg] items-center gap-3 px-4 py-3">
@@ -333,6 +349,9 @@ function TrackView({
                   <button type="button" onClick={() => onOpenTopic(topic.id)} className="min-w-0 flex-1 text-left">
                     <p className="study-hand text-xs text-[#78716c]">Tema {i + 1}</p>
                     <h3 className="study-hand text-xl leading-tight sm:text-2xl">{topic.title}</h3>
+                    <div className="mt-2">
+                      <ExamCoverageBadge coverage={topic.examCoverage} compact />
+                    </div>
                     <p className="mt-2 line-clamp-2 font-[family-name:var(--font-study-body)] text-sm leading-6 text-[#57534e]">
                       {topic.kidAnalogy}
                     </p>
@@ -381,6 +400,18 @@ function TopicView({
         {topic.summary}
       </p>
 
+      <div className="study-sticky study-sticky-sky mt-6 rotate-[0.5deg] p-4 sm:p-5">
+        <ExamCoverageBadge coverage={topic.examCoverage} />
+        <p className="mt-3 font-[family-name:var(--font-study-body)] text-sm text-[#0c4a6e]">
+          <strong className="study-hand">Ítem 1:1 en el simulacro:</strong>{" "}
+          <code className="study-inline-code">{topic.examCoverage.primaryId}</code>
+        </p>
+        <p className="mt-1 font-[family-name:var(--font-study-body)] text-xs text-[#0c4a6e]/80">
+          Si sale en tu corrida (10 MCQ por sesión o 1 variante práctica), este ID evalúa directamente
+          este tema.
+        </p>
+      </div>
+
       <div className="study-sticky study-sticky-peach mt-8 rotate-[-1deg] p-5 sm:p-6">
         <p className="study-hand text-xl text-[#7c2d12]">Como si tuvieras 8 años…</p>
         <p className="mt-3 font-[family-name:var(--font-study-body)] text-base leading-7 text-[#431407] sm:text-lg">
@@ -407,20 +438,60 @@ function TopicView({
         )}
       </section>
 
+      {topic.examples.length > 0 && (
+        <section className="mt-8">
+          <h2 className="study-hand flex items-center gap-2 text-2xl text-[#1c1917]">
+            <Code2 size={22} className="text-[#57534e]" />
+            Ejemplos
+          </h2>
+          <p className="mt-1 font-[family-name:var(--font-study-body)] text-sm text-[#78716c]">
+            Código y casos concretos para este tema.
+          </p>
+          <ol className="mt-4 space-y-4">
+            {topic.examples.map((example, i) => (
+              <li key={`${example.title}-${i}`} className="study-rough bg-[#fffdf8] p-4 sm:p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="study-hand text-lg text-[#1c1917]">{example.title}</h3>
+                  {example.language && example.language !== "text" && (
+                    <span className="study-chip font-[family-name:var(--font-study-body)] uppercase">
+                      {example.language}
+                    </span>
+                  )}
+                </div>
+                <pre className="study-code-block mt-3 overflow-x-auto">
+                  <code>{example.code}</code>
+                </pre>
+                {example.note && (
+                  <p className="mt-3 font-[family-name:var(--font-study-body)] text-xs leading-5 text-[#78716c]">
+                    {example.note}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
       <section className="mt-8">
         <h2 className="study-hand text-2xl text-[#1c1917]">En el banco de preguntas</h2>
         <p className="mt-1 font-[family-name:var(--font-study-body)] text-sm text-[#78716c]">
-          IDs / variantes que entrenan este tema en el simulacro.
+          El chip resaltado es la evaluación 1:1; el resto refuerza el mismo tema.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
-          {topic.bankLinks.map((id) => (
-            <span
-              key={id}
-              className="study-chip font-[family-name:var(--font-study-body)]"
-            >
-              {id}
-            </span>
-          ))}
+          {topic.bankLinks.map((id) => {
+            const isPrimary = id === topic.examCoverage.primaryId;
+            return (
+              <span
+                key={id}
+                className={`font-[family-name:var(--font-study-body)] ${
+                  isPrimary ? "study-chip-primary" : "study-chip"
+                }`}
+              >
+                {isPrimary ? "★ " : ""}
+                {id}
+              </span>
+            );
+          })}
         </div>
       </section>
 

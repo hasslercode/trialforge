@@ -79,6 +79,88 @@
   background: rgba(255, 253, 248, 0.8);
 }
 
+.study-chip-primary {
+  display: inline-block;
+  border: 2px solid #1c1917;
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #1c1917;
+  background: #fef08a;
+  box-shadow: 2px 2px 0 rgba(28, 25, 23, 0.12);
+}
+
+.study-inline-code {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 0.85em;
+  background: rgba(255, 255, 255, 0.55);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.study-coverage-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1.5px solid;
+  padding: 0.2rem 0.55rem;
+  font-family: var(--font-study-body), system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.study-coverage-mcq {
+  border-color: #0369a1;
+  background: #e0f2fe;
+  color: #0c4a6e;
+}
+
+.study-coverage-practical {
+  border-color: #6d28d9;
+  background: #ede9fe;
+  color: #4c1d95;
+}
+
+.study-coverage-both {
+  border-color: #047857;
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.study-coverage-meta {
+  border-color: #b45309;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.study-code-block {
+  margin: 0;
+  border: 1.5px solid #1c1917;
+  border-radius: 8px 14px 10px 12px / 12px 8px 14px 10px;
+  background: #1c1917;
+  padding: 0.85rem 1rem;
+  font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, monospace;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: #e7e5e4;
+  box-shadow: 3px 3px 0 rgba(28, 25, 23, 0.15);
+  -webkit-overflow-scrolling: touch;
+}
+
+.study-code-block code {
+  font: inherit;
+  white-space: pre;
+}
+
+@media (min-width: 640px) {
+  .study-code-block {
+    font-size: 0.8125rem;
+    padding: 1rem 1.15rem;
+  }
+}
+
 .study-ghost-btn {
   display: inline-flex;
   align-items: center;

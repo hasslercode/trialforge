@@ -1,5 +1,11 @@
 /** Currículo de estudio alineado al banco Bancolombia (MCQ + prácticas). */
 
+import { TOPIC_EXAMPLES, type StudyExample } from "./examples-data";
+import { TOPIC_EXAM_COVERAGE, type ExamCoverage } from "./exam-coverage";
+
+export type { StudyExample };
+export type { ExamCoverage };
+
 export type StudyTopic = {
   id: string;
   title: string;
@@ -7,6 +13,10 @@ export type StudyTopic = {
   kidAnalogy: string;
   summary: string;
   keyPoints: string[];
+  /** Ejemplos concretos para practicar el tema. */
+  examples: StudyExample[];
+  /** Cómo se evalúa 1:1 en el simulacro. */
+  examCoverage: ExamCoverage;
   /** Qué del banco entrena este tema. */
   bankLinks: string[];
   /** Mini ejemplo o frase memorable. */
@@ -25,7 +35,10 @@ export type StudyTrack = {
   topics: StudyTopic[];
 };
 
-export const studyTracks: StudyTrack[] = [
+type RawStudyTopic = Omit<StudyTopic, "examples" | "examCoverage">;
+type RawStudyTrack = Omit<StudyTrack, "topics"> & { topics: RawStudyTopic[] };
+
+const rawStudyTracks: RawStudyTrack[] = [
   {
     id: "js-fundamentos",
     order: 1,
@@ -796,7 +809,7 @@ export const studyTracks: StudyTrack[] = [
         keyPoints: [
           "5 fases · ~180 minutos · aprobar ≥ 70%.",
           "S1/S2: MCQ · S3: JS o SQL · S4: CSS · S5: Angular.",
-          "Hasta 5 corridas; cada slot mezcla preguntas distintas.",
+          "Hasta 10 corridas; cada slot mezcla preguntas distintas (cubre el banco completo).",
           "En celular: solo teoría; código en PC.",
         ],
         bankLinks: ["w-pass-70", "w-exam-hours", "w-sessions-count"],
@@ -804,6 +817,54 @@ export const studyTracks: StudyTrack[] = [
     ],
   },
 ];
+
+function attachExamples(tracks: RawStudyTrack[]): Array<Omit<StudyTrack, "topics"> & { topics: Omit<StudyTopic, "examCoverage">[] }> {
+  return tracks.map((track) => ({
+    ...track,
+    topics: track.topics.map((topic) => ({
+      ...topic,
+      examples: TOPIC_EXAMPLES[topic.id] ?? [],
+    })),
+  }));
+}
+
+const SECONDARY_BANK_LINKS: Record<string, string[]> = {
+  "ng-lifecycle-hooks": ["w-ngondestroy"],
+  "js-map-filter-reduce": ["js-normalize-movements"],
+  "js-find-some-every": ["js-unique-sorted-ids"],
+  "js-sort-slice-spread": ["js-normalize-movements"],
+  "js-async-await": ["js-retry-payment"],
+  "css-flexbox": ["css-transfer-form"],
+  "css-grid": ["css-product-cards"],
+  "css-overflow-scroll": ["css-movements-list"],
+  "ng-onchanges-afterview": ["w-ngonchanges"],
+  "ng-inputs-outputs": ["ng-otp-input"],
+  "ng-directives-pipes": ["w-ngfor-async"],
+  "sql-window-functions": ["sql-running-balance"],
+};
+
+function attachCoverage(
+  tracks: Array<Omit<StudyTrack, "topics"> & { topics: Omit<StudyTopic, "examCoverage">[] }>,
+): StudyTrack[] {
+  return tracks.map((track) => ({
+    ...track,
+    topics: track.topics.map((topic) => {
+      const examCoverage = TOPIC_EXAM_COVERAGE[topic.id];
+      if (!examCoverage) {
+        throw new Error(`Falta cobertura 1:1 para tema de estudio: ${topic.id}`);
+      }
+      const extra = SECONDARY_BANK_LINKS[topic.id] ?? [];
+      const bankLinks = [
+        examCoverage.primaryId,
+        ...extra,
+        ...topic.bankLinks.filter((id) => id !== examCoverage.primaryId && !extra.includes(id)),
+      ];
+      return { ...topic, examCoverage, bankLinks };
+    }),
+  }));
+}
+
+export const studyTracks: StudyTrack[] = attachCoverage(attachExamples(rawStudyTracks));
 
 export function getTrack(trackId: string) {
   return studyTracks.find((t) => t.id === trackId);
