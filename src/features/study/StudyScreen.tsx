@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Check, Circle, Code2, Lightbulb, Map, Sparkles, Volume2, VolumeX } from "lucide-react";
 import { loadStudyProgress, saveStudyProgress } from "@/infrastructure/storage/progress.repository";
 import { useStudyAmbience } from "@/features/study/useStudyAmbience";
@@ -100,7 +100,7 @@ export function StudyScreen({ onBack }: { onBack: () => void }) {
       </button>
       <div className="relative mx-auto max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
         {!loaded ? (
-          <p className="font-[family-name:var(--font-study-body)] text-sm text-[#57534e]">
+          <p className="font-[family-name:var(--font-study-body)] text-sm text-[var(--study-muted)]">
             Cargando tu progreso guardado…
           </p>
         ) : null}
@@ -165,29 +165,60 @@ function RoadmapHome({
         <ArrowLeft size={15} /> Volver al simulacro
       </button>
 
-      <header className="relative mb-10 max-w-2xl sm:mb-14">
-        <p className="study-hand text-lg text-[#5c5346] sm:text-xl">Modo estudio</p>
-        <h1 className="study-hand mt-1 text-4xl leading-none text-[#1c1917] sm:text-6xl">
-          Estudiar el challenge
-        </h1>
-        <p className="mt-4 max-w-xl font-[family-name:var(--font-study-body)] text-sm leading-7 text-[#44403c] sm:text-base">
-          Temas del challenge contados con analogías de niño y dibujos de pizarra. Cada tema tiene una
-          pregunta o variante 1:1 en el simulacro — mira el badge de evaluación. Marca lo que ya
-          entiendes; se guarda en este dispositivo.
-        </p>
+      <header className="study-glass relative mb-6 flex min-h-[420px] overflow-hidden rounded-[2rem] p-5 sm:p-8">
+        <img
+          src="/illustrations/study-hero.png"
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover opacity-70"
+        />
+        <div
+          className="absolute inset-0 bg-[linear-gradient(90deg,rgba(11,16,32,0.96)_0%,rgba(11,16,32,0.82)_38%,rgba(11,16,32,0.36)_100%)]"
+          aria-hidden
+        />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-[linear-gradient(0deg,rgba(11,16,32,0.94),transparent)]" aria-hidden />
+        <div className="relative z-10 flex max-w-2xl flex-col justify-end">
+          <p className="study-hand text-lg text-[var(--study-cyan)] sm:text-xl">Modo estudio</p>
+          <h1 className="study-hand mt-1 text-4xl leading-none text-[var(--study-text)] sm:text-6xl">
+            Estudiar el challenge
+          </h1>
+          <p className="mt-4 max-w-xl font-[family-name:var(--font-study-body)] text-sm leading-7 text-[var(--study-muted)] sm:text-base">
+            Temas del challenge contados con analogías de niño y dibujos de pizarra. Cada tema tiene una
+            pregunta o variante 1:1 en el simulacro — mira el badge de evaluación. Marca lo que ya
+            entiendes; se guarda en este dispositivo.
+          </p>
 
-        <div className="study-sticky study-sticky-lemon mt-6 inline-flex rotate-[-1.5deg] items-center gap-3 px-4 py-3">
-          <Sparkles size={18} className="text-[#854d0e]" />
-          <div className="font-[family-name:var(--font-study-body)] text-sm text-[#422006]">
-            <strong className="study-hand text-lg">
-              {doneCount}/{total}
-            </strong>{" "}
-            temas · {pct}% del mapa
+          <div className="study-sticky study-sticky-lemon mt-6 inline-flex w-fit items-center gap-3 px-4 py-3">
+            <Sparkles size={18} className="text-[#fde68a]" />
+            <div className="font-[family-name:var(--font-study-body)] text-sm text-[#fde68a]">
+              <strong className="study-hand text-lg">
+                {doneCount}/{total}
+              </strong>{" "}
+              temas · {pct}% del mapa
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Desktop: zigzag path */}
+      <section className="study-glass mb-8 rounded-[1.6rem] p-5 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="study-hand text-2xl text-[var(--study-text)]">Progreso del reto</p>
+            <p className="mt-1 font-[family-name:var(--font-study-body)] text-sm text-[var(--study-muted)]">
+              {doneCount}/{total} temas · {pct}% del mapa
+            </p>
+          </div>
+          <div className="study-chip-primary font-[family-name:var(--font-study-body)]">{pct}% completado</div>
+        </div>
+        <div className="mt-5 h-3 overflow-hidden rounded-full border border-[var(--study-border)] bg-[rgba(7,11,22,0.62)]">
+          <div
+            className="h-full rounded-full bg-[linear-gradient(90deg,var(--study-accent),var(--study-magenta),var(--study-cyan))] shadow-[0_0_24px_rgba(139,124,246,0.45)] transition-all duration-500"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </section>
+
+      {/* Desktop: soft cosmic path */}
       <div className="relative hidden md:block">
         <svg
           className="pointer-events-none absolute inset-x-4 top-6 h-[calc(100%-1.5rem)] w-[calc(100%-2rem)]"
@@ -198,10 +229,10 @@ function RoadmapHome({
           <path
             d="M 20 12 C 40 12, 55 28, 75 34 S 100 48, 100 58 S 70 72, 45 82 S 20 98, 22 110 S 55 125, 78 138 S 105 155, 95 168 S 55 180, 40 190"
             fill="none"
-            stroke="#1c1917"
+            stroke="rgba(167, 139, 250, 0.42)"
             strokeWidth="0.8"
-            strokeDasharray="2.5 2"
-            opacity="0.28"
+            strokeDasharray="4 7"
+            opacity="0.55"
             vectorEffect="non-scaling-stroke"
           />
         </svg>
@@ -232,14 +263,17 @@ function RoadmapHome({
 
       {/* Mobile: vertical trail */}
       <ol className="relative space-y-4 md:hidden">
-        <div className="absolute bottom-4 left-[1.15rem] top-4 w-px bg-[#1c1917]/25" aria-hidden />
+        <div
+          className="absolute bottom-4 left-[1.15rem] top-4 w-px bg-[linear-gradient(var(--study-accent),var(--study-cyan))] opacity-40"
+          aria-hidden
+        />
         {studyTracks.map((track, i) => {
           const trackDone = track.topics.filter((t) => progress[topicKey(track.id, t.id)]).length;
           return (
             <li key={track.id} className="relative pl-10">
               <span
-                className="absolute left-0 top-5 grid size-9 place-items-center rounded-full border-2 border-[#1c1917] bg-[#faf6ee] study-hand text-sm"
-                style={{ boxShadow: `3px 3px 0 ${track.fill}` }}
+                className="study-hand absolute left-0 top-5 grid size-9 place-items-center rounded-full border border-[var(--study-border)] bg-[rgba(17,24,43,0.88)] text-sm text-[var(--study-text)]"
+                style={{ boxShadow: `0 0 22px ${track.fill}55` }}
               >
                 {i + 1}
               </span>
@@ -255,11 +289,11 @@ function RoadmapHome({
         })}
       </ol>
 
-      <aside className="study-sticky study-sticky-sky mt-12 max-w-lg rotate-[1deg] p-5 sm:mt-16">
-        <p className="study-hand flex items-center gap-2 text-xl text-[#0c4a6e]">
+      <aside className="study-sticky study-sticky-sky mt-12 max-w-lg p-5 sm:mt-16">
+        <p className="study-hand flex items-center gap-2 text-xl text-[var(--study-cyan)]">
           <Lightbulb size={20} /> Tip de estudio
         </p>
-        <p className="mt-2 font-[family-name:var(--font-study-body)] text-sm leading-6 text-[#0c4a6e]/90">
+        <p className="mt-2 font-[family-name:var(--font-study-body)] text-sm leading-6 text-[var(--study-muted)]">
           Lee la analogía en voz alta, luego los puntos clave, y abre una corrida de teoría en el
           simulacro. Si fallas un MCQ, vuelve aquí al tema y márcalo cuando ya lo puedas explicar sin
           mirar.
@@ -283,30 +317,46 @@ function TrackCard({
   compact?: boolean;
 }) {
   const complete = done === track.topics.length;
+  const accentStyle = {
+    "--track-accent": track.fill,
+    "--track-ink": track.ink,
+  } as CSSProperties;
+
   return (
     <button
       onClick={onOpen}
-      className={`study-rough group w-full text-left transition duration-300 hover:-translate-y-1 hover:rotate-[-0.5deg] ${
+      className={`study-glass group relative w-full overflow-hidden rounded-[1.5rem] text-left transition duration-300 hover:-translate-y-1 hover:border-[rgba(167,139,250,0.5)] hover:shadow-[0_24px_70px_rgba(139,124,246,0.22)] ${
         compact ? "p-4" : "p-5"
       }`}
-      style={{
-        background: track.fill,
-        color: track.ink,
-        ["--study-ink" as string]: track.ink,
-      }}
+      style={accentStyle}
     >
+      <span
+        className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full opacity-35 blur-3xl transition duration-300 group-hover:opacity-55"
+        style={{ background: track.fill }}
+        aria-hidden
+      />
+      <span
+        className="pointer-events-none absolute inset-x-5 top-0 h-px opacity-80"
+        style={{ background: `linear-gradient(90deg, transparent, ${track.fill}, transparent)` }}
+        aria-hidden
+      />
       <div className="flex items-start justify-between gap-3">
-        <span className="study-hand text-2xl opacity-80">{track.emoji}</span>
-        <span className="study-hand rounded-md border border-black/20 bg-white/45 px-2 py-0.5 text-xs">
+        <span
+          className="study-hand grid size-11 place-items-center rounded-2xl border border-[var(--study-border)] bg-[rgba(7,11,22,0.45)] text-2xl"
+          style={{ boxShadow: `0 0 24px ${track.fill}44` }}
+        >
+          {track.emoji}
+        </span>
+        <span className="study-hand rounded-full border border-[var(--study-border)] bg-[rgba(17,24,43,0.68)] px-2.5 py-1 text-xs text-[var(--study-text)]">
           {complete ? "listo ✓" : `${done}/${track.topics.length}`}
         </span>
       </div>
-      <p className="study-hand mt-2 text-xs uppercase tracking-wide opacity-70">Tramo {index}</p>
-      <h2 className="study-hand mt-1 text-2xl leading-none sm:text-3xl">{track.title}</h2>
-      <p className="mt-2 font-[family-name:var(--font-study-body)] text-sm leading-6 opacity-80">
+      <p className="study-hand mt-4 text-xs uppercase tracking-wide text-[var(--study-cyan)]">Tramo {index}</p>
+      <h2 className="study-hand mt-1 text-2xl leading-none text-[var(--study-text)] sm:text-3xl">{track.title}</h2>
+      <p className="mt-2 font-[family-name:var(--font-study-body)] text-sm leading-6 text-[var(--study-muted)]">
         {track.tagline}
       </p>
-      <span className="mt-4 inline-flex items-center gap-1 font-[family-name:var(--font-study-body)] text-xs font-semibold underline decoration-wavy underline-offset-4 opacity-0 transition group-hover:opacity-100">
+      <span className="mt-4 inline-flex items-center gap-1 font-[family-name:var(--font-study-body)] text-xs font-semibold text-[var(--study-text)] opacity-0 transition group-hover:opacity-100">
         <Map size={12} /> Abrir tramo
       </span>
     </button>
@@ -332,15 +382,34 @@ function TrackView({
         <ArrowLeft size={15} /> Todo el roadmap
       </button>
 
-      <div
-        className="study-rough mb-8 p-5 sm:p-7"
-        style={{ background: track.fill, color: track.ink }}
-      >
-        <p className="study-hand text-3xl">{track.emoji}</p>
-        <h1 className="study-hand mt-2 text-3xl sm:text-5xl">{track.title}</h1>
-        <p className="mt-2 max-w-2xl font-[family-name:var(--font-study-body)] text-sm opacity-85 sm:text-base">
-          {track.tagline}
-        </p>
+      <div className="study-glass relative mb-8 overflow-hidden rounded-[2rem] p-5 sm:p-7">
+        <span
+          className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full opacity-30 blur-3xl"
+          style={{ background: track.fill }}
+          aria-hidden
+        />
+        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center">
+          <div className="relative grid size-28 shrink-0 place-items-center sm:size-36">
+            <span
+              className="absolute inset-3 rounded-full blur-2xl"
+              style={{ background: `${track.fill}55` }}
+              aria-hidden
+            />
+            <img
+              src="/illustrations/study-crystal.png"
+              alt=""
+              aria-hidden
+              className="relative h-full w-full object-contain drop-shadow-[0_18px_32px_rgba(139,124,246,0.25)]"
+            />
+          </div>
+          <div>
+            <p className="study-hand text-3xl">{track.emoji}</p>
+            <h1 className="study-hand mt-2 text-3xl text-[var(--study-text)] sm:text-5xl">{track.title}</h1>
+            <p className="mt-2 max-w-2xl font-[family-name:var(--font-study-body)] text-sm text-[var(--study-muted)] sm:text-base">
+              {track.tagline}
+            </p>
+          </div>
+        </div>
       </div>
 
       <ol className="grid gap-3 sm:grid-cols-2">
@@ -348,26 +417,30 @@ function TrackView({
           const done = Boolean(progress[topicKey(track.id, topic.id)]);
           return (
             <li key={topic.id}>
-              <div className="study-rough flex h-full flex-col bg-[#fffdf8] p-4 text-[#1c1917]">
+              <div
+                className={`study-glass flex h-full flex-col rounded-[1.35rem] p-4 transition duration-300 hover:-translate-y-0.5 hover:border-[rgba(103,232,249,0.42)] ${
+                  done ? "border-[rgba(134,239,172,0.38)] shadow-[0_0_32px_rgba(134,239,172,0.12)]" : ""
+                }`}
+              >
                 <div className="flex items-start gap-3">
                   <button
                     type="button"
                     onClick={() => onToggle(topic.id)}
-                    className="mt-0.5 shrink-0 rounded-full p-0.5 text-[#57534e] hover:text-[#1c1917]"
+                    className="mt-0.5 shrink-0 rounded-full p-0.5 text-[var(--study-muted)] transition hover:text-[var(--study-cyan)]"
                     aria-label={done ? "Marcar como pendiente" : "Marcar como entendido"}
                   >
-                    {done ? <Check size={20} className="text-emerald-700" /> : <Circle size={20} />}
+                    {done ? <Check size={20} className="text-[#bbf7d0]" /> : <Circle size={20} />}
                   </button>
                   <button type="button" onClick={() => onOpenTopic(topic.id)} className="min-w-0 flex-1 text-left">
-                    <p className="study-hand text-xs text-[#78716c]">Tema {i + 1}</p>
-                    <h3 className="study-hand text-xl leading-tight sm:text-2xl">{topic.title}</h3>
+                    <p className="study-hand text-xs text-[var(--study-cyan)]">Tema {i + 1}</p>
+                    <h3 className="study-hand text-xl leading-tight text-[var(--study-text)] sm:text-2xl">{topic.title}</h3>
                     <div className="mt-2">
                       <ExamCoverageBadge coverage={topic.examCoverage} compact />
                     </div>
-                    <p className="mt-2 line-clamp-2 font-[family-name:var(--font-study-body)] text-sm leading-6 text-[#57534e]">
+                    <p className="mt-2 line-clamp-2 font-[family-name:var(--font-study-body)] text-sm leading-6 text-[var(--study-muted)]">
                       {topic.kidAnalogy}
                     </p>
-                    <span className="mt-3 inline-block font-[family-name:var(--font-study-body)] text-xs font-semibold text-[#1c1917] underline decoration-wavy underline-offset-4">
+                    <span className="mt-3 inline-block font-[family-name:var(--font-study-body)] text-xs font-semibold text-[var(--study-text)]">
                       Estudiar →
                     </span>
                   </button>
@@ -404,39 +477,39 @@ function TopicView({
         <ArrowLeft size={15} /> {track.title}
       </button>
 
-      <p className="study-hand text-sm text-[#78716c]">
+      <p className="study-hand text-sm text-[var(--study-cyan)]">
         {track.emoji} · tema {idx + 1}/{track.topics.length}
       </p>
-      <h1 className="study-hand mt-1 text-3xl text-[#1c1917] sm:text-5xl">{topic.title}</h1>
-      <p className="mt-3 font-[family-name:var(--font-study-body)] text-sm leading-7 text-[#44403c] sm:text-base">
+      <h1 className="study-hand mt-1 text-3xl text-[var(--study-text)] sm:text-5xl">{topic.title}</h1>
+      <p className="mt-3 font-[family-name:var(--font-study-body)] text-sm leading-7 text-[var(--study-muted)] sm:text-base">
         {topic.summary}
       </p>
 
-      <div className="study-sticky study-sticky-sky mt-6 rotate-[0.5deg] p-4 sm:p-5">
+      <div className="study-sticky study-sticky-sky mt-6 p-4 sm:p-5">
         <ExamCoverageBadge coverage={topic.examCoverage} />
-        <p className="mt-3 font-[family-name:var(--font-study-body)] text-sm text-[#0c4a6e]">
+        <p className="mt-3 font-[family-name:var(--font-study-body)] text-sm text-[var(--study-text)]">
           <strong className="study-hand">Ítem 1:1 en el simulacro:</strong>{" "}
           <code className="study-inline-code">{topic.examCoverage.primaryId}</code>
         </p>
-        <p className="mt-1 font-[family-name:var(--font-study-body)] text-xs text-[#0c4a6e]/80">
+        <p className="mt-1 font-[family-name:var(--font-study-body)] text-xs text-[var(--study-muted)]">
           Si sale en tu corrida (10 MCQ por sesión o 1 variante práctica), este ID evalúa directamente
           este tema.
         </p>
       </div>
 
-      <div className="study-sticky study-sticky-peach mt-8 rotate-[-1deg] p-5 sm:p-6">
-        <p className="study-hand text-xl text-[#7c2d12]">Como si tuvieras 8 años…</p>
-        <p className="mt-3 font-[family-name:var(--font-study-body)] text-base leading-7 text-[#431407] sm:text-lg">
+      <div className="study-glass mt-8 rounded-[1.5rem] p-5 sm:p-6">
+        <p className="study-hand text-xl text-[#fdba74]">Como si tuvieras 8 años…</p>
+        <p className="mt-3 font-[family-name:var(--font-study-body)] text-base leading-7 text-[var(--study-text)] sm:text-lg">
           {topic.kidAnalogy}
         </p>
       </div>
 
-      <section className="study-rough mt-8 bg-[#fffdf8] p-5 text-[#1c1917] sm:p-6">
-        <h2 className="study-hand text-2xl">Puntos clave</h2>
-        <ul className="mt-4 space-y-3 font-[family-name:var(--font-study-body)] text-sm leading-6">
+      <section className="study-glass mt-8 rounded-[1.5rem] p-5 sm:p-6">
+        <h2 className="study-hand text-2xl text-[var(--study-text)]">Puntos clave</h2>
+        <ul className="mt-4 space-y-3 font-[family-name:var(--font-study-body)] text-sm leading-6 text-[var(--study-muted)]">
           {topic.keyPoints.map((point) => (
             <li key={point} className="flex gap-3">
-              <span className="study-hand mt-0.5 text-[#b45309]" aria-hidden>
+              <span className="study-hand mt-0.5 text-[var(--study-cyan)]" aria-hidden>
                 →
               </span>
               <span>{point}</span>
@@ -444,26 +517,29 @@ function TopicView({
           ))}
         </ul>
         {topic.remember && (
-          <p className="study-sticky study-sticky-lemon mt-6 inline-block rotate-[1deg] px-3 py-2 font-[family-name:var(--font-study-body)] text-sm text-[#422006]">
+          <p className="study-sticky study-sticky-lemon mt-6 inline-block px-3 py-2 font-[family-name:var(--font-study-body)] text-sm text-[#fde68a]">
             <strong className="study-hand">Recuerda:</strong> {topic.remember}
           </p>
         )}
       </section>
 
       {topic.examples.length > 0 && (
-        <section className="mt-8">
-          <h2 className="study-hand flex items-center gap-2 text-2xl text-[#1c1917]">
-            <Code2 size={22} className="text-[#57534e]" />
+        <section className="study-glass mt-8 rounded-[1.5rem] p-5 sm:p-6">
+          <h2 className="study-hand flex items-center gap-2 text-2xl text-[var(--study-text)]">
+            <Code2 size={22} className="text-[var(--study-cyan)]" />
             Ejemplos
           </h2>
-          <p className="mt-1 font-[family-name:var(--font-study-body)] text-sm text-[#78716c]">
+          <p className="mt-1 font-[family-name:var(--font-study-body)] text-sm text-[var(--study-muted)]">
             Código y casos concretos para este tema.
           </p>
           <ol className="mt-4 space-y-4">
             {topic.examples.map((example, i) => (
-              <li key={`${example.title}-${i}`} className="study-rough bg-[#fffdf8] p-4 sm:p-5">
+              <li
+                key={`${example.title}-${i}`}
+                className="rounded-[1.15rem] border border-[var(--study-border-soft)] bg-[rgba(7,11,22,0.28)] p-4 sm:p-5"
+              >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="study-hand text-lg text-[#1c1917]">{example.title}</h3>
+                  <h3 className="study-hand text-lg text-[var(--study-text)]">{example.title}</h3>
                   {example.language && example.language !== "text" && (
                     <span className="study-chip font-[family-name:var(--font-study-body)] uppercase">
                       {example.language}
@@ -474,7 +550,7 @@ function TopicView({
                   <code>{example.code}</code>
                 </pre>
                 {example.note && (
-                  <p className="mt-3 font-[family-name:var(--font-study-body)] text-xs leading-5 text-[#78716c]">
+                  <p className="mt-3 font-[family-name:var(--font-study-body)] text-xs leading-5 text-[var(--study-muted)]">
                     {example.note}
                   </p>
                 )}
@@ -484,9 +560,9 @@ function TopicView({
         </section>
       )}
 
-      <section className="mt-8">
-        <h2 className="study-hand text-2xl text-[#1c1917]">En el challenge</h2>
-        <p className="mt-1 font-[family-name:var(--font-study-body)] text-sm text-[#78716c]">
+      <section className="study-glass mt-8 rounded-[1.5rem] p-5 sm:p-6">
+        <h2 className="study-hand text-2xl text-[var(--study-text)]">En el challenge</h2>
+        <p className="mt-1 font-[family-name:var(--font-study-body)] text-sm text-[var(--study-muted)]">
           El chip resaltado es la evaluación 1:1; el resto refuerza el mismo tema.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -511,8 +587,10 @@ function TopicView({
         <button
           type="button"
           onClick={onToggle}
-          className={`study-rough inline-flex items-center justify-center gap-2 px-5 py-3 font-[family-name:var(--font-study-body)] text-sm font-semibold ${
-            done ? "bg-[#bbf7d0] text-[#14532d]" : "bg-[#1c1917] text-[#faf6ee]"
+          className={`inline-flex items-center justify-center gap-2 px-5 py-3 font-[family-name:var(--font-study-body)] text-sm font-semibold transition ${
+            done
+              ? "study-glass rounded-full border-[rgba(134,239,172,0.38)] text-[#bbf7d0] shadow-[0_0_28px_rgba(134,239,172,0.14)]"
+              : "study-cta"
           }`}
         >
           {done ? (
