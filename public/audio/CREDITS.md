@@ -1,5 +1,6 @@
 # Audio
 
-Question ambience is synthesized in-browser (Web Audio API): soft drones and
-crystalline tones inspired by contemplative ambient game scores (e.g. Monument Valley).
-No sampled guitar or piano.
+- Exam question ambience: synthesized soft drones + crystalline tones (Monument Valley–like).
+- Study mode ambience: separate warm focus pads + quiet air bed + slow breath swells
+  (background concentration / calm attention — no guitar, piano, or earworm melody).
+

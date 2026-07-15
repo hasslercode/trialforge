@@ -181,6 +181,39 @@
   box-shadow: 3px 3px 0 rgba(28, 25, 23, 0.12);
 }
 
+.study-music-btn {
+  position: fixed;
+  top: 4.6rem;
+  right: 1rem;
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 2px solid #1c1917;
+  border-radius: 255px 12px 225px 12px / 12px 225px 12px 255px;
+  background: rgba(255, 253, 248, 0.92);
+  padding: 0.45rem 0.85rem;
+  font-family: var(--font-study-body), system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1c1917;
+  box-shadow: 2px 2px 0 rgba(28, 25, 23, 0.1);
+  backdrop-filter: blur(8px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.study-music-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 rgba(28, 25, 23, 0.12);
+}
+
+@media (min-width: 640px) {
+  .study-music-btn {
+    top: 5rem;
+    right: 1.5rem;
+  }
+}
+
 .study-fade-in {
   animation: study-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
