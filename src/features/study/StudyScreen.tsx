@@ -354,32 +354,27 @@ function TrackView({
       </button>
 
       <div className="study-glass relative mb-8 overflow-hidden rounded-[2rem] p-5 sm:p-7">
+        <img
+          src="/illustrations/study-crystal.png"
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.34]"
+        />
+        <div
+          className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,rgba(11,16,32,0.88)_0%,rgba(11,16,32,0.55)_48%,rgba(11,16,32,0.28)_100%)]"
+          aria-hidden
+        />
         <span
           className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full opacity-30 blur-3xl"
           style={{ background: track.fill }}
           aria-hidden
         />
-        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center">
-          <div className="relative grid size-28 shrink-0 place-items-center sm:size-36">
-            <span
-              className="absolute inset-3 rounded-full blur-2xl"
-              style={{ background: `${track.fill}55` }}
-              aria-hidden
-            />
-            <img
-              src="/illustrations/study-crystal.png"
-              alt=""
-              aria-hidden
-              className="relative h-full w-full object-contain drop-shadow-[0_18px_32px_rgba(139,124,246,0.25)]"
-            />
-          </div>
-          <div>
-            <p className="study-hand text-3xl">{track.emoji}</p>
-            <h1 className="study-hand mt-2 text-3xl text-[var(--study-text)] sm:text-5xl">{track.title}</h1>
-            <p className="mt-2 max-w-2xl font-[family-name:var(--font-study-body)] text-sm text-[var(--study-muted)] sm:text-base">
-              {track.tagline}
-            </p>
-          </div>
+        <div className="relative max-w-2xl">
+          <p className="study-hand text-3xl">{track.emoji}</p>
+          <h1 className="study-hand mt-2 text-3xl text-[var(--study-text)] sm:text-5xl">{track.title}</h1>
+          <p className="mt-2 font-[family-name:var(--font-study-body)] text-sm text-[var(--study-muted)] sm:text-base">
+            {track.tagline}
+          </p>
         </div>
       </div>
 
