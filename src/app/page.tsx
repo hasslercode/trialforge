@@ -23,6 +23,7 @@ import {
 import { bankStats, buildExam, collectUsedContent, examMeta, pickVariantSelection } from "@/content/bancolombia/exam";
 import { StudyScreen } from "@/features/study/StudyScreen";
 import { useQuestionAmbience } from "@/features/exam/useQuestionAmbience";
+import { useStudyAmbience } from "@/features/study/useStudyAmbience";
 import type { AppState, Exam, ExamAttempt, ExamProgress, ExamSession, SessionResult } from "@/domain/exam";
 import { MAX_ATTEMPT_SLOTS } from "@/domain/exam";
 import { evaluateMcq, evaluatePractical, weightedExamScore, type Evaluation } from "@/application/evaluation-engine";
@@ -138,6 +139,7 @@ export default function App() {
   const sessionMode = screen === "session";
   const studyMode = screen === "study";
   const sidebarCollapsed = (sessionMode && !sidebarPinnedOpen) || studyMode;
+  const studyAmbience = useStudyAmbience(studyMode);
 
   useEffect(() => {
     void loadAppState().then((stored) => {
@@ -398,7 +400,19 @@ export default function App() {
             </button>
           </div>
 
-          <div className="flex items-center gap-3 text-sm sm:gap-4">
+          <div className="flex items-center gap-2 text-sm sm:gap-4">
+            {studyMode && (
+              <button
+                type="button"
+                onClick={() => studyAmbience.toggleMuted()}
+                className="exam-btn inline-flex items-center gap-1.5 rounded-full border border-[var(--exam-border)] bg-[rgba(23,31,54,0.78)] px-2.5 py-1.5 text-[11px] font-medium text-[var(--exam-muted)] hover:border-[var(--exam-accent)] hover:text-[var(--exam-text)] sm:px-3"
+                aria-label={studyAmbience.muted ? "Activar ambiente de estudio" : "Silenciar ambiente de estudio"}
+                title="Ambiente de foco para estudiar"
+              >
+                {studyAmbience.muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                <span className="max-[360px]:hidden">{studyAmbience.muted ? "Mute" : "Ambiente"}</span>
+              </button>
+            )}
             {progress.startedAt && (
               <span
                 className={`flex items-center gap-1.5 font-mono text-xs tabular-nums sm:gap-2 sm:text-sm ${
