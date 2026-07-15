@@ -154,14 +154,14 @@ function RoadmapHome({
       </button>
 
       <header className="relative mb-10 max-w-2xl sm:mb-14">
-        <p className="study-hand text-lg text-[#5c5346] sm:text-xl">pizarra de estudio · banco ligado</p>
+        <p className="study-hand text-lg text-[#5c5346] sm:text-xl">Modo estudio</p>
         <h1 className="study-hand mt-1 text-4xl leading-none text-[#1c1917] sm:text-6xl">
-          Roadmap para estudiar
+          Estudiar el challenge
         </h1>
         <p className="mt-4 max-w-xl font-[family-name:var(--font-study-body)] text-sm leading-7 text-[#44403c] sm:text-base">
-          Temas del banco de TrialForge, contados con analogías de niño y dibujos de pizarra. Cada tema
-          tiene una pregunta o variante 1:1 en el simulacro — mira el badge de evaluación. Marca lo que
-          ya entiendes; se guarda en este dispositivo.
+          Temas del challenge contados con analogías de niño y dibujos de pizarra. Cada tema tiene una
+          pregunta o variante 1:1 en el simulacro — mira el badge de evaluación. Marca lo que ya
+          entiendes; se guarda en este dispositivo.
         </p>
 
         <div className="study-sticky study-sticky-lemon mt-6 inline-flex rotate-[-1.5deg] items-center gap-3 px-4 py-3">
@@ -473,7 +473,7 @@ function TopicView({
       )}
 
       <section className="mt-8">
-        <h2 className="study-hand text-2xl text-[#1c1917]">En el banco de preguntas</h2>
+        <h2 className="study-hand text-2xl text-[#1c1917]">En el challenge</h2>
         <p className="mt-1 font-[family-name:var(--font-study-body)] text-sm text-[#78716c]">
           El chip resaltado es la evaluación 1:1; el resto refuerza el mismo tema.
         </p>

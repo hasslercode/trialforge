@@ -375,7 +375,7 @@ export default function App() {
               }`}
             >
               <BookOpen size={14} />
-              Estudiar
+              Modo estudio
             </button>
             <button
               onClick={() => setScreen("roadmap")}
@@ -730,9 +730,9 @@ function Home({
           <BookOpen size={18} />
         </span>
         <span>
-          <span className="block text-sm font-medium text-amber-100">Estudiar el banco</span>
+          <span className="block text-sm font-medium text-amber-100">Estudiar el challenge</span>
           <span className="mt-0.5 block text-xs leading-5 text-amber-100/60">
-            Roadmap estilo pizarra · analogías simples · móvil y desktop
+            Modo estudio · pizarra, analogías y roadmap
           </span>
         </span>
       </button>
@@ -808,7 +808,7 @@ function Home({
           className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-700 px-5 py-3.5 text-sm font-medium sm:hidden"
         >
           <BookOpen size={16} />
-          Estudiar
+          Modo estudio
         </button>
       </div>
     </section>
