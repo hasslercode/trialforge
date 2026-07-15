@@ -17,9 +17,12 @@ import {
   RotateCcw,
   Smartphone,
   Trophy,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { bankStats, buildExam, collectUsedContent, examMeta, pickVariantSelection } from "@/content/bancolombia/exam";
 import { StudyScreen } from "@/features/study/StudyScreen";
+import { useQuestionAmbience } from "@/features/exam/useQuestionAmbience";
 import type { AppState, Exam, ExamAttempt, ExamProgress, ExamSession, SessionResult } from "@/domain/exam";
 import { MAX_ATTEMPT_SLOTS } from "@/domain/exam";
 import { evaluateMcq, evaluatePractical, weightedExamScore, type Evaluation } from "@/application/evaluation-engine";
@@ -1239,6 +1242,7 @@ function McqSessionView({
   const [result, setResult] = useState<Evaluation | null>(
     progress.results.find((r) => r.sessionId === session.id) ?? null,
   );
+  const ambience = useQuestionAmbience(!result);
 
   const total = session.questions.length;
   const answered = session.questions.filter((q) => answers[q.id]).length;
@@ -1271,12 +1275,26 @@ function McqSessionView({
   if (isMobile) {
     return (
       <section className="exam-session-scene exam-fade-up mx-auto flex min-h-[calc(100vh-7.5rem)] max-w-lg flex-col px-4 pb-28 pt-6">
-        <button
-          onClick={onBack}
-          className="mb-5 flex items-center gap-2 text-sm text-[var(--exam-muted)] hover:text-[var(--exam-text)]"
-        >
-          <ArrowLeft size={15} /> Phases
-        </button>
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-sm text-[var(--exam-muted)] hover:text-[var(--exam-text)]"
+          >
+            <ArrowLeft size={15} /> Phases
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              ambience.toggleMuted();
+            }}
+            className="exam-btn inline-flex items-center gap-1.5 rounded-full border border-[var(--exam-border)] bg-[rgba(23,31,54,0.72)] px-3 py-1.5 text-[11px] font-medium text-[var(--exam-muted)] hover:border-[var(--exam-accent)] hover:text-[var(--exam-text)]"
+            aria-label={ambience.muted ? "Unmute question music" : "Mute question music"}
+            title="Relaxing question music"
+          >
+            {ambience.muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+            {ambience.muted ? "Music off" : "Music"}
+          </button>
+        </div>
         <p className="text-xs uppercase tracking-wider text-[var(--exam-faint)]">{session.phase}</p>
         <h1 className="mt-1 text-lg font-semibold tracking-tight text-[var(--exam-text)]">{session.title}</h1>
         <div className="mt-4 flex items-center justify-between text-xs text-[var(--exam-muted)]">
@@ -1364,12 +1382,26 @@ function McqSessionView({
 
   return (
     <section className="exam-session-scene exam-fade-up mx-auto max-w-3xl px-5 py-8">
-      <button
-        onClick={onBack}
-        className="mb-6 flex items-center gap-2 text-sm text-[var(--exam-muted)] hover:text-[var(--exam-text)]"
-      >
-        <ArrowLeft size={15} /> Back to phases
-      </button>
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-sm text-[var(--exam-muted)] hover:text-[var(--exam-text)]"
+        >
+          <ArrowLeft size={15} /> Back to phases
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            ambience.toggleMuted();
+          }}
+          className="exam-btn inline-flex items-center gap-1.5 rounded-full border border-[var(--exam-border)] bg-[rgba(23,31,54,0.72)] px-3 py-1.5 text-xs font-medium text-[var(--exam-muted)] hover:border-[var(--exam-accent)] hover:text-[var(--exam-text)]"
+          aria-label={ambience.muted ? "Unmute question music" : "Mute question music"}
+          title="Relaxing question music"
+        >
+          {ambience.muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+          {ambience.muted ? "Music off" : "Question music"}
+        </button>
+      </div>
       <p className="text-xs uppercase tracking-wider text-[var(--exam-faint)]">{session.phase}</p>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--exam-text)]">{session.title}</h1>
       <p className="mt-2 text-sm text-[var(--exam-muted)]">{session.subtitle}</p>
