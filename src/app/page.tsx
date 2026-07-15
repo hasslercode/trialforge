@@ -252,8 +252,8 @@ export default function App() {
               <span className="grid size-7 place-items-center rounded-md bg-zinc-100 text-zinc-900">
                 <Code2 size={16} />
               </span>
-              banco
-              <span className="text-zinc-500">.lab</span>
+              trial
+              <span className="text-zinc-500">.forge</span>
             </button>
           </div>
 
@@ -532,14 +532,14 @@ function Home({
 }) {
   return (
     <section className="px-6 pb-24 pt-16 sm:px-10 sm:pt-24">
-      <p className="text-sm text-zinc-500">Simulador · Solo Bancolombia · Banco aleatorio</p>
+      <p className="text-sm text-zinc-500">TrialForge · Pruebas técnicas · Cliente activo: Bancolombia</p>
       <h1 className="mt-3 max-w-3xl text-4xl font-semibold tracking-[-0.04em] sm:text-6xl">
         {examMeta.title}
       </h1>
       <p className="mt-6 max-w-2xl text-base leading-7 text-zinc-400">
         El panel lateral guarda hasta <strong className="text-zinc-200">5 corridas</strong>. Los
-        cuadrados vacíos están libres; cada nueva prueba llena un slot con un set distinto del banco
-        (JS, CSS, Angular y ahora también <strong className="text-zinc-200">SQL</strong> en teoría y práctica).
+        cuadrados vacíos están libres; cada nueva prueba llena un slot con un set distinto
+        (JS, CSS, Angular y SQL). Arquitectura lista para otros clientes además de Bancolombia.
       </p>
 
       {/* Mobile slots */}

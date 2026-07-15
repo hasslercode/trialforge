@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Bancolombia · Simulador de prueba técnica Frontend",
-  description: "Simula la prueba técnica Frontend de Bancolombia: 5 sesiones, 3 horas, 70% para aprobar.",
+  title: "TrialForge · Simulador de pruebas técnicas",
+  description:
+    "Simula pruebas técnicas reales por fases: MCQ, código, timer y banco anti-repetición. Multi-cliente.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

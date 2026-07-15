@@ -33,11 +33,11 @@ export type UsedContent = {
 
 export const examMeta = {
   company: "Bancolombia" as const,
-  title: "Prueba técnica Frontend — Bancolombia",
+  title: "Frontend Technical Challenge · Bancolombia",
   totalMinutes: 180,
   passThreshold: 70,
   environmentNote:
-    "Resolverás el código en un IDE embebido (como en la plataforma real). No hay acceso a frameworks CSS ni al sistema de diseño del banco (BDS).",
+    "IDE embebido estilo plataforma real. Sin frameworks CSS ni BDS del cliente. El contenido es del track Bancolombia; TrialForge puede alojar otros clientes.",
   rules: [
     "Tiempo límite total: exactamente 3 horas para toda la prueba.",
     "Meta de aprobación: puntaje mínimo del 70%.",

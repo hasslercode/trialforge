@@ -1,20 +1,17 @@
-# banco.lab
+# TrialForge
 
-Simulador local-first de la prueba técnica **Frontend Bancolombia**: 5 sesiones, 3 horas, umbral 70%, banco aleatorio sin repetición entre corridas.
+Plataforma local-first para **simular pruebas técnicas** reales. Hoy corre el track Frontend de Bancolombia; la arquitectura está lista para sumar otros clientes y perfiles.
+
+## Por qué TrialForge
+
+- Flujos por **fases** (MCQ + prácticas) con timer global y umbral de aprobación  
+- **Banco grande** con anti-repetición entre corridas  
+- Historial de intentos (5 slots)  
+- Escalable: contenido por cliente (`src/content/<cliente>`)
 
 ## Stack
 
-Next.js 15 · React 19 · TypeScript · Tailwind · IndexedDB
-
-## Banco
-
-| Fase | Contenido |
-| --- | --- |
-| MCQ 1 | Fundamentos JS / navegador |
-| MCQ 2 | Web, Angular y **SQL** |
-| Práctica 3 | **JavaScript o SQL** |
-| Práctica 4 | CSS puro (sin frameworks/BDS) |
-| Práctica 5 | Angular sin ReactiveForms |
+Next.js · React · TypeScript · Tailwind · IndexedDB
 
 ## Inicio
 
@@ -23,6 +20,6 @@ npm install
 npm run dev
 ```
 
-## Deploy
+## Cliente actual
 
-Listo para Vercel (sin variables de entorno ni backend).
+**Bancolombia Frontend** — 5 sesiones, 3 horas, ≥ 70%, incluye SQL en teoría/práctica.

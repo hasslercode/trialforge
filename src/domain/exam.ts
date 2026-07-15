@@ -65,7 +65,7 @@ export type VariantSelection = {
 };
 
 export type Exam = {
-  company: "Bancolombia";
+  company: string;
   title: string;
   totalMinutes: number;
   passThreshold: number;
