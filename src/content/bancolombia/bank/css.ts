@@ -1,30 +1,30 @@
 import type { PracticalVariant } from "@/domain/exam";
 
 const cssRestrictions = [
-  "No frameworks CSS (Bootstrap, Tailwind, etc.).",
-  "No usar el sistema de diseño del banco (BDS).",
-  "No modificar el HTML (bloqueado en la plataforma real).",
-  "Archivos de prueba / snapshot visual bloqueados.",
+  "No CSS frameworks (Bootstrap, Tailwind, etc.).",
+  "Do not use the bank design system (BDS).",
+  "Do not modify the HTML (locked in the real platform).",
+  "Test files / visual snapshots are locked.",
 ];
 
 export const cssBank: PracticalVariant[] = [
   {
     variantId: "css-account-summary",
     kind: "css",
-    title: "CSS puro — Maquetación",
-    subtitle: "Resumen de cuenta responsive",
+    title: "Pure CSS — Layout",
+    subtitle: "Responsive account summary",
     estimatedMinutes: 40,
     story:
-      "Maquetar el resumen de cuenta desde cero. HTML fijado; solo CSS. De 320px a desktop, sin frameworks ni BDS.",
+      "Build the account summary layout from scratch. Fixed HTML; CSS only. From 320px to desktop, without frameworks or BDS.",
     requirements: [
-      "Estiliza `.summary`, `.summary__card` y `.summary__balance`.",
-      "Layout responsive con Grid o Flexbox nativo.",
-      "El saldo principal debe destacarse.",
+      "Style `.summary`, `.summary__card`, and `.summary__balance`.",
+      "Responsive layout with native Grid or Flexbox.",
+      "The main balance must stand out.",
     ],
     acceptanceCriteria: [
-      "En móvil las tarjetas apilan.",
-      "En desktop 2–3 columnas fluidas.",
-      "Sin overflow horizontal en 320px.",
+      "On mobile, the cards stack.",
+      "On desktop, 2-3 fluid columns.",
+      "No horizontal overflow at 320px.",
     ],
     restrictions: cssRestrictions,
     starterFiles: [
@@ -33,15 +33,15 @@ export const cssBank: PracticalVariant[] = [
         language: "html",
         code: `<section class="summary">
   <article class="summary__card summary__card--primary">
-    <p class="summary__label">Saldo disponible</p>
+    <p class="summary__label">Available balance</p>
     <p class="summary__balance">$ 4.250.000</p>
   </article>
   <article class="summary__card">
-    <p class="summary__label">Ingresos del mes</p>
+    <p class="summary__label">Monthly income</p>
     <p class="summary__value">$ 3.100.000</p>
   </article>
   <article class="summary__card">
-    <p class="summary__label">Gastos del mes</p>
+    <p class="summary__label">Monthly expenses</p>
     <p class="summary__value">$ 1.420.000</p>
   </article>
 </section>
@@ -60,36 +60,36 @@ export const cssBank: PracticalVariant[] = [
       },
     ],
     hiddenTests: [
-      { id: "t1", name: "grid/flex en .summary", patterns: [/\.summary\s*\{[\s\S]*?(display\s*:\s*(grid|flex)|grid-template)/] },
-      { id: "t2", name: "columnas responsive", patterns: [/grid-template-columns|flex-wrap|auto-fit|minmax|media/] },
-      { id: "t3", name: "estiliza tarjetas", patterns: [/\.summary__card\s*\{[\s\S]*?\}/] },
-      { id: "t4", name: "destaca saldo", patterns: [/\.summary__balance\s*\{[\s\S]*?\}/] },
-      { id: "t5", name: "sin frameworks", patterns: [/./], forbidden: [/@tailwind|bootstrap|bds-/i] },
+      { id: "t1", name: "grid/flex in .summary", patterns: [/\.summary\s*\{[\s\S]*?(display\s*:\s*(grid|flex)|grid-template)/] },
+      { id: "t2", name: "responsive columns", patterns: [/grid-template-columns|flex-wrap|auto-fit|minmax|media/] },
+      { id: "t3", name: "styles cards", patterns: [/\.summary__card\s*\{[\s\S]*?\}/] },
+      { id: "t4", name: "highlights balance", patterns: [/\.summary__balance\s*\{[\s\S]*?\}/] },
+      { id: "t5", name: "no frameworks", patterns: [/./], forbidden: [/@tailwind|bootstrap|bds-/i] },
     ],
-    hints: ["repeat(auto-fit, minmax(220px, 1fr))", "Separa la tarjeta primary con color distinto."],
+    hints: ["repeat(auto-fit, minmax(220px, 1fr))", "Separate the primary card with a different color."],
     solution: `.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
 .summary__card { background: #f5f5f5; border-radius: 12px; padding: 20px; }
 .summary__card--primary { background: #1a1a1a; color: #fff; }
 .summary__balance { font-size: 2rem; font-weight: 700; }`,
-    explanation: "Grid + minmax cubre el responsive.",
+    explanation: "Grid + minmax covers the responsive behavior.",
   },
   {
     variantId: "css-transfer-form",
     kind: "css",
-    title: "CSS puro — Maquetación",
-    subtitle: "Formulario de transferencia",
+    title: "Pure CSS — Layout",
+    subtitle: "Transfer form",
     estimatedMinutes: 40,
     story:
-      "Debes maquetar un formulario de transferencia claro y usable en móvil. Solo CSS; HTML bloqueado.",
+      "You must lay out a clear transfer form that is usable on mobile. CSS only; HTML is locked.",
     requirements: [
-      "Estiliza `.transfer`, labels, inputs y el botón primario.",
-      "Campos apilados con espaciado consistente.",
-      "Botón full-width en móvil; alineado a la derecha en desktop (≥768px).",
+      "Style `.transfer`, labels, inputs, and the primary button.",
+      "Stack fields with consistent spacing.",
+      "Full-width button on mobile; right-aligned on desktop (>=768px).",
     ],
     acceptanceCriteria: [
-      "Inputs con tipografía legible y padding cómodo.",
-      "Estados :focus visibles.",
-      "Sin frameworks.",
+      "Inputs have legible typography and comfortable padding.",
+      "Visible :focus states.",
+      "No frameworks.",
     ],
     restrictions: cssRestrictions,
     starterFiles: [
@@ -97,10 +97,10 @@ export const cssBank: PracticalVariant[] = [
         name: "index.html",
         language: "html",
         code: `<form class="transfer">
-  <label class="transfer__field">Cuenta destino<input name="to" type="text" /></label>
-  <label class="transfer__field">Monto<input name="amount" type="text" /></label>
-  <label class="transfer__field">Descripción<input name="note" type="text" /></label>
-  <button class="transfer__submit" type="submit">Transferir</button>
+  <label class="transfer__field">Destination account<input name="to" type="text" /></label>
+  <label class="transfer__field">Amount<input name="amount" type="text" /></label>
+  <label class="transfer__field">Description<input name="note" type="text" /></label>
+  <button class="transfer__submit" type="submit">Transfer</button>
 </form>
 `,
       },
@@ -115,49 +115,49 @@ export const cssBank: PracticalVariant[] = [
       },
     ],
     hiddenTests: [
-      { id: "t1", name: "layout del form", patterns: [/\.transfer\s*\{[\s\S]*?(display\s*:\s*(flex|grid)|flex-direction)/] },
-      { id: "t2", name: "estiliza inputs", patterns: [/\.transfer__field[\s\S]*?input|\.transfer__field input/] },
-      { id: "t3", name: "estiliza botón", patterns: [/\.transfer__submit\s*\{[\s\S]*?\}/] },
+      { id: "t1", name: "form layout", patterns: [/\.transfer\s*\{[\s\S]*?(display\s*:\s*(flex|grid)|flex-direction)/] },
+      { id: "t2", name: "styles inputs", patterns: [/\.transfer__field[\s\S]*?input|\.transfer__field input/] },
+      { id: "t3", name: "styles button", patterns: [/\.transfer__submit\s*\{[\s\S]*?\}/] },
       { id: "t4", name: "focus visible", patterns: [/:focus/] },
-      { id: "t5", name: "media query desktop", patterns: [/@media/] },
-      { id: "t6", name: "sin frameworks", patterns: [/./], forbidden: [/@tailwind|bootstrap|bds-/i] },
+      { id: "t5", name: "desktop media query", patterns: [/@media/] },
+      { id: "t6", name: "no frameworks", patterns: [/./], forbidden: [/@tailwind|bootstrap|bds-/i] },
     ],
-    hints: ["flex-direction: column + gap.", "@media (min-width: 768px) alinea el botón."],
+    hints: ["flex-direction: column + gap.", "@media (min-width: 768px) aligns the button."],
     solution: `.transfer { display: flex; flex-direction: column; gap: 12px; max-width: 420px; }
 .transfer__field { display: flex; flex-direction: column; gap: 6px; font-size: 0.875rem; }
 .transfer__field input { padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; }
 .transfer__field input:focus { outline: 2px solid #333; }
 .transfer__submit { padding: 12px; width: 100%; border: 0; border-radius: 8px; background: #111; color: #fff; }
 @media (min-width: 768px) { .transfer__submit { width: auto; align-self: flex-end; } }`,
-    explanation: "Form column + focus + breakpoint para el CTA.",
+    explanation: "Form column + focus + breakpoint for the CTA.",
   },
   {
     variantId: "css-movements-list",
     kind: "css",
-    title: "CSS puro — Maquetación",
-    subtitle: "Listado de movimientos",
+    title: "Pure CSS — Layout",
+    subtitle: "Movements list",
     estimatedMinutes: 40,
     story:
-      "Lista de movimientos con monto alineado a la derecha pese a títulos de largo variable.",
+      "Movements list with the amount aligned to the right despite variable-length titles.",
     requirements: [
-      "Cada `.movement` es una fila (flex o grid).",
-      "Título puede truncarse; el monto no debe romperse.",
-      "Separadores sutiles entre filas.",
+      "Each `.movement` is a row (flex or grid).",
+      "The title can truncate; the amount must not wrap.",
+      "Subtle separators between rows.",
     ],
     acceptanceCriteria: [
-      "Monto alineado consistentemente.",
-      "Sin position:absolute para el precio.",
-      "Tests ocultos pasan.",
+      "Amount aligned consistently.",
+      "No position:absolute for the amount.",
+      "Hidden tests pass.",
     ],
-    restrictions: [...cssRestrictions, "No usar position:absolute para el monto."],
+    restrictions: [...cssRestrictions, "Do not use position:absolute for the amount."],
     starterFiles: [
       {
         name: "index.html",
         language: "html",
         code: `<ul class="movements">
-  <li class="movement"><span class="movement__title">Pago PSE supermercado</span><span class="movement__amount">-$ 85.400</span></li>
-  <li class="movement"><span class="movement__title">Transferencia recibida</span><span class="movement__amount">+$ 200.000</span></li>
-  <li class="movement"><span class="movement__title">Comisión manejo de cuenta mes marzo</span><span class="movement__amount">-$ 12.900</span></li>
+  <li class="movement"><span class="movement__title">PSE supermarket payment</span><span class="movement__amount">-$ 85.400</span></li>
+  <li class="movement"><span class="movement__title">Incoming transfer</span><span class="movement__amount">+$ 200.000</span></li>
+  <li class="movement"><span class="movement__title">March account maintenance fee</span><span class="movement__amount">-$ 12.900</span></li>
 </ul>
 `,
       },
@@ -172,35 +172,35 @@ export const cssBank: PracticalVariant[] = [
       },
     ],
     hiddenTests: [
-      { id: "t1", name: "fila flex/grid", patterns: [/\.movement\s*\{[\s\S]*?display\s*:\s*(flex|grid)/] },
-      { id: "t2", name: "title con ellipsis o min-width 0", patterns: [/ellipsis|min-width\s*:\s*0|overflow\s*:\s*hidden/] },
+      { id: "t1", name: "flex/grid row", patterns: [/\.movement\s*\{[\s\S]*?display\s*:\s*(flex|grid)/] },
+      { id: "t2", name: "title with ellipsis or min-width 0", patterns: [/ellipsis|min-width\s*:\s*0|overflow\s*:\s*hidden/] },
       { id: "t3", name: "amount no wrap", patterns: [/white-space\s*:\s*nowrap|flex-shrink\s*:\s*0/] },
-      { id: "t4", name: "sin absolute para monto", patterns: [/./], forbidden: [/\.movement__amount\s*\{[\s\S]*?position\s*:\s*absolute/] },
-      { id: "t5", name: "sin frameworks", patterns: [/./], forbidden: [/@tailwind|bootstrap|bds-/i] },
+      { id: "t4", name: "no absolute for amount", patterns: [/./], forbidden: [/\.movement__amount\s*\{[\s\S]*?position\s*:\s*absolute/] },
+      { id: "t5", name: "no frameworks", patterns: [/./], forbidden: [/@tailwind|bootstrap|bds-/i] },
     ],
     hints: ["display:flex; justify-content:space-between;", "title: flex:1; min-width:0; text-overflow:ellipsis;"],
     solution: `.movements { list-style: none; margin: 0; padding: 0; }
 .movement { display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
 .movement__title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .movement__amount { flex-shrink: 0; white-space: nowrap; font-weight: 600; }`,
-    explanation: "Flex + ellipsis evita absolute.",
+    explanation: "Flex + ellipsis avoids absolute.",
   },
   {
     variantId: "css-product-cards",
     kind: "css",
-    title: "CSS puro — Maquetación",
-    subtitle: "Cards de productos financieros",
+    title: "Pure CSS — Layout",
+    subtitle: "Financial product cards",
     estimatedMinutes: 40,
     story:
-      "Tres productos (cuenta, tarjeta, crédito) en cards de igual altura con CTA al fondo.",
+      "Three products (account, card, loan) in equal-height cards with the CTA at the bottom.",
     requirements: [
-      "Grid responsive de `.products`.",
-      "Cada `.product` usa flex column y el botón pega abajo (`margin-top: auto`).",
-      "Misma altura visual en una fila.",
+      "Responsive grid for `.products`.",
+      "Each `.product` uses flex column and the button sticks to the bottom (`margin-top: auto`).",
+      "Same visual height in a row.",
     ],
     acceptanceCriteria: [
-      "CTA alineados en desktop.",
-      "Sin frameworks ni BDS.",
+      "CTAs aligned on desktop.",
+      "No frameworks or BDS.",
     ],
     restrictions: cssRestrictions,
     starterFiles: [
@@ -208,9 +208,9 @@ export const cssBank: PracticalVariant[] = [
         name: "index.html",
         language: "html",
         code: `<section class="products">
-  <article class="product"><h3>Cuenta de ahorros</h3><p>Sin cuota de manejo el primer año.</p><button>Solicitar</button></article>
-  <article class="product"><h3>Tarjeta crédito</h3><p>Cashback en comercios aliados.</p><button>Solicitar</button></article>
-  <article class="product"><h3>Crédito libre</h3><p>Desembolso digital en minutos.</p><button>Solicitar</button></article>
+  <article class="product"><h3>Savings account</h3><p>No management fee for the first year.</p><button>Apply</button></article>
+  <article class="product"><h3>Credit card</h3><p>Cashback at partner businesses.</p><button>Apply</button></article>
+  <article class="product"><h3>Personal loan</h3><p>Digital disbursement in minutes.</p><button>Apply</button></article>
 </section>
 `,
       },
@@ -224,33 +224,33 @@ export const cssBank: PracticalVariant[] = [
       },
     ],
     hiddenTests: [
-      { id: "t1", name: "grid en .products", patterns: [/\.products\s*\{[\s\S]*?(display\s*:\s*grid|grid-template)/] },
+      { id: "t1", name: "grid in .products", patterns: [/\.products\s*\{[\s\S]*?(display\s*:\s*grid|grid-template)/] },
       { id: "t2", name: "product flex column", patterns: [/\.product\s*\{[\s\S]*?display\s*:\s*flex[\s\S]*?flex-direction\s*:\s*column/] },
-      { id: "t3", name: "CTA abajo con margin-top auto", patterns: [/margin-top\s*:\s*auto/] },
-      { id: "t4", name: "sin frameworks", patterns: [/./], forbidden: [/@tailwind|bootstrap|bds-/i] },
+      { id: "t3", name: "CTA at the bottom with margin-top auto", patterns: [/margin-top\s*:\s*auto/] },
+      { id: "t4", name: "no frameworks", patterns: [/./], forbidden: [/@tailwind|bootstrap|bds-/i] },
     ],
     hints: ["products: display:grid; gap; auto-fit.", "product button { margin-top: auto; }"],
     solution: `.products { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
 .product { display: flex; flex-direction: column; gap: 8px; padding: 20px; border: 1px solid #ddd; border-radius: 12px; min-height: 220px; }
 .product button { margin-top: auto; padding: 10px 14px; }`,
-    explanation: "Grid iguala columnas; margin-top:auto empuja el CTA.",
+    explanation: "Grid equalizes columns; margin-top:auto pushes the CTA.",
   },
   {
     variantId: "css-otp-banner",
     kind: "css",
-    title: "CSS puro — Maquetación",
-    subtitle: "Banner de verificación OTP",
+    title: "Pure CSS — Layout",
+    subtitle: "OTP verification banner",
     estimatedMinutes: 35,
     story:
-      "Banner de seguridad con ícono, mensaje y acciones. Debe leerse bien en mobile.",
+      "Security banner with an icon, message, and actions. It must read well on mobile.",
     requirements: [
-      "`.otp` en flex; apila en pantallas angostas.",
-      "Estilos para `.otp__actions` con gap.",
-      "Contraste suficiente texto/fondo.",
+      "`.otp` in flex; stacks on narrow screens.",
+      "Styles for `.otp__actions` with gap.",
+      "Sufficient text/background contrast.",
     ],
     acceptanceCriteria: [
-      "Media query o flex-wrap para mobile.",
-      "Sin frameworks.",
+      "Media query or flex-wrap for mobile.",
+      "No frameworks.",
     ],
     restrictions: cssRestrictions,
     starterFiles: [
@@ -260,12 +260,12 @@ export const cssBank: PracticalVariant[] = [
         code: `<aside class="otp">
   <div class="otp__icon" aria-hidden="true">!</div>
   <div class="otp__body">
-    <strong>Verifica tu identidad</strong>
-    <p>Enviamos un código a tu celular registrado.</p>
+    <strong>Verify your identity</strong>
+    <p>We sent a code to your registered mobile phone.</p>
   </div>
   <div class="otp__actions">
-    <button type="button" class="otp__secondary">Reenviar</button>
-    <button type="button" class="otp__primary">Continuar</button>
+    <button type="button" class="otp__secondary">Resend</button>
+    <button type="button" class="otp__primary">Continue</button>
   </div>
 </aside>
 `,
@@ -283,18 +283,18 @@ export const cssBank: PracticalVariant[] = [
       },
     ],
     hiddenTests: [
-      { id: "t1", name: "flex en .otp", patterns: [/\.otp\s*\{[\s\S]*?display\s*:\s*flex/] },
-      { id: "t2", name: "actions con gap o flex", patterns: [/\.otp__actions\s*\{[\s\S]*?(display\s*:\s*flex|gap)/] },
+      { id: "t1", name: "flex in .otp", patterns: [/\.otp\s*\{[\s\S]*?display\s*:\s*flex/] },
+      { id: "t2", name: "actions with gap or flex", patterns: [/\.otp__actions\s*\{[\s\S]*?(display\s*:\s*flex|gap)/] },
       { id: "t3", name: "responsive wrap/media", patterns: [/flex-wrap|@media|flex-direction\s*:\s*column/] },
-      { id: "t4", name: "estilos primary", patterns: [/\.otp__primary\s*\{[\s\S]*?\}/] },
-      { id: "t5", name: "sin frameworks", patterns: [/./], forbidden: [/@tailwind|bootstrap|bds-/i] },
+      { id: "t4", name: "primary styles", patterns: [/\.otp__primary\s*\{[\s\S]*?\}/] },
+      { id: "t5", name: "no frameworks", patterns: [/./], forbidden: [/@tailwind|bootstrap|bds-/i] },
     ],
-    hints: ["align-items:center; gap:16px; flex-wrap:wrap;", "En mobile flex-direction:column."],
+    hints: ["align-items:center; gap:16px; flex-wrap:wrap;", "On mobile, flex-direction:column."],
     solution: `.otp { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; padding: 16px; background: #111; color: #fff; border-radius: 12px; }
 .otp__actions { display: flex; gap: 8px; margin-left: auto; }
 .otp__primary { background: #fff; color: #111; border: 0; padding: 8px 14px; border-radius: 8px; }
 .otp__secondary { background: transparent; color: #fff; border: 1px solid #666; padding: 8px 14px; border-radius: 8px; }
 @media (max-width: 600px) { .otp { flex-direction: column; align-items: stretch; } .otp__actions { margin-left: 0; } }`,
-    explanation: "Flex + wrap/media para el banner de seguridad.",
+    explanation: "Flex + wrap/media for the security banner.",
   },
 ];

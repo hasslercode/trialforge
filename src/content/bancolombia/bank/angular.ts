@@ -1,30 +1,30 @@
 import type { PracticalVariant } from "@/domain/exam";
 
 const angularRestrictions = [
-  "Prohibido ReactiveFormsModule / FormControl / FormBuilder.",
-  "Captura manual con $event o #templateRef.",
-  "No modificar los archivos de prueba unitaria (bloqueados).",
-  "No uses NgRx ni estado global.",
+  "ReactiveFormsModule / FormControl / FormBuilder are forbidden.",
+  "Manual capture with $event or #templateRef.",
+  "Do not modify unit test files (locked).",
+  "Do not use NgRx or global state.",
 ];
 
 export const angularBank: PracticalVariant[] = [
   {
     variantId: "ng-todo-tabs",
     kind: "angular",
-    title: "Angular — Componentes",
-    subtitle: "Lista de tareas con pestañas (To-Do)",
+    title: "Angular — Components",
+    subtitle: "Task list with tabs (To-Do)",
     estimatedMinutes: 50,
     story:
-      "To-Do con pestañas Pendientes / Completadas / Todas. Captura 100% manual.",
+      "To-Do with Pending / Completed / All tabs. 100% manual capture.",
     requirements: [
-      "Componente con lista interna y pestañas all | pending | done.",
-      "Agregar desde input nativo (#taskInput o $event).",
-      "Toggle de done y filtrado por pestaña.",
+      "Component with an internal list and all | pending | done tabs.",
+      "Add from a native input (#taskInput or $event).",
+      "Toggle done and filter by tab.",
     ],
     acceptanceCriteria: [
-      "Sin ReactiveFormsModule.",
-      "Pestañas filtran bien.",
-      "Tests ocultos pasan.",
+      "No ReactiveFormsModule.",
+      "Tabs filter correctly.",
+      "Hidden tests pass.",
     ],
     restrictions: angularRestrictions,
     starterFiles: [
@@ -49,8 +49,8 @@ export class TodoBoardComponent {
         code: `<section class="todo">
   <nav class="todo__tabs"><!-- all / pending / done --></nav>
   <div class="todo__form">
-    <input #taskInput type="text" placeholder="Nueva tarea" />
-    <button type="button">Agregar</button>
+    <input #taskInput type="text" placeholder="New task" />
+    <button type="button">Add</button>
   </div>
   <ul class="todo__list"><!-- *ngFor --></ul>
 </section>
@@ -58,39 +58,39 @@ export class TodoBoardComponent {
       },
     ],
     hiddenTests: [
-      { id: "t1", name: "filtrado por tab", patterns: [/activeTab|filteredTodos|pending|done/] },
+      { id: "t1", name: "filtering by tab", patterns: [/activeTab|filteredTodos|pending|done/] },
       { id: "t2", name: "addTodo", patterns: [/addTodo\s*\(/] },
       { id: "t3", name: "toggle", patterns: [/toggle\s*\(/] },
-      { id: "t4", name: "template ref o $event", patterns: [/#taskInput|\$event|taskInput\.value/] },
-      { id: "t5", name: "sin Reactive Forms", patterns: [/./], forbidden: [/ReactiveFormsModule|FormBuilder|FormControl|formControlName/] },
+      { id: "t4", name: "template ref or $event", patterns: [/#taskInput|\$event|taskInput\.value/] },
+      { id: "t5", name: "no Reactive Forms", patterns: [/./], forbidden: [/ReactiveFormsModule|FormBuilder|FormControl|formControlName/] },
       { id: "t6", name: "*ngFor", patterns: [/\*ngFor/] },
     ],
-    hints: ["Getter filteredTodos según activeTab.", "addTodo(taskInput.value); taskInput.value=''"],
+    hints: ["Getter filteredTodos based on activeTab.", "addTodo(taskInput.value); taskInput.value=''"],
     solution: `get filteredTodos() {
   if (this.activeTab === 'pending') return this.todos.filter(t => !t.done);
   if (this.activeTab === 'done') return this.todos.filter(t => t.done);
   return this.todos;
 }`,
-    explanation: "Estado local + captura manual + tabs.",
+    explanation: "Local state + manual capture + tabs.",
   },
   {
     variantId: "ng-transaction-filter",
     kind: "angular",
-    title: "Angular — Componentes",
-    subtitle: "Filtro de transacciones",
+    title: "Angular — Components",
+    subtitle: "Transaction filter",
     estimatedMinutes: 45,
     story:
-      "Componente que filtra una lista de transacciones por texto sin acoplarse al padre con Reactive Forms.",
+      "Component that filters a transaction list by text without coupling to the parent with Reactive Forms.",
     requirements: [
       "@Input() transactions.",
-      "Input nativo de búsqueda (#query o $event).",
-      "Lista filtrada case-insensitive por description.",
-      "@Output() filtered opcional al cambiar.",
+      "Native search input (#query or $event).",
+      "Case-insensitive list filtered by description.",
+      "Optional @Output() filtered when it changes.",
     ],
     acceptanceCriteria: [
-      "Sin FormControl.",
-      "Filtro reactivo al escribir.",
-      "Tests ocultos pasan.",
+      "No FormControl.",
+      "Filter updates as you type.",
+      "Hidden tests pass.",
     ],
     restrictions: angularRestrictions,
     starterFiles: [
@@ -113,9 +113,9 @@ export class TxFilterComponent {
         name: "tx-filter.component.html",
         language: "html",
         code: `<section>
-  <input #queryInput type="search" placeholder="Buscar movimiento" />
+  <input #queryInput type="search" placeholder="Search transaction" />
   <ul>
-    <!-- *ngFor de visible -->
+    <!-- *ngFor for visible -->
   </ul>
 </section>
 `,
@@ -123,10 +123,10 @@ export class TxFilterComponent {
     ],
     hiddenTests: [
       { id: "t1", name: "@Input transactions", patterns: [/@Input\(\)\s*transactions/] },
-      { id: "t2", name: "filtra description", patterns: [/description|includes|toLowerCase|filter/] },
-      { id: "t3", name: "template ref o input event", patterns: [/#queryInput|\$event|\(input\)|\(keyup\)/] },
+      { id: "t2", name: "filters description", patterns: [/description|includes|toLowerCase|filter/] },
+      { id: "t3", name: "template ref or input event", patterns: [/#queryInput|\$event|\(input\)|\(keyup\)/] },
       { id: "t4", name: "*ngFor", patterns: [/\*ngFor/] },
-      { id: "t5", name: "sin Reactive Forms", patterns: [/./], forbidden: [/ReactiveFormsModule|FormControl|formControlName/] },
+      { id: "t5", name: "no Reactive Forms", patterns: [/./], forbidden: [/ReactiveFormsModule|FormControl|formControlName/] },
     ],
     hints: ["(input)=\"onQuery(queryInput.value)\"", "visible = transactions.filter(...)"],
     solution: `get visible() {
@@ -137,26 +137,26 @@ onQuery(value: string) {
   this.query = value;
   this.filtered.emit(this.visible);
 }`,
-    explanation: "Input nativo + getter de filtrado.",
+    explanation: "Native input + filter getter.",
   },
   {
     variantId: "ng-tabs-products",
     kind: "angular",
-    title: "Angular — Componentes",
-    subtitle: "Productos agrupados en pestañas",
+    title: "Angular — Components",
+    subtitle: "Products grouped in tabs",
     estimatedMinutes: 50,
     story:
-      "Agrupa productos financieros en pestañas por tipo (cuentas, tarjetas, créditos) y permite marcar favoritos.",
+      "Group financial products into tabs by type (accounts, cards, loans) and allow marking favorites.",
     requirements: [
       "activeTab: 'accounts' | 'cards' | 'loans'.",
-      "Lista filtrada por tipo.",
-      "toggleFavorite(id) inmutable.",
-      "Captura manual si agregas un alias (#nameInput).",
+      "Filtered list by type.",
+      "Immutable toggleFavorite(id).",
+      "Manual capture if you add an alias (#nameInput).",
     ],
     acceptanceCriteria: [
-      "Cambio de pestaña actualiza la lista.",
-      "Sin Reactive Forms.",
-      "Tests ocultos pasan.",
+      "Changing the tab updates the list.",
+      "No Reactive Forms.",
+      "Hidden tests pass.",
     ],
     restrictions: angularRestrictions,
     starterFiles: [
@@ -170,9 +170,9 @@ type Product = { id: number; name: string; kind: Kind; favorite: boolean };
 export class ProductsBoardComponent {
   activeTab: Kind = 'accounts';
   products: Product[] = [
-    { id: 1, name: 'Ahorros', kind: 'accounts', favorite: false },
+    { id: 1, name: 'Savings', kind: 'accounts', favorite: false },
     { id: 2, name: 'Visa Gold', kind: 'cards', favorite: true },
-    { id: 3, name: 'Libre inversión', kind: 'loans', favorite: false },
+    { id: 3, name: 'Personal loan', kind: 'loans', favorite: false },
   ];
   // TODO: filtered, setTab, toggleFavorite
 }
@@ -188,36 +188,36 @@ export class ProductsBoardComponent {
     ],
     hiddenTests: [
       { id: "t1", name: "activeTab / filtered", patterns: [/activeTab|filtered/] },
-      { id: "t2", name: "setTab o cambio de tab", patterns: [/setTab|activeTab\s*=/] },
+      { id: "t2", name: "setTab or tab change", patterns: [/setTab|activeTab\s*=/] },
       { id: "t3", name: "toggleFavorite", patterns: [/toggleFavorite/] },
       { id: "t4", name: "*ngFor", patterns: [/\*ngFor/] },
-      { id: "t5", name: "sin Reactive Forms", patterns: [/./], forbidden: [/ReactiveFormsModule|FormBuilder|FormControl/] },
+      { id: "t5", name: "no Reactive Forms", patterns: [/./], forbidden: [/ReactiveFormsModule|FormBuilder|FormControl/] },
     ],
-    hints: ["filtered = products.filter(p => p.kind === activeTab)", "map inmutable en toggleFavorite"],
+    hints: ["filtered = products.filter(p => p.kind === activeTab)", "immutable map in toggleFavorite"],
     solution: `get filtered() { return this.products.filter(p => p.kind === this.activeTab); }
 toggleFavorite(id: number) {
   this.products = this.products.map(p => p.id === id ? { ...p, favorite: !p.favorite } : p);
 }`,
-    explanation: "Pestañas por kind + favoritos inmutables.",
+    explanation: "Tabs by kind + immutable favorites.",
   },
   {
     variantId: "ng-otp-input",
     kind: "angular",
-    title: "Angular — Componentes",
-    subtitle: "Captura OTP manual",
+    title: "Angular — Components",
+    subtitle: "Manual OTP capture",
     estimatedMinutes: 45,
     story:
-      "Componente que captura un código OTP de 6 dígitos con input nativo y valida antes de emitir.",
+      "Component that captures a 6-digit OTP code with a native input and validates before emitting.",
     requirements: [
-      "Leer valor con #otpInput o $event.",
-      "submitOtp(value) solo si /^\\d{6}$/.",
+      "Read the value with #otpInput or $event.",
+      "submitOtp(value) only if /^\\d{6}$/.",
       "@Output() completed = EventEmitter<string>.",
-      "Mostrar mensaje de error local sin Reactive Forms.",
+      "Show a local error message without Reactive Forms.",
     ],
     acceptanceCriteria: [
-      "No emite si el código es inválido.",
-      "Sin FormControl.",
-      "Tests ocultos pasan.",
+      "Does not emit if the code is invalid.",
+      "No FormControl.",
+      "Hidden tests pass.",
     ],
     restrictions: angularRestrictions,
     starterFiles: [
@@ -236,45 +236,45 @@ export class OtpComponent {
       {
         name: "otp.component.html",
         language: "html",
-        code: `<input #otpInput maxlength="6" inputmode="numeric" placeholder="Código" />
-<button type="button">Confirmar</button>
+        code: `<input #otpInput maxlength="6" inputmode="numeric" placeholder="Code" />
+<button type="button">Confirm</button>
 <p *ngIf="error">{{ error }}</p>
 `,
       },
     ],
     hiddenTests: [
       { id: "t1", name: "submitOtp", patterns: [/submitOtp\s*\(/] },
-      { id: "t2", name: "valida 6 dígitos", patterns: [/\\d\{6\}|length\s*===\s*6|test\s*\(/] },
+      { id: "t2", name: "validates 6 digits", patterns: [/\\d\{6\}|length\s*===\s*6|test\s*\(/] },
       { id: "t3", name: "EventEmitter completed", patterns: [/completed\.emit|EventEmitter/] },
-      { id: "t4", name: "template ref o $event", patterns: [/#otpInput|\$event|otpInput\.value/] },
-      { id: "t5", name: "sin Reactive Forms", patterns: [/./], forbidden: [/ReactiveFormsModule|FormControl|formControlName/] },
+      { id: "t4", name: "template ref or $event", patterns: [/#otpInput|\$event|otpInput\.value/] },
+      { id: "t5", name: "no Reactive Forms", patterns: [/./], forbidden: [/ReactiveFormsModule|FormControl|formControlName/] },
     ],
     hints: ["if (!/^\\d{6}$/.test(value)) { this.error = '...'; return; }", "this.completed.emit(value)"],
     solution: `submitOtp(value: string) {
-  if (!/^\\d{6}$/.test(value.trim())) { this.error = 'Código inválido'; return; }
+  if (!/^\\d{6}$/.test(value.trim())) { this.error = 'Invalid code'; return; }
   this.error = '';
   this.completed.emit(value.trim());
 }`,
-    explanation: "Validación local + emit; captura manual.",
+    explanation: "Local validation + emit; manual capture.",
   },
   {
     variantId: "ng-checklist-groups",
     kind: "angular",
-    title: "Angular — Componentes",
-    subtitle: "Checklist por grupos / pestañas",
+    title: "Angular — Components",
+    subtitle: "Checklist by groups / tabs",
     estimatedMinutes: 50,
     story:
-      "Checklist de onboarding (Documentos / Datos / Confirmación). Marca ítems y muestra progreso por pestaña.",
+      "Onboarding checklist (Documents / Data / Confirmation). Mark items and show progress by tab.",
     requirements: [
       "Tabs: docs | data | confirm.",
-      "Ítems con done boolean; toggleItem(id).",
-      "Getter progress: { done, total } de la pestaña activa.",
-      "Sin Reactive Forms.",
+      "Items with done boolean; toggleItem(id).",
+      "Getter progress: { done, total } for the active tab.",
+      "No Reactive Forms.",
     ],
     acceptanceCriteria: [
-      "Progreso refleja la pestaña activa.",
-      "Toggle inmutable.",
-      "Tests ocultos pasan.",
+      "Progress reflects the active tab.",
+      "Immutable toggle.",
+      "Hidden tests pass.",
     ],
     restrictions: angularRestrictions,
     starterFiles: [
@@ -288,10 +288,10 @@ type Item = { id: number; tab: Tab; label: string; done: boolean };
 export class ChecklistComponent {
   activeTab: Tab = 'docs';
   items: Item[] = [
-    { id: 1, tab: 'docs', label: 'Cédula', done: false },
+    { id: 1, tab: 'docs', label: 'ID card', done: false },
     { id: 2, tab: 'docs', label: 'Selfie', done: false },
-    { id: 3, tab: 'data', label: 'Dirección', done: false },
-    { id: 4, tab: 'confirm', label: 'Aceptar términos', done: false },
+    { id: 3, tab: 'data', label: 'Address', done: false },
+    { id: 4, tab: 'confirm', label: 'Accept terms', done: false },
   ];
   // TODO: visible, progress, setTab, toggleItem
 }
@@ -311,9 +311,9 @@ export class ChecklistComponent {
       { id: "t2", name: "progress", patterns: [/progress/] },
       { id: "t3", name: "toggleItem", patterns: [/toggleItem/] },
       { id: "t4", name: "*ngFor", patterns: [/\*ngFor/] },
-      { id: "t5", name: "sin Reactive Forms", patterns: [/./], forbidden: [/ReactiveFormsModule|FormBuilder|FormControl/] },
+      { id: "t5", name: "no Reactive Forms", patterns: [/./], forbidden: [/ReactiveFormsModule|FormBuilder|FormControl/] },
     ],
-    hints: ["visible = items.filter(i => i.tab === activeTab)", "progress cuenta done en visible"],
+    hints: ["visible = items.filter(i => i.tab === activeTab)", "progress counts done in visible"],
     solution: `get visible() { return this.items.filter(i => i.tab === this.activeTab); }
 get progress() {
   const list = this.visible;
@@ -322,6 +322,6 @@ get progress() {
 toggleItem(id: number) {
   this.items = this.items.map(i => i.id === id ? { ...i, done: !i.done } : i);
 }`,
-    explanation: "Grupos en tabs + progreso local.",
+    explanation: "Groups in tabs + local progress.",
   },
 ];
