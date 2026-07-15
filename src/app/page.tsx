@@ -52,7 +52,7 @@ import {
 
 type Screen = "home" | "roadmap" | "session" | "results" | "study";
 
-/** Viewport estrecho: modo teoría (MCQ). Las prácticas de código quedan para desktop. */
+/** Narrow viewport: theory mode (MCQ). Code practice remains desktop-only. */
 function useIsMobile(breakpointPx = 768) {
   const [mobile, setMobile] = useState(false);
   useEffect(() => {
@@ -78,7 +78,7 @@ function formatTime(totalSeconds: number) {
 
 function formatShortDate(iso: string) {
   try {
-    return new Intl.DateTimeFormat("es-CO", {
+    return new Intl.DateTimeFormat("en-US", {
       day: "2-digit",
       month: "short",
       hour: "2-digit",
@@ -211,7 +211,7 @@ export default function App() {
   }
 
   function startInSlot(slotIndex: number) {
-    // Excluye el slot actual (libre o a reiniciar) para no contar su selección vieja
+    // Exclude the current slot (free or restarting) so its old selection is not counted.
     const others = app.slots.map((slot, index) => (index === slotIndex ? null : slot));
     const selection = pickVariantSelection(collectUsedContent(others));
     const attempt: ExamAttempt = {
@@ -243,7 +243,7 @@ export default function App() {
 
   function resetAllAttempts() {
     const ok = window.confirm(
-      `Se borrarán las ${MAX_ATTEMPT_SLOTS} corridas guardadas en este dispositivo. Empezarás de cero con preguntas y prácticas aleatorias nuevas. ¿Continuar?`,
+      `This will delete the ${MAX_ATTEMPT_SLOTS} saved runs on this device. You will start over with new random questions and practice tasks. Continue?`,
     );
     if (!ok) return;
     persist(emptyAppState());
@@ -254,7 +254,7 @@ export default function App() {
   function restartSlot(slotIndex: number) {
     if (app.slots[slotIndex]) {
       const ok = window.confirm(
-        `La corrida del slot #${slotIndex + 1} se reemplazará por una mezcla aleatoria nueva del banco. ¿Continuar?`,
+        `The run in slot #${slotIndex + 1} will be replaced with a new random mix from the bank. Continue?`,
       );
       if (!ok) return;
     }
@@ -333,8 +333,8 @@ export default function App() {
               <button
                 onClick={() => setSidebarPinnedOpen((v) => !v)}
                 className="rounded-md border border-zinc-800 p-1.5 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
-                title={sidebarCollapsed ? "Ver corridas" : "Ocultar corridas"}
-                aria-label={sidebarCollapsed ? "Mostrar sidebar" : "Ocultar sidebar"}
+                title={sidebarCollapsed ? "View runs" : "Hide runs"}
+                aria-label={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
               >
                 {sidebarCollapsed ? <PanelLeft size={16} /> : <PanelLeftClose size={16} />}
               </button>
@@ -355,7 +355,7 @@ export default function App() {
             {isMobile && (
               <span className="flex items-center gap-1 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-[11px] text-zinc-400">
                 <Smartphone size={12} />
-                Solo teoría
+                Theory only
               </span>
             )}
             {progress.startedAt && (
@@ -381,10 +381,10 @@ export default function App() {
               onClick={() => setScreen("roadmap")}
               className="text-zinc-400 hover:text-white"
             >
-              Fases
+              Phases
             </button>
             <button onClick={() => setScreen("results")} className="text-zinc-400 hover:text-white">
-              Resultado
+              Results
             </button>
           </div>
         </header>
@@ -487,7 +487,7 @@ function AttemptsPanel({
     <>
       {sessionMode && open && (
         <button
-          aria-label="Cerrar sidebar"
+          aria-label="Close sidebar"
           className="fixed inset-0 z-30 bg-black/50"
           onClick={onCollapse}
         />
@@ -497,10 +497,10 @@ function AttemptsPanel({
         className={[
           "z-40 flex h-screen shrink-0 flex-col border-r border-zinc-800 bg-[#0c0c0e]",
           "transition-[width,transform] duration-300 ease-out",
-          // Desktop: sidebar real en el flujo. Sesión → width 0 (comprimido/oculto).
+          // Desktop: real sidebar in the flow. Session -> width 0 (collapsed/hidden).
           "hidden lg:flex",
           open ? "lg:w-60" : "lg:w-0 lg:border-transparent lg:overflow-hidden",
-          // Mobile (solo cuando se reabre en sesión): drawer overlay
+          // Mobile (only when reopened in a session): drawer overlay.
           sessionMode && open ? "max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:flex max-lg:w-60" : "",
         ].join(" ")}
         aria-hidden={!open}
@@ -514,14 +514,14 @@ function AttemptsPanel({
         >
           <div className="flex h-14 shrink-0 items-center justify-between border-b border-zinc-800 px-4">
             <div>
-              <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">Corridas</p>
-              <p className="text-sm font-semibold text-zinc-200">Últimas {MAX_ATTEMPT_SLOTS}</p>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">Runs</p>
+              <p className="text-sm font-semibold text-zinc-200">Last {MAX_ATTEMPT_SLOTS}</p>
             </div>
             {sessionMode && (
               <button
                 onClick={onCollapse}
                 className="rounded-md p-1.5 text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200"
-                aria-label="Comprimir sidebar"
+                aria-label="Collapse sidebar"
               >
                 <PanelLeftClose size={16} />
               </button>
@@ -531,8 +531,8 @@ function AttemptsPanel({
           <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto p-3">
             <p className="px-1 text-[11px] leading-4 text-zinc-600">
               {freeSlots > 0
-                ? `${freeSlots} slot${freeSlots === 1 ? "" : "s"} libre${freeSlots === 1 ? "" : "s"}`
-                : "Sin cupos libres"}
+                ? `${freeSlots} free slot${freeSlots === 1 ? "" : "s"}`
+                : "No free slots"}
             </p>
             {slots.map((attempt, index) => (
               <AttemptCard
@@ -553,11 +553,11 @@ function AttemptsPanel({
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-800 px-3 py-2 text-[11px] text-zinc-500 transition hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-300"
             >
               <RotateCcw size={12} />
-              Reiniciar las {MAX_ATTEMPT_SLOTS} corridas
+              Reset all {MAX_ATTEMPT_SLOTS} runs
             </button>
             {freeSlots === 0 && (
               <p className="mt-2 px-1 text-center text-[10px] leading-4 text-zinc-600">
-                Slots llenos · reinicia para otra oleada del banco
+                Slots full · reset for another bank wave
               </p>
             )}
           </div>
@@ -603,7 +603,7 @@ function AttemptsStrip({
           className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-800 py-2 text-xs text-zinc-500"
         >
           <RotateCcw size={12} />
-          Reiniciar {MAX_ATTEMPT_SLOTS} corridas
+          Reset {MAX_ATTEMPT_SLOTS} runs
         </button>
       )}
     </div>
@@ -634,7 +634,7 @@ function AttemptCard({
         }`}
       >
         <Plus size={compact ? 14 : 16} className="text-zinc-600 group-hover:text-zinc-300" />
-        <span className="text-xs font-medium text-zinc-500 group-hover:text-zinc-300">Libre</span>
+        <span className="text-xs font-medium text-zinc-500 group-hover:text-zinc-300">Free</span>
         {!compact && <span className="text-[10px] text-zinc-700">Slot {index + 1}</span>}
       </button>
     );
@@ -642,7 +642,7 @@ function AttemptCard({
 
   const done = attempt.results.length >= 5;
   const passed = done && attempt.overallScore >= passThreshold;
-  const label = done ? (passed ? "Aprobado" : "No alcanza") : "En curso";
+  const label = done ? (passed ? "Passed" : "Below threshold") : "In progress";
 
   return (
     <button
@@ -670,7 +670,7 @@ function AttemptCard({
       </p>
       {!compact && (
         <p className="mt-1 text-[11px] text-zinc-500">
-          {attempt.results.length}/5 fases · {formatShortDate(attempt.startedAt)}
+          {attempt.results.length}/5 phases · {formatShortDate(attempt.startedAt)}
         </p>
       )}
     </button>
@@ -702,23 +702,23 @@ function Home({
         <div className="mb-6 flex gap-3 rounded-xl border border-sky-900/60 bg-sky-950/30 p-4">
           <Smartphone size={18} className="mt-0.5 shrink-0 text-sky-400" />
           <div>
-            <p className="text-sm font-medium text-sky-200">Modo celular · solo teoría</p>
+            <p className="text-sm font-medium text-sky-200">Mobile mode · theory only</p>
             <p className="mt-1 text-xs leading-5 text-sky-200/70">
-              En el teléfono puedes resolver las sesiones de selección múltiple. Las prácticas de
-              código (JS, SQL, CSS, Angular) se desbloquean en escritorio o tablet ancha.
+              On a phone, you can complete the multiple-choice sessions. Code practice
+              (JS, SQL, CSS, Angular) unlocks on desktop or a wide tablet.
             </p>
           </div>
         </div>
       )}
 
-      <p className="text-sm text-zinc-500">TrialForge · Pruebas técnicas · Cliente: Bancolombia</p>
+      <p className="text-sm text-zinc-500">TrialForge · Technical assessments · Client: Bancolombia</p>
       <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-[-0.04em] sm:text-6xl">
         {examMeta.title}
       </h1>
       <p className="mt-5 max-w-2xl text-sm leading-7 text-zinc-400 sm:mt-6 sm:text-base">
-        Hasta <strong className="text-zinc-200">{MAX_ATTEMPT_SLOTS} corridas</strong> en el historial —
-        suficientes para recorrer todo el banco (MCQ + prácticas) sin repetir hasta agotar. Ideal para
-        teoría en móvil y código en PC.
+        Up to <strong className="text-zinc-200">{MAX_ATTEMPT_SLOTS} runs</strong> in history —
+        enough to cover the full bank (MCQ + practice) without repeats until it is exhausted.
+        Ideal for theory on mobile and code on PC.
       </p>
 
       <button
@@ -739,9 +739,9 @@ function Home({
 
       <div className="mt-8 grid grid-cols-3 gap-2 sm:mt-10 sm:gap-3">
         {[
-          ["180 min", "Tiempo"],
-          ["70%", "Aprobar"],
-          [`${freeSlots}/${MAX_ATTEMPT_SLOTS}`, "Libres"],
+          ["180 min", "Time"],
+          ["70%", "Pass"],
+          [`${freeSlots}/${MAX_ATTEMPT_SLOTS}`, "Free"],
         ].map(([value, label]) => (
           <div key={label} className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 sm:p-5">
             <strong className="block text-xl tracking-tight sm:text-2xl">{value}</strong>
@@ -752,12 +752,12 @@ function Home({
 
       <div className="mt-6 hidden gap-3 sm:grid sm:grid-cols-3 lg:grid-cols-6">
         {[
-          [`${bankStats.mcqFundamentos}`, "MCQ fundamentos"],
-          [`${bankStats.mcqWeb}`, "MCQ web+SQL"],
-          [`${bankStats.mcqSql}`, "Conceptos SQL"],
-          [`${bankStats.logic}`, "Práctica JS/SQL"],
-          [`${bankStats.css}`, "Variantes CSS"],
-          [`${bankStats.angular}`, "Variantes Angular"],
+          [`${bankStats.mcqFundamentos}`, "MCQ fundamentals"],
+          [`${bankStats.mcqWeb}`, "Web+SQL MCQ"],
+          [`${bankStats.mcqSql}`, "SQL concepts"],
+          [`${bankStats.logic}`, "JS/SQL practice"],
+          [`${bankStats.css}`, "CSS variants"],
+          [`${bankStats.angular}`, "Angular variants"],
         ].map(([value, label]) => (
           <div key={label} className="rounded-lg border border-zinc-800/80 px-3 py-3 text-center">
             <strong className="block text-lg">{value}</strong>
@@ -784,7 +784,7 @@ function Home({
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-100 px-5 py-3.5 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
         >
           <Play size={16} fill="currentColor" />
-          {freeSlots === 0 ? "Sin slots libres" : isMobile ? "Nueva corrida (teoría)" : "Nueva corrida"}
+          {freeSlots === 0 ? "No free slots" : isMobile ? "New run (theory)" : "New run"}
         </button>
         {freeSlots === 0 && (
           <button
@@ -792,7 +792,7 @@ function Home({
             className="flex w-full items-center justify-center gap-2 rounded-lg border border-amber-800/60 bg-amber-950/20 px-5 py-3.5 text-sm font-medium text-amber-100 sm:w-auto"
           >
             <RotateCcw size={16} />
-            Reiniciar historial · {MAX_ATTEMPT_SLOTS} corridas nuevas
+            Reset history · {MAX_ATTEMPT_SLOTS} new runs
           </button>
         )}
         {hasProgress && (
@@ -800,7 +800,7 @@ function Home({
             onClick={onResume}
             className="w-full rounded-lg border border-zinc-700 px-5 py-3.5 text-sm font-medium sm:w-auto"
           >
-            Continuar ({overall}%)
+            Continue ({overall}%)
           </button>
         )}
         <button
@@ -846,8 +846,8 @@ function Roadmap({
     return (
       <section className="px-4 py-16 text-sm text-zinc-500 sm:px-10">
         {isMobile
-          ? "Elige un slot libre arriba para iniciar una corrida."
-          : "Selecciona un slot libre en el panel lateral para iniciar una corrida."}
+          ? "Choose a free slot above to start a run."
+          : "Select a free slot in the side panel to start a run."}
       </section>
     );
   }
@@ -856,16 +856,16 @@ function Roadmap({
     <section className="mx-auto max-w-4xl px-4 py-8 sm:px-8 sm:py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm text-zinc-500">Roadmap de esta corrida</p>
-          <h2 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">Las 5 fases</h2>
+          <p className="text-sm text-zinc-500">Roadmap for this run</p>
+          <h2 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">The 5 phases</h2>
           <p className="mt-2 text-sm text-zinc-500">
             {isMobile
-              ? `En celular: ${theoryDone}/${theorySessions.length} sesiones de teoría. El código espera el PC.`
-              : "Contenido fijado al iniciar este slot. Un slot libre = otra mezcla del banco."}
+              ? `On mobile: ${theoryDone}/${theorySessions.length} theory sessions. Code waits for PC.`
+              : "Content is locked when this slot starts. A free slot = another bank mix."}
           </p>
         </div>
         <div className="text-left sm:text-right">
-          <p className="text-xs text-zinc-500">Puntaje ponderado</p>
+          <p className="text-xs text-zinc-500">Weighted score</p>
           <p
             className={`text-2xl font-semibold ${
               overall >= exam.passThreshold ? "text-emerald-400" : "text-zinc-100"
@@ -909,7 +909,7 @@ function Roadmap({
                     <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-400">{session.weight}%</span>
                     {mobileOk ? (
                       <span className="flex items-center gap-1 rounded bg-sky-950/50 px-2 py-0.5 text-xs text-sky-300 md:hidden">
-                        <Smartphone size={11} /> móvil
+                        <Smartphone size={11} /> mobile
                       </span>
                     ) : (
                       <span className="flex items-center gap-1 rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500 md:hidden">
@@ -918,14 +918,14 @@ function Roadmap({
                     )}
                     {session.kind !== "mcq" && (
                       <span className="hidden items-center gap-1 rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-400 sm:flex">
-                        <Lock size={11} /> tests bloqueados
+                        <Lock size={11} /> locked tests
                       </span>
                     )}
                   </div>
                   <h3 className="mt-2 text-sm font-medium sm:text-base">{session.title}</h3>
                   <p className="mt-1 text-xs text-zinc-500 sm:text-sm">{session.subtitle}</p>
                   {lockedOnMobile && (
-                    <p className="mt-2 text-xs text-zinc-600">Disponible en escritorio / tablet ancha.</p>
+                    <p className="mt-2 text-xs text-zinc-600">Available on desktop / wide tablet.</p>
                   )}
                 </div>
                 <div className="shrink-0 text-right">
@@ -936,7 +936,7 @@ function Roadmap({
                   ) : lockedOnMobile ? (
                     <Lock size={14} className="ml-auto text-zinc-600" />
                   ) : (
-                    <span className="text-sm text-zinc-600">Abrir →</span>
+                    <span className="text-sm text-zinc-600">Open →</span>
                   )}
                 </div>
               </button>
@@ -945,7 +945,7 @@ function Roadmap({
         })}
       </ol>
 
-      <CorridaNextSteps
+      <RunNextSteps
         className="mt-10 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5"
         allPhasesDone={progress.results.length === exam.sessions.length}
         freeSlots={freeSlots}
@@ -955,7 +955,7 @@ function Roadmap({
       />
 
       <button onClick={onResults} className="mt-8 text-sm text-zinc-400 underline underline-offset-4">
-        Ver resultado final
+        View final results
       </button>
     </section>
   );
@@ -1014,7 +1014,7 @@ function DesktopRequiredGate({
   return (
     <section className="mx-auto flex max-w-lg flex-col px-4 py-12">
       <button onClick={onBack} className="mb-8 flex items-center gap-2 text-sm text-zinc-400">
-        <ArrowLeft size={15} /> Volver a fases
+        <ArrowLeft size={15} /> Back to phases
       </button>
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 text-center">
         <div className="mx-auto grid size-12 place-items-center rounded-full bg-zinc-800 text-zinc-300">
@@ -1023,17 +1023,17 @@ function DesktopRequiredGate({
         <h1 className="mt-5 text-xl font-semibold tracking-tight">{session.title}</h1>
         <p className="mt-2 text-sm text-zinc-500">{session.subtitle}</p>
         <p className="mt-5 text-sm leading-6 text-zinc-400">
-          Esta fase incluye un editor de código y tests ocultos. En celular no es cómodo ni fiel al
-          entorno real: ábrela desde un computador o tablet en horizontal ancha.
+          This phase includes a code editor and hidden tests. On mobile it is not comfortable or
+          faithful to the real environment: open it from a computer or a wide landscape tablet.
         </p>
         <p className="mt-4 text-xs text-zinc-600">
-          Mientras tanto puedes completar las sesiones de selección múltiple desde este dispositivo.
+          Meanwhile, you can complete the multiple-choice sessions from this device.
         </p>
         <button
           onClick={onBack}
           className="mt-8 w-full rounded-lg bg-zinc-100 px-4 py-3 text-sm font-medium text-zinc-950"
         >
-          Ir a fases de teoría
+          Go to theory phases
         </button>
       </div>
     </section>
@@ -1101,16 +1101,16 @@ function McqSessionView({
     return (
       <section className="mx-auto flex min-h-[calc(100vh-7.5rem)] max-w-lg flex-col px-4 pb-28 pt-6">
         <button onClick={onBack} className="mb-5 flex items-center gap-2 text-sm text-zinc-400">
-          <ArrowLeft size={15} /> Fases
+          <ArrowLeft size={15} /> Phases
         </button>
         <p className="text-xs uppercase tracking-wider text-zinc-500">{session.phase}</p>
         <h1 className="mt-1 text-lg font-semibold tracking-tight">{session.title}</h1>
         <div className="mt-4 flex items-center justify-between text-xs text-zinc-500">
           <span>
-            Pregunta {step + 1} / {total}
+            Question {step + 1} / {total}
           </span>
           <span>
-            {answered}/{total} respondidas
+            {answered}/{total} answered
           </span>
         </div>
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-800">
@@ -1121,7 +1121,7 @@ function McqSessionView({
         </div>
 
         <fieldset className="mt-6 flex-1 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5">
-          <legend className="sr-only">Pregunta {step + 1}</legend>
+          <legend className="sr-only">Question {step + 1}</legend>
           <p className="text-base font-medium leading-7 text-zinc-100">{question.prompt}</p>
           <div className="mt-5 space-y-2.5">
             {question.options.map((option) => {
@@ -1158,7 +1158,7 @@ function McqSessionView({
               onClick={() => setStep((s) => Math.max(0, s - 1))}
               className="rounded-lg border border-zinc-700 px-4 py-3 text-sm disabled:opacity-30"
             >
-              Anterior
+              Previous
             </button>
             {step < total - 1 ? (
               <button
@@ -1166,7 +1166,7 @@ function McqSessionView({
                 onClick={() => setStep((s) => Math.min(total - 1, s + 1))}
                 className="flex-1 rounded-lg bg-zinc-100 py-3 text-sm font-medium text-zinc-950"
               >
-                Siguiente
+                Next
               </button>
             ) : (
               <button
@@ -1175,7 +1175,7 @@ function McqSessionView({
                 disabled={answered < total && !result}
                 className="flex-1 rounded-lg bg-zinc-100 py-3 text-sm font-medium text-zinc-950 disabled:opacity-40"
               >
-                {result ? `Enviado · ${result.score}%` : "Enviar sesión"}
+                {result ? `Submitted · ${result.score}%` : "Submit session"}
               </button>
             )}
           </div>
@@ -1187,7 +1187,7 @@ function McqSessionView({
   return (
     <section className="mx-auto max-w-3xl px-5 py-8">
       <button onClick={onBack} className="mb-6 flex items-center gap-2 text-sm text-zinc-400">
-        <ArrowLeft size={15} /> Volver a fases
+        <ArrowLeft size={15} /> Back to phases
       </button>
       <p className="text-xs uppercase tracking-wider text-zinc-500">{session.phase}</p>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight">{session.title}</h1>
@@ -1228,11 +1228,11 @@ function McqSessionView({
 
       <div className="mt-8 flex flex-wrap items-center gap-3">
         <button onClick={submit} className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950">
-          Enviar sesión
+          Submit session
         </button>
         {result && (
           <span className="text-sm text-zinc-400">
-            Resultado: <strong className="text-zinc-100">{result.score}%</strong> ({result.passed}/{result.total})
+            Result: <strong className="text-zinc-100">{result.score}%</strong> ({result.passed}/{result.total})
           </span>
         )}
       </div>
@@ -1296,20 +1296,20 @@ function PracticalSessionView({
     <section className="grid min-h-[calc(100vh-56px)] lg:grid-cols-[360px_1fr]">
       <aside className="border-b border-zinc-800 p-5 lg:border-b-0 lg:border-r">
         <button onClick={onBack} className="mb-6 flex items-center gap-2 text-sm text-zinc-400">
-          <ArrowLeft size={15} /> Volver a fases
+          <ArrowLeft size={15} /> Back to phases
         </button>
         <p className="text-xs uppercase tracking-wider text-zinc-500">{session.phase}</p>
         <h1 className="mt-2 text-xl font-semibold tracking-tight">{session.title}</h1>
         <p className="mt-2 text-sm leading-6 text-zinc-400">{session.story}</p>
 
-        <h2 className="mt-6 text-sm font-medium">Requisitos</h2>
+        <h2 className="mt-6 text-sm font-medium">Requirements</h2>
         <ul className="mt-2 space-y-2 text-sm text-zinc-400">
           {session.requirements.map((item) => (
             <li key={item}>— {item}</li>
           ))}
         </ul>
 
-        <h2 className="mt-6 text-sm font-medium">Restricciones</h2>
+        <h2 className="mt-6 text-sm font-medium">Restrictions</h2>
         <ul className="mt-2 space-y-2 text-sm text-zinc-400">
           {session.restrictions.map((item) => (
             <li key={item} className="flex gap-2">
@@ -1320,7 +1320,7 @@ function PracticalSessionView({
         </ul>
 
         <details className="mt-6 rounded-lg border border-zinc-800 p-3">
-          <summary className="cursor-pointer text-sm">Pistas (modo práctica)</summary>
+          <summary className="cursor-pointer text-sm">Hints (practice mode)</summary>
           <ul className="mt-3 space-y-2 text-sm text-zinc-400">
             {session.hints.map((hint) => (
               <li key={hint}>{hint}</li>
@@ -1348,11 +1348,11 @@ function PracticalSessionView({
               </button>
             ))}
             <span className="ml-2 flex items-center gap-1 rounded border border-zinc-800 px-2 py-1 text-xs text-zinc-600">
-              <Lock size={11} /> *.spec.ts (bloqueado)
+              <Lock size={11} /> *.spec.ts (locked)
             </span>
           </div>
           <button onClick={submit} className="rounded-md bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950">
-            Ejecutar tests ocultos
+            Run hidden tests
           </button>
         </div>
 
@@ -1370,7 +1370,7 @@ function PracticalSessionView({
               <Trophy size={18} className="text-zinc-300" />
               <strong>{result.score}/100</strong>
               <span className="text-sm text-zinc-500">
-                {result.passed}/{result.total} tests ocultos
+                {result.passed}/{result.total} hidden tests
               </span>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -1419,27 +1419,27 @@ function Results({
 
   return (
     <section className="mx-auto max-w-3xl px-4 py-8 sm:px-8 sm:py-10">
-      <p className="text-sm text-zinc-500">Resultado del simulacro</p>
+      <p className="text-sm text-zinc-500">Exam results</p>
       <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
         {!progress.startedAt
-          ? "Ninguna corrida activa"
+          ? "No active run"
           : progress.results.length === 0
-            ? "Aún no hay fases enviadas"
+            ? "No submitted phases yet"
             : passed
-              ? "Aprobado (≥ 70%)"
+              ? "Passed (>= 70%)"
               : progress.results.length < exam.sessions.length
-                ? "Simulación en curso"
-                : "No alcanza el umbral"}
+                ? "Simulation in progress"
+                : "Below threshold"}
       </h1>
       {isMobile && (
         <p className="mt-3 text-sm text-zinc-500">
-          Teoría en este dispositivo: {theoryDone}/{theory.length}. Completa código en PC para el
-          puntaje final completo.
+          Theory on this device: {theoryDone}/{theory.length}. Complete code on PC for the full
+          final score.
         </p>
       )}
 
       <div className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
-        <p className="text-xs text-zinc-500">Puntaje ponderado</p>
+        <p className="text-xs text-zinc-500">Weighted score</p>
         <p
           className={`mt-2 text-4xl font-semibold tracking-tight sm:text-5xl ${
             overall >= exam.passThreshold ? "text-emerald-400" : ""
@@ -1448,7 +1448,7 @@ function Results({
           {overall}%
         </p>
         <p className="mt-2 text-sm text-zinc-500">
-          Umbral: {exam.passThreshold}% · Fases: {progress.results.length}/{exam.sessions.length}
+          Threshold: {exam.passThreshold}% · Phases: {progress.results.length}/{exam.sessions.length}
         </p>
       </div>
 
@@ -1469,7 +1469,7 @@ function Results({
         })}
       </ul>
 
-      <CorridaNextSteps
+      <RunNextSteps
         className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5"
         allPhasesDone={progress.results.length === exam.sessions.length}
         freeSlots={freeSlots}
@@ -1479,13 +1479,13 @@ function Results({
       />
 
       <button onClick={onRoadmap} className="mt-8 rounded-lg border border-zinc-700 px-4 py-2 text-sm">
-        Volver a fases
+        Back to phases
       </button>
     </section>
   );
 }
 
-function CorridaNextSteps({
+function RunNextSteps({
   allPhasesDone,
   freeSlots,
   onNewRun,
@@ -1504,11 +1504,11 @@ function CorridaNextSteps({
 
   return (
     <div className={className}>
-      <p className="text-sm font-medium text-zinc-200">Completaste las 5 fases de esta corrida</p>
+      <p className="text-sm font-medium text-zinc-200">You completed the 5 phases of this run</p>
       <p className="mt-1 text-sm text-zinc-500">
         {freeSlots > 0
-          ? "Puedes iniciar otra corrida con preguntas y prácticas aleatorias distintas."
-          : `Tus ${MAX_ATTEMPT_SLOTS} slots están llenos. Reinicia el historial o reemplaza este slot.`}
+          ? "You can start another run with different random questions and practice tasks."
+          : `Your ${MAX_ATTEMPT_SLOTS} slots are full. Reset history or replace this slot.`}
       </p>
       <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
         {freeSlots > 0 ? (
@@ -1518,9 +1518,9 @@ function CorridaNextSteps({
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-100 px-4 py-2.5 text-sm font-medium text-zinc-950"
           >
             <Plus size={16} />
-            Nueva corrida aleatoria
+            New random run
             <span className="text-zinc-600">
-              ({freeSlots} slot{freeSlots === 1 ? "" : "s"} libre{freeSlots === 1 ? "" : "s"})
+              ({freeSlots} free slot{freeSlots === 1 ? "" : "s"})
             </span>
           </button>
         ) : (
@@ -1532,7 +1532,7 @@ function CorridaNextSteps({
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-600 px-4 py-2.5 text-sm font-medium"
               >
                 <RotateCcw size={16} />
-                Este slot · mezcla nueva
+                This slot · new mix
               </button>
             )}
             <button
@@ -1541,7 +1541,7 @@ function CorridaNextSteps({
               className="inline-flex items-center justify-center gap-2 rounded-lg border border-amber-800/60 bg-amber-950/30 px-4 py-2.5 text-sm font-medium text-amber-100"
             >
               <RotateCcw size={16} />
-              Reiniciar historial · {MAX_ATTEMPT_SLOTS} corridas nuevas
+              Reset history · {MAX_ATTEMPT_SLOTS} new runs
             </button>
           </>
         )}

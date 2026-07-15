@@ -18,9 +18,9 @@ import { sqlBank } from "./sql";
 export const MCQ_PER_SESSION = 10;
 
 const mcqSession1Bank = [...mcqFundamentosBank, ...mcqFundamentosExtra];
-/** Sesión 2 mezcla web/Angular + SQL conceptos */
+/** Session 2 mixes web/Angular + SQL concepts */
 const mcqSession2Bank = [...mcqWebBank, ...mcqSqlBank];
-/** Sesión 3: algoritmia JS o SQL */
+/** Session 3: JS algorithms or SQL */
 const logicBank: PracticalVariant[] = [...javascriptBank, ...sqlBank];
 
 export type UsedContent = {
@@ -37,15 +37,15 @@ export const examMeta = {
   totalMinutes: 180,
   passThreshold: 70,
   environmentNote:
-    "IDE embebido estilo plataforma real. Sin frameworks CSS ni BDS del cliente. El contenido es del track Bancolombia; TrialForge puede alojar otros clientes.",
+    "Embedded IDE similar to a real assessment platform. No CSS frameworks or client design systems. Content comes from the Bancolombia track; TrialForge can host other clients.",
   rules: [
-    "Tiempo límite total: exactamente 3 horas para toda la prueba.",
-    "Meta de aprobación: puntaje mínimo del 70%.",
-    "Formato: 5 sesiones — 2 de selección múltiple y 3 de desarrollo práctico.",
-    "Cada corrida nueva prioriza preguntas/prácticas que aún no hayas visto en slots previos.",
-    "La sesión práctica 3 puede ser JavaScript o SQL según el sorteo.",
-    "En las sesiones prácticas los archivos de pruebas unitarias están bloqueados.",
-    "En Angular está prohibido ReactiveFormsModule: captura manual con $event o #templateRef.",
+    "Total time limit: exactly 3 hours for the entire challenge.",
+    "Passing goal: minimum score of 70%.",
+    "Format: 5 sessions — 2 multiple choice and 3 hands-on practicals.",
+    "Each new run prioritizes questions/practicals you have not seen in previous slots.",
+    "Practical session 3 may be JavaScript or SQL depending on the draw.",
+    "In practical sessions, unit test files are locked.",
+    "In Angular, ReactiveFormsModule is forbidden: capture input manually with $event or #templateRef.",
   ],
 };
 
@@ -75,13 +75,13 @@ function pickOne<T>(bank: T[]): T {
 
 function findVariant(bank: PracticalVariant[], id: string): PracticalVariant {
   const found = bank.find((item) => item.variantId === id);
-  if (!found) throw new Error(`Variante no encontrada: ${id}`);
+  if (!found) throw new Error(`Variant not found: ${id}`);
   return found;
 }
 
 function findMcq(bank: McqQuestion[], id: string, label: string) {
   const q = bank.find((item) => item.id === id);
-  if (!q) throw new Error(`Pregunta ${label} no encontrada: ${id}`);
+  if (!q) throw new Error(`Question ${label} not found: ${id}`);
   return q;
 }
 
@@ -93,7 +93,7 @@ function toPracticalSession(
   return { ...slot, ...rest, variantId };
 }
 
-/** Reúne IDs ya usados en corridas previas (slots ocupados). */
+/** Collects IDs already used in previous runs (occupied slots). */
 export function collectUsedContent(attempts: (ExamAttempt | null)[]): UsedContent {
   const used: UsedContent = {
     mcq1: new Set(),
@@ -115,7 +115,7 @@ export function collectUsedContent(attempts: (ExamAttempt | null)[]): UsedConten
   return used;
 }
 
-/** Prioriza ítems no usados; si no alcanzan, completa con el resto del banco. */
+/** Prefer unused items; if not enough, fill from the rest of the bank. */
 function pickMcqIds(bank: McqQuestion[], used: Set<string>, count: number): string[] {
   const fresh = shuffle(bank.filter((q) => !used.has(q.id)));
   if (fresh.length >= count) return fresh.slice(0, count).map((q) => q.id);
@@ -142,8 +142,8 @@ export function defaultPreviewSelection(): VariantSelection {
 }
 
 /**
- * Arma una selección evitando contenido ya visto en corridas previas.
- * Solo recicla cuando el banco de no usados se agota.
+ * Builds a selection avoiding content already seen in previous runs.
+ * Only recycles when the unused bank is exhausted.
  */
 export function pickVariantSelection(used?: UsedContent): VariantSelection {
   const u = used ?? {
@@ -175,10 +175,10 @@ export function buildExam(selection: VariantSelection | null): Exam {
       id: "s1-mcq",
       order: 1,
       weight: 15,
-      phase: "Sesión 1 · Teoría",
+      phase: "Session 1 · Theory",
       kind: "mcq",
-      title: "Preguntas de selección múltiple — Fundamentos",
-      subtitle: "JavaScript, navegador, seguridad y buenas prácticas",
+      title: "Multiple-choice questions — Fundamentals",
+      subtitle: "JavaScript, browser, security, and best practices",
       estimatedMinutes: 25,
       questions: mcq1Questions,
       variantId: sel.mcq1.join(","),
@@ -187,10 +187,10 @@ export function buildExam(selection: VariantSelection | null): Exam {
       id: "s2-mcq",
       order: 2,
       weight: 15,
-      phase: "Sesión 2 · Teoría",
+      phase: "Session 2 · Theory",
       kind: "mcq",
-      title: "Preguntas de selección múltiple — Web, Angular & SQL",
-      subtitle: "CSS, Angular, entorno de prueba y conceptos SQL",
+      title: "Multiple-choice questions — Web, Angular & SQL",
+      subtitle: "CSS, Angular, exam environment, and SQL concepts",
       estimatedMinutes: 25,
       questions: mcq2Questions,
       variantId: sel.mcq2.join(","),
@@ -200,22 +200,22 @@ export function buildExam(selection: VariantSelection | null): Exam {
         id: "s3-logic",
         order: 3,
         weight: 25,
-        phase: "Sesión 3 · Práctica",
+        phase: "Session 3 · Practical",
       },
       {
         ...logicVariant,
         title:
           logicVariant.kind === "sql"
-            ? "SQL — Consultas"
-            : "JavaScript puro — Algoritmia",
+            ? "SQL — Queries"
+            : "Vanilla JavaScript — Algorithms",
       },
     ),
     toPracticalSession(
-      { id: "s4-css", order: 4, weight: 20, phase: "Sesión 4 · Práctica" },
+      { id: "s4-css", order: 4, weight: 20, phase: "Session 4 · Practical" },
       findVariant(cssBank, sel.css),
     ),
     toPracticalSession(
-      { id: "s5-angular", order: 5, weight: 25, phase: "Sesión 5 · Práctica" },
+      { id: "s5-angular", order: 5, weight: 25, phase: "Session 5 · Practical" },
       findVariant(angularBank, sel.angular),
     ),
   ];

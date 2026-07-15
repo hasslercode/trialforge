@@ -15,14 +15,14 @@ const studyBody = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "TrialForge · Simulador de pruebas técnicas",
+  title: "TrialForge · Technical assessment simulator",
   description:
-    "Simula pruebas técnicas reales por fases: MCQ, código, timer y banco anti-repetición. Incluye módulo de estudio.",
+    "Simulate real technical assessments by phase: MCQ, code, timer, and an anti-repeat question bank. Includes a study module.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es" className={`${studyHand.variable} ${studyBody.variable}`}>
+    <html lang="en" className={`${studyHand.variable} ${studyBody.variable}`}>
       <body>{children}</body>
     </html>
   );
