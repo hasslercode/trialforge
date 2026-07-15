@@ -1,30 +1,30 @@
 import type { PracticalVariant } from "@/domain/exam";
 
 const baseRestrictions = [
-  "JavaScript nativo únicamente (sin lodash ni similares).",
-  "No puedes modificar los archivos de prueba unitaria (bloqueados).",
-  "Prioriza una solución clara: tiempo limitado de la sesión.",
+  "Native JavaScript only (no lodash or similar libraries).",
+  "You cannot modify the unit test files (locked).",
+  "Prioritize a clear solution: the session time is limited.",
 ];
 
 export const javascriptBank: PracticalVariant[] = [
   {
     variantId: "js-normalize-movements",
     kind: "javascript",
-    title: "JavaScript puro — Algoritmia",
-    subtitle: "Normalizador de movimientos bancarios",
+    title: "Plain JavaScript — Algorithms",
+    subtitle: "Bank movement normalizer",
     estimatedMinutes: 40,
     story:
-      "Bancolombia necesita normalizar movimientos bancarios crudos. Debes transformar, filtrar y calcular saldos sin mutar la entrada.",
+      "Bancolombia needs to normalize raw bank movements. You must transform, filter, and calculate balances without mutating the input.",
     requirements: [
-      "Implementa `normalizeMovements(movements)` sin librerías externas.",
-      "Convierte `amount` a número y `date` a ISO string.",
-      "Descarta movimientos con amount no numérico o date inválida.",
-      "Ordena por fecha ascendente y calcula `runningBalance` desde 0.",
+      "Implement `normalizeMovements(movements)` without external libraries.",
+      "Convert `amount` to a number and `date` to an ISO string.",
+      "Discard movements with a non-numeric amount or an invalid date.",
+      "Sort by date ascending and calculate `runningBalance` from 0.",
     ],
     acceptanceCriteria: [
-      "No muta el arreglo ni los objetos originales.",
-      "Casos borde (vacío, inválidos) sin excepciones no controladas.",
-      "Los tests unitarios ocultos pasan.",
+      "Does not mutate the original array or objects.",
+      "Edge cases (empty input, invalid values) do not throw unhandled exceptions.",
+      "The hidden unit tests pass.",
     ],
     restrictions: baseRestrictions,
     starterFiles: [
@@ -45,16 +45,16 @@ export function normalizeMovements(movements) {
       },
     ],
     hiddenTests: [
-      { id: "t1", name: "exporta normalizeMovements", patterns: [/function\s+normalizeMovements/] },
-      { id: "t2", name: "usa map/filter", patterns: [/\.map\s*\(/, /\.filter\s*\(/] },
-      { id: "t3", name: "convierte amount y date", patterns: [/Number\s*\(|parseFloat\s*\(/, /toISOString|Date\s*\(/] },
-      { id: "t4", name: "ordena por fecha", patterns: [/\.sort\s*\(/] },
-      { id: "t5", name: "calcula runningBalance", patterns: [/runningBalance/] },
-      { id: "t6", name: "sin librerías externas", patterns: [/./], forbidden: [/require\s*\(|from\s+['"]lodash/] },
+      { id: "t1", name: "exports normalizeMovements", patterns: [/function\s+normalizeMovements/] },
+      { id: "t2", name: "uses map/filter", patterns: [/\.map\s*\(/, /\.filter\s*\(/] },
+      { id: "t3", name: "converts amount and date", patterns: [/Number\s*\(|parseFloat\s*\(/, /toISOString|Date\s*\(/] },
+      { id: "t4", name: "sorts by date", patterns: [/\.sort\s*\(/] },
+      { id: "t5", name: "calculates runningBalance", patterns: [/runningBalance/] },
+      { id: "t6", name: "no external libraries", patterns: [/./], forbidden: [/require\s*\(|from\s+['"]lodash/] },
     ],
     hints: [
-      "Filtra con Number.isFinite y Date válida.",
-      "Acumula el balance sobre el arreglo ya ordenado.",
+      "Filter with Number.isFinite and a valid Date.",
+      "Accumulate the balance over the already sorted array.",
     ],
     solution: `export function normalizeMovements(movements) {
   const cleaned = movements
@@ -67,26 +67,26 @@ export function normalizeMovements(movements) {
     return { id: m.id, amount: m.amount, date: m.date.toISOString(), runningBalance: balance };
   });
 }`,
-    explanation: "Limpia → filtra → ordena → acumula.",
+    explanation: "Clean → filter → sort → accumulate.",
   },
   {
     variantId: "js-group-transactions",
     kind: "javascript",
-    title: "JavaScript puro — Algoritmia",
-    subtitle: "Agrupar transacciones por categoría",
+    title: "Plain JavaScript — Algorithms",
+    subtitle: "Group transactions by category",
     estimatedMinutes: 40,
     story:
-      "El resumen mensual debe agrupar transacciones por categoría y devolver totales. Entrada inmutable.",
+      "The monthly summary must group transactions by category and return totals. The input is immutable.",
     requirements: [
-      "Implementa `groupByCategory(transactions)`.",
-      "Devuelve un arreglo de `{ category, total, count }` ordenado por total descendente.",
-      "Ignora transacciones con amount no finito.",
-      "No mutes la entrada.",
+      "Implement `groupByCategory(transactions)`.",
+      "Return an array of `{ category, total, count }` sorted by total descending.",
+      "Ignore transactions with a non-finite amount.",
+      "Do not mutate the input.",
     ],
     acceptanceCriteria: [
-      "Una categoría por entrada en el resultado.",
-      "Totales correctos y ordenamiento estable por total.",
-      "Tests ocultos pasan.",
+      "One category per entry in the result.",
+      "Correct totals and stable sorting by total.",
+      "Hidden tests pass.",
     ],
     restrictions: baseRestrictions,
     starterFiles: [
@@ -107,14 +107,14 @@ export function groupByCategory(transactions) {
       },
     ],
     hiddenTests: [
-      { id: "t1", name: "exporta groupByCategory", patterns: [/function\s+groupByCategory/] },
-      { id: "t2", name: "acumula totales", patterns: [/total|reduce|Map/] },
-      { id: "t3", name: "incluye count", patterns: [/count/] },
-      { id: "t4", name: "ordena descendente", patterns: [/\.sort\s*\(/] },
-      { id: "t5", name: "filtra inválidos o valida amount", patterns: [/isFinite|Number\.isFinite|filter/] },
-      { id: "t6", name: "sin librerías", patterns: [/./], forbidden: [/lodash|underscore/] },
+      { id: "t1", name: "exports groupByCategory", patterns: [/function\s+groupByCategory/] },
+      { id: "t2", name: "accumulates totals", patterns: [/total|reduce|Map/] },
+      { id: "t3", name: "includes count", patterns: [/count/] },
+      { id: "t4", name: "sorts descending", patterns: [/\.sort\s*\(/] },
+      { id: "t5", name: "filters invalid values or validates amount", patterns: [/isFinite|Number\.isFinite|filter/] },
+      { id: "t6", name: "no libraries", patterns: [/./], forbidden: [/lodash|underscore/] },
     ],
-    hints: ["Usa un Map category→acumulado.", "Al final convierte a arreglo y ordena por total."],
+    hints: ["Use a Map category→accumulator.", "At the end, convert to an array and sort by total."],
     solution: `export function groupByCategory(transactions) {
   const map = new Map();
   for (const tx of transactions) {
@@ -126,26 +126,26 @@ export function groupByCategory(transactions) {
   }
   return [...map.values()].sort((a, b) => b.total - a.total);
 }`,
-    explanation: "Map + sort cubre agrupación eficiente sin mutar la entrada.",
+    explanation: "Map + sort covers efficient grouping without mutating the input.",
   },
   {
     variantId: "js-retry-payment",
     kind: "javascript",
-    title: "JavaScript puro — Algoritmia",
-    subtitle: "Reintentos de pago con backoff",
+    title: "Plain JavaScript — Algorithms",
+    subtitle: "Payment retries with backoff",
     estimatedMinutes: 40,
     story:
-      "Una consulta de pago puede fallar de forma transitoria. Debes reintentar sin bloquear y sin reintentar errores 4xx.",
+      "A payment lookup can fail transiently. You must retry without blocking and without retrying 4xx errors.",
     requirements: [
-      "Implementa `async function retryPayment(request, { retries = 3 })`.",
-      "Reintenta solo si el error tiene `status >= 500` o no tiene status.",
-      "No uses setInterval.",
-      "Si agota reintentos, relanza el último error.",
+      "Implement `async function retryPayment(request, { retries = 3 })`.",
+      "Retry only if the error has `status >= 500` or has no status.",
+      "Do not use setInterval.",
+      "If retries are exhausted, rethrow the last error.",
     ],
     acceptanceCriteria: [
-      "Éxito en el primer intento retorna el valor.",
-      "Errores 4xx no se reintentan.",
-      "Tests ocultos pasan.",
+      "Success on the first attempt returns the value.",
+      "4xx errors are not retried.",
+      "Hidden tests pass.",
     ],
     restrictions: baseRestrictions,
     starterFiles: [
@@ -163,14 +163,14 @@ export async function retryPayment(request, { retries = 3 } = {}) {
       },
     ],
     hiddenTests: [
-      { id: "t1", name: "exporta retryPayment async", patterns: [/async\s+function\s+retryPayment|function\s+retryPayment/] },
-      { id: "t2", name: "usa bucle o reintentos", patterns: [/for\s*\(|while\s*\(|retries/] },
+      { id: "t1", name: "exports async retryPayment", patterns: [/async\s+function\s+retryPayment|function\s+retryPayment/] },
+      { id: "t2", name: "uses a loop or retries", patterns: [/for\s*\(|while\s*\(|retries/] },
       { id: "t3", name: "try/catch", patterns: [/try\s*\{/, /catch/] },
-      { id: "t4", name: "considera status 4xx/5xx", patterns: [/status|4\d\d|5\d\d/] },
-      { id: "t5", name: "sin setInterval", patterns: [/./], forbidden: [/setInterval/] },
+      { id: "t4", name: "considers 4xx/5xx status", patterns: [/status|4\d\d|5\d\d/] },
+      { id: "t5", name: "no setInterval", patterns: [/./], forbidden: [/setInterval/] },
       { id: "t6", name: "await request", patterns: [/await\s+request/] },
     ],
-    hints: ["En catch, si status está entre 400–499, throw inmediato.", "Decrementa retries en cada fallo reintentable."],
+    hints: ["In catch, if status is between 400–499, throw immediately.", "Decrement retries on each retryable failure."],
     solution: `export async function retryPayment(request, { retries = 3 } = {}) {
   let lastError;
   for (let i = 0; i <= retries; i++) {
@@ -183,26 +183,26 @@ export async function retryPayment(request, { retries = 3 } = {}) {
   }
   throw lastError;
 }`,
-    explanation: "Reintento selectivo según clase de status HTTP.",
+    explanation: "Selective retry based on the HTTP status class.",
   },
   {
     variantId: "js-format-currency",
     kind: "javascript",
-    title: "JavaScript puro — Algoritmia",
-    subtitle: "Formateador de montos COP",
+    title: "Plain JavaScript — Algorithms",
+    subtitle: "COP amount formatter",
     estimatedMinutes: 35,
     story:
-      "Debes formatear montos para UI de saldos en pesos colombianos, con reglas estrictas de redondeo y signo.",
+      "You must format amounts for a balance UI in Colombian pesos, with strict rounding and sign rules.",
     requirements: [
-      "Implementa `formatCOP(amount)` → string tipo `$ 1.234.567` o `-$ 500`.",
-      "Redondea al entero más cercano.",
-      "Usa punto como separador de miles (estilo CO).",
-      "NaN o no finito → `—`.",
+      "Implement `formatCOP(amount)` → a string such as `$ 1.234.567` or `-$ 500`.",
+      "Round to the nearest integer.",
+      "Use a dot as the thousands separator (CO style).",
+      "NaN or non-finite → `—`.",
     ],
     acceptanceCriteria: [
       "0 → `$ 0`.",
-      "Negativos con prefijo `-`.",
-      "Tests ocultos pasan.",
+      "Negative values use the `-` prefix.",
+      "Hidden tests pass.",
     ],
     restrictions: baseRestrictions,
     starterFiles: [
@@ -218,14 +218,14 @@ export function formatCOP(amount) {
       },
     ],
     hiddenTests: [
-      { id: "t1", name: "exporta formatCOP", patterns: [/function\s+formatCOP/] },
-      { id: "t2", name: "valida finito / NaN", patterns: [/isFinite|Number\.isFinite|Number\.isNaN/] },
-      { id: "t3", name: "usa Math.round o similar", patterns: [/Math\.round|toFixed/] },
-      { id: "t4", name: "separador de miles", patterns: [/replace|Intl|toLocaleString|\./] },
-      { id: "t5", name: "prefijo $", patterns: [/\$/] },
-      { id: "t6", name: "sin librerías", patterns: [/./], forbidden: [/lodash|numeral|accounting/] },
+      { id: "t1", name: "exports formatCOP", patterns: [/function\s+formatCOP/] },
+      { id: "t2", name: "validates finite / NaN", patterns: [/isFinite|Number\.isFinite|Number\.isNaN/] },
+      { id: "t3", name: "uses Math.round or similar", patterns: [/Math\.round|toFixed/] },
+      { id: "t4", name: "thousands separator", patterns: [/replace|Intl|toLocaleString|\./] },
+      { id: "t5", name: "$ prefix", patterns: [/\$/] },
+      { id: "t6", name: "no libraries", patterns: [/./], forbidden: [/lodash|numeral|accounting/] },
     ],
-    hints: ["Math.round + String + replace con regex de miles.", "Intl.NumberFormat('es-CO') también es válido."],
+    hints: ["Math.round + String + replace with a thousands regex.", "Intl.NumberFormat('es-CO') is also valid."],
     solution: `export function formatCOP(amount) {
   if (!Number.isFinite(amount)) return "—";
   const n = Math.round(amount);
@@ -233,26 +233,26 @@ export function formatCOP(amount) {
   const body = Math.abs(n).toLocaleString("es-CO");
   return sign + "$ " + body;
 }`,
-    explanation: "Validación + redondeo + locale CO.",
+    explanation: "Validation + rounding + CO locale.",
   },
   {
     variantId: "js-unique-sorted-ids",
     kind: "javascript",
-    title: "JavaScript puro — Algoritmia",
-    subtitle: "IDs únicos ordenados de transferencias",
+    title: "Plain JavaScript — Algorithms",
+    subtitle: "Unique sorted transfer IDs",
     estimatedMinutes: 30,
     story:
-      "Un batch de transferencias llega con IDs duplicados y desordenados. Debes devolver únicos ASC sin mutar.",
+      "A transfer batch arrives with duplicate and unordered IDs. You must return unique IDs in ascending order without mutating the input.",
     requirements: [
-      "Implementa `uniqueSortedIds(ids: string[]): string[]`.",
-      "Elimina duplicados y ordena lexicográficamente.",
-      "Ignora valores vacíos o no string.",
-      "No mutes el arreglo original.",
+      "Implement `uniqueSortedIds(ids: string[]): string[]`.",
+      "Remove duplicates and sort lexicographically.",
+      "Ignore empty values or non-string values.",
+      "Do not mutate the original array.",
     ],
     acceptanceCriteria: [
-      "Entrada vacía → [].",
-      "Sin side effects sobre `ids`.",
-      "Tests ocultos pasan.",
+      "Empty input → [].",
+      "No side effects on `ids`.",
+      "Hidden tests pass.",
     ],
     restrictions: baseRestrictions,
     starterFiles: [
@@ -268,18 +268,18 @@ export function uniqueSortedIds(ids) {
       },
     ],
     hiddenTests: [
-      { id: "t1", name: "exporta uniqueSortedIds", patterns: [/function\s+uniqueSortedIds/] },
-      { id: "t2", name: "usa Set o filter únicos", patterns: [/Set|filter/] },
-      { id: "t3", name: "ordena", patterns: [/\.sort\s*\(/] },
-      { id: "t4", name: "filtra strings válidos", patterns: [/typeof|filter|trim/] },
-      { id: "t5", name: "no usa sort sobre la entrada directa sin copia", patterns: [/\[|\.\.\.|slice|filter|map|Array\.from/] },
-      { id: "t6", name: "sin lodash", patterns: [/./], forbidden: [/lodash|uniq/] },
+      { id: "t1", name: "exports uniqueSortedIds", patterns: [/function\s+uniqueSortedIds/] },
+      { id: "t2", name: "uses Set or unique filtering", patterns: [/Set|filter/] },
+      { id: "t3", name: "sorts", patterns: [/\.sort\s*\(/] },
+      { id: "t4", name: "filters valid strings", patterns: [/typeof|filter|trim/] },
+      { id: "t5", name: "does not sort the direct input without a copy", patterns: [/\[|\.\.\.|slice|filter|map|Array\.from/] },
+      { id: "t6", name: "no lodash", patterns: [/./], forbidden: [/lodash|uniq/] },
     ],
-    hints: ["Filtra typeof === 'string' && trim.", "[...new Set(clean)].sort()"],
+    hints: ["Filter with typeof === 'string' && trim.", "[...new Set(clean)].sort()"],
     solution: `export function uniqueSortedIds(ids) {
   const clean = ids.filter((x) => typeof x === "string" && x.trim()).map((x) => x.trim());
   return [...new Set(clean)].sort();
 }`,
-    explanation: "Filter → Set → sort sobre copia.",
+    explanation: "Filter → Set → sort on a copy.",
   },
 ];
