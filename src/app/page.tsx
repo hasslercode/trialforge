@@ -18,29 +18,11 @@ import {
   Smartphone,
   Trophy,
 } from "lucide-react";
-import {
-  bankStats,
-  buildExam,
-  collectUsedContent,
-  examMeta,
-  pickVariantSelection,
-} from "@/content/bancolombia/exam";
+import { bankStats, buildExam, collectUsedContent, examMeta, pickVariantSelection } from "@/content/bancolombia/exam";
 import { StudyScreen } from "@/features/study/StudyScreen";
-import type {
-  AppState,
-  Exam,
-  ExamAttempt,
-  ExamProgress,
-  ExamSession,
-  SessionResult,
-} from "@/domain/exam";
+import type { AppState, Exam, ExamAttempt, ExamProgress, ExamSession, SessionResult } from "@/domain/exam";
 import { MAX_ATTEMPT_SLOTS } from "@/domain/exam";
-import {
-  evaluateMcq,
-  evaluatePractical,
-  weightedExamScore,
-  type Evaluation,
-} from "@/application/evaluation-engine";
+import { evaluateMcq, evaluatePractical, weightedExamScore, type Evaluation } from "@/application/evaluation-engine";
 import {
   attemptToProgress,
   emptyAppState,
@@ -104,10 +86,7 @@ export default function App() {
 
   const exam: Exam = useMemo(() => buildExam(progress.selection), [progress.selection]);
 
-  const overall = useMemo(
-    () => weightedExamScore(exam.sessions, progress.results),
-    [exam.sessions, progress.results],
-  );
+  const overall = useMemo(() => weightedExamScore(exam.sessions, progress.results), [exam.sessions, progress.results]);
 
   const activeSession = exam.sessions.find((s) => s.id === activeId) ?? exam.sessions[0];
   const freeSlots = app.slots.filter((slot) => slot === null).length;
@@ -301,9 +280,7 @@ export default function App() {
       ...progress,
       results: [...without, result],
       answers: answers ? { ...progress.answers, ...answers } : progress.answers,
-      submissions: submissions
-        ? { ...progress.submissions, [result.sessionId]: submissions }
-        : progress.submissions,
+      submissions: submissions ? { ...progress.submissions, [result.sessionId]: submissions } : progress.submissions,
     };
     const score = weightedExamScore(exam.sessions, nextProgress.results);
     writeActiveProgress(nextProgress, score);
@@ -327,12 +304,12 @@ export default function App() {
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center justify-between border-b border-[var(--exam-border-soft)] bg-[var(--exam-bg)] px-4 backdrop-blur-md sm:px-6">
+        <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center justify-between border-b border-[var(--exam-border)] bg-[rgba(11,16,32,0.72)] px-4 shadow-[0_18px_60px_rgba(2,6,23,0.22)] backdrop-blur-xl sm:px-6">
           <div className="flex items-center gap-2">
             {sessionMode && (
               <button
                 onClick={() => setSidebarPinnedOpen((v) => !v)}
-                className="exam-btn rounded-md border border-[var(--exam-border)] p-1.5 text-[var(--exam-muted)] hover:bg-[var(--exam-surface)] hover:text-[var(--exam-text)]"
+                className="exam-btn rounded-xl border border-[var(--exam-border)] bg-[rgba(23,31,54,0.68)] p-1.5 text-[var(--exam-muted)] hover:border-[var(--exam-accent)] hover:bg-[var(--exam-accent-soft)] hover:text-[var(--exam-text)]"
                 title={sidebarCollapsed ? "View runs" : "Hide runs"}
                 aria-label={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
               >
@@ -341,13 +318,13 @@ export default function App() {
             )}
             <button
               onClick={() => setScreen("home")}
-              className="flex items-center gap-2 font-semibold tracking-tight"
+              className="group flex items-center gap-2 font-semibold tracking-tight"
             >
-              <span className="grid size-7 place-items-center rounded-md bg-[var(--exam-accent-soft)] text-[var(--exam-accent)]">
+              <span className="grid size-7 place-items-center rounded-xl border border-[var(--exam-border)] bg-[var(--exam-accent-soft)] text-[var(--exam-accent-2)] shadow-[0_0_24px_rgba(139,124,246,0.26)] transition group-hover:border-[var(--exam-accent)]">
                 <Code2 size={16} />
               </span>
-              trial
-              <span className="text-[var(--exam-muted)]">.forge</span>
+              Trial
+              <span className="text-[var(--exam-muted)]">Forge</span>
             </button>
           </div>
 
@@ -355,9 +332,7 @@ export default function App() {
             {progress.startedAt && (
               <span
                 className={`flex items-center gap-1.5 font-mono text-xs tabular-nums sm:gap-2 sm:text-sm ${
-                  progress.remainingSeconds < 600
-                    ? "text-[var(--exam-danger)]"
-                    : "text-[var(--exam-muted)]"
+                  progress.remainingSeconds < 600 ? "text-[var(--exam-danger)]" : "text-[var(--exam-muted)]"
                 }`}
               >
                 <Clock3 size={14} className="exam-glow-dot shrink-0" />
@@ -389,7 +364,7 @@ export default function App() {
         </header>
 
         {!sessionMode && !studyMode && (
-          <div className="exam-soft-in border-b border-[var(--exam-border-soft)] px-3 py-3 lg:hidden">
+          <div className="exam-soft-in border-b border-[var(--exam-border)] bg-[rgba(11,16,32,0.34)] px-3 py-3 backdrop-blur-md lg:hidden">
             <AttemptsStrip
               slots={app.slots}
               activeSlot={app.activeSlot}
@@ -481,20 +456,17 @@ function AttemptsPanel({
   onCollapse: () => void;
 }) {
   const open = !collapsed;
+  const hasAnyRun = slots.some(Boolean);
 
   return (
     <>
       {sessionMode && open && (
-        <button
-          aria-label="Close sidebar"
-          className="fixed inset-0 z-30 bg-black/50"
-          onClick={onCollapse}
-        />
+        <button aria-label="Close sidebar" className="fixed inset-0 z-30 bg-black/50" onClick={onCollapse} />
       )}
 
       <aside
         className={[
-          "z-40 flex h-screen shrink-0 flex-col border-r border-[var(--exam-border-soft)] bg-[var(--exam-bg-soft)]",
+          "z-40 flex h-screen shrink-0 flex-col border-r border-[var(--exam-border)] bg-[rgba(11,16,32,0.74)] shadow-[24px_0_80px_rgba(2,6,23,0.28)] backdrop-blur-xl",
           "transition-[width,transform] duration-300 ease-out",
           // Desktop: real sidebar in the flow. Session -> width 0 (collapsed/hidden).
           "hidden lg:flex",
@@ -511,19 +483,21 @@ function AttemptsPanel({
             "transition-opacity duration-200",
           ].join(" ")}
         >
-          <div className="flex h-16 shrink-0 items-center justify-between border-b border-[var(--exam-border-soft)] px-4">
+          <div className="flex min-h-24 shrink-0 items-center justify-between border-b border-[var(--exam-border)] px-4 py-4">
             <div>
               <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--exam-muted)]">
-                Practice runs
+                {MAX_ATTEMPT_SLOTS} practice runs
               </p>
-              <p className="text-sm font-semibold text-[var(--exam-text)]">
-                {MAX_ATTEMPT_SLOTS} full attempts
+              <p className="text-sm font-semibold text-[var(--exam-text)]">Full challenge loop</p>
+              <p className="mt-1 max-w-48 text-[11px] leading-4 text-[var(--exam-muted)]">
+                Each Practice is one full challenge. Use all {MAX_ATTEMPT_SLOTS} to cover the bank, then reset and start
+                again.
               </p>
             </div>
             {sessionMode && (
               <button
                 onClick={onCollapse}
-                className="exam-btn rounded-md p-1.5 text-[var(--exam-muted)] hover:bg-[var(--exam-surface)] hover:text-[var(--exam-text)]"
+                className="exam-btn rounded-xl p-1.5 text-[var(--exam-muted)] hover:bg-[var(--exam-surface)] hover:text-[var(--exam-text)]"
                 aria-label="Collapse sidebar"
               >
                 <PanelLeftClose size={16} />
@@ -538,8 +512,8 @@ function AttemptsPanel({
                 : "All Practice slots are full"}
             </p>
             <p className="px-1 text-[11px] leading-5 text-[var(--exam-muted)]">
-              Each Practice # is one complete challenge. Up to {MAX_ATTEMPT_SLOTS} runs cover the
-              full question bank (new mix each time). Then Reset all and practice again.
+              Each Practice is one full challenge. Use up to {MAX_ATTEMPT_SLOTS} to cover the whole question bank. Then
+              Reset all and start again.
             </p>
             {slots.map((attempt, index) => (
               <AttemptCard
@@ -553,21 +527,23 @@ function AttemptsPanel({
             ))}
           </div>
 
-          <div className="shrink-0 border-t border-[var(--exam-border-soft)] p-3">
-            <button
-              type="button"
-              onClick={onResetAll}
-              className="exam-btn flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--exam-border)] px-3 py-2 text-[11px] text-[var(--exam-muted)] hover:border-[var(--exam-accent)] hover:bg-[var(--exam-accent-soft)] hover:text-[var(--exam-text)]"
-            >
-              <RotateCcw size={12} />
-              Reset all · start over
-            </button>
-            {freeSlots === 0 && (
-              <p className="mt-2 px-1 text-center text-[10px] leading-4 text-[var(--exam-faint)]">
-                Reset when you are ready for {MAX_ATTEMPT_SLOTS} more Practice runs.
-              </p>
-            )}
-          </div>
+          {hasAnyRun && (
+            <div className="shrink-0 border-t border-[var(--exam-border)] p-3">
+              <button
+                type="button"
+                onClick={onResetAll}
+                className="exam-btn flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--exam-border)] px-3 py-2 text-[11px] text-[var(--exam-muted)] hover:border-[var(--exam-accent)] hover:bg-[var(--exam-accent-soft)] hover:text-[var(--exam-text)]"
+              >
+                <RotateCcw size={12} />
+                Reset all · start over
+              </button>
+              {freeSlots === 0 && (
+                <p className="mt-2 px-1 text-center text-[10px] leading-4 text-[var(--exam-faint)]">
+                  Reset when you are ready for {MAX_ATTEMPT_SLOTS} more Practice runs.
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </aside>
     </>
@@ -589,22 +565,22 @@ function AttemptsStrip({
 }) {
   const hasAnyRun = slots.some(Boolean);
   return (
-    <div className="exam-card space-y-3 rounded-2xl border border-[var(--exam-border-soft)] bg-[var(--exam-bg-soft)] p-3">
+    <div className="exam-card exam-glass-card space-y-3 rounded-2xl p-3">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--exam-muted)]">
-            Practice runs
+            {MAX_ATTEMPT_SLOTS} practice runs
           </p>
           <p className="mt-1 text-[11px] leading-5 text-[var(--exam-faint)]">
-            Each Practice # = 1 full challenge. Up to {MAX_ATTEMPT_SLOTS} cover the whole question
-            bank. Reset all when done and start again.
+            Each Practice is one full challenge. Use up to {MAX_ATTEMPT_SLOTS} to cover the whole question bank. Then
+            Reset all and start again.
           </p>
         </div>
         {hasAnyRun && (
           <button
             type="button"
             onClick={onResetAll}
-            className="exam-btn inline-flex shrink-0 items-center gap-1.5 rounded-md border border-[var(--exam-border)] bg-[var(--exam-surface)] px-2.5 py-1 text-[11px] font-medium text-[var(--exam-muted)] hover:border-[var(--exam-accent)] hover:bg-[var(--exam-accent-soft)] hover:text-[var(--exam-text)]"
+            className="exam-btn inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-[var(--exam-border)] bg-[rgba(23,31,54,0.72)] px-2.5 py-1 text-[11px] font-medium text-[var(--exam-muted)] hover:border-[var(--exam-accent)] hover:bg-[var(--exam-accent-soft)] hover:text-[var(--exam-text)]"
           >
             <RotateCcw size={11} />
             Reset all · start over
@@ -649,17 +625,14 @@ function AttemptCard({
     return (
       <button
         onClick={() => onSelect(index)}
-        className={`exam-card group flex flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-[var(--exam-border)] bg-[var(--exam-surface)] text-center hover:border-[var(--exam-accent)] hover:bg-[var(--exam-accent-soft)] ${
+        className={`exam-card group flex flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-[var(--exam-border)] bg-[rgba(23,31,54,0.58)] text-center hover:border-[var(--exam-accent)] hover:bg-[var(--exam-accent-soft)] ${
           compact ? "min-h-[72px] min-w-[96px] px-2 py-2" : "min-h-[88px] px-3 py-4"
         }`}
       >
         <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--exam-faint)] group-hover:text-[var(--exam-muted)]">
           {practiceLabel}
         </span>
-        <Plus
-          size={compact ? 14 : 16}
-          className="text-[var(--exam-faint)] group-hover:text-[var(--exam-accent)]"
-        />
+        <Plus size={compact ? 14 : 16} className="text-[var(--exam-faint)] group-hover:text-[var(--exam-accent)]" />
         <span className="text-xs font-medium text-[var(--exam-muted)] group-hover:text-[var(--exam-text)]">
           Available
         </span>
@@ -674,35 +647,34 @@ function AttemptCard({
     ? passed
       ? "text-[var(--exam-pass)]"
       : "text-[var(--exam-danger)]"
-    : "text-[var(--exam-muted)]";
+    : "text-[var(--exam-accent-2)]";
   const scoreClass = done
     ? passed
       ? "text-[var(--exam-pass)]"
       : "text-[var(--exam-danger)]"
     : "text-[var(--exam-muted)]";
+  const stateClass = active
+    ? "border-[var(--exam-accent)] bg-[var(--exam-accent-soft)] shadow-[0_0_0_1px_rgba(139,124,246,0.2),0_18px_50px_rgba(139,124,246,0.18)]"
+    : done
+      ? passed
+        ? "border-[rgba(134,239,172,0.24)] bg-[var(--exam-pass-soft)] hover:border-[rgba(134,239,172,0.42)]"
+        : "border-[rgba(253,164,175,0.24)] bg-[var(--exam-danger-soft)] hover:border-[rgba(253,164,175,0.42)]"
+      : "border-[var(--exam-border-soft)] bg-[rgba(23,31,54,0.64)] hover:border-[var(--exam-border)] hover:bg-[var(--exam-surface-hover)]";
 
   return (
     <button
       onClick={() => onSelect(index)}
-      className={`exam-card rounded-xl border text-left ${
+      className={`exam-card rounded-2xl border text-left ${
         compact ? "min-h-[72px] min-w-[118px] px-2.5 py-2" : "min-h-[88px] px-3 py-3"
-      } ${
-        active
-          ? "border-[var(--exam-accent)] bg-[var(--exam-accent-soft)]"
-          : "border-[var(--exam-border-soft)] bg-[var(--exam-surface)] hover:border-[var(--exam-border)] hover:bg-[var(--exam-surface-hover)]"
-      }`}
+      } ${stateClass}`}
     >
       <div className="flex items-start justify-between gap-2">
         <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--exam-muted)]">
           {practiceLabel}
         </span>
-        <span className={`shrink-0 text-[10px] ${statusClass}`}>
-          {label}
-        </span>
+        <span className={`shrink-0 text-[10px] ${statusClass}`}>{label}</span>
       </div>
-      <p
-        className={`mt-1.5 font-semibold tracking-tight ${compact ? "text-xl" : "text-2xl"} ${scoreClass}`}
-      >
+      <p className={`mt-1.5 font-semibold tracking-tight ${compact ? "text-xl" : "text-2xl"} ${scoreClass}`}>
         {attempt.overallScore}%
       </p>
       {!compact && (
@@ -734,63 +706,118 @@ function Home({
   onResetAll: () => void;
 }) {
   return (
-    <section className="px-4 pb-24 pt-10 sm:px-10 sm:pt-24">
+    <section className="px-4 pb-24 pt-6 sm:px-8 sm:pt-12 lg:px-10">
       {isMobile && (
-        <div className="exam-soft-in mb-6 flex gap-3 rounded-xl border border-[var(--exam-border)] bg-[var(--exam-accent-soft)] p-4">
-          <Smartphone size={18} className="mt-0.5 shrink-0 text-[var(--exam-accent)]" />
+        <div className="exam-soft-in mb-6 flex gap-3 rounded-2xl border border-[rgba(103,232,249,0.24)] bg-[linear-gradient(135deg,rgba(103,232,249,0.12),rgba(139,124,246,0.14))] p-4 shadow-[0_18px_50px_rgba(103,232,249,0.08)]">
+          <Smartphone size={18} className="mt-0.5 shrink-0 text-[var(--exam-accent-2)]" />
           <div>
             <p className="text-sm font-medium text-[var(--exam-text)]">Mobile mode · theory only</p>
             <p className="mt-1 text-xs leading-5 text-[var(--exam-muted)]">
-              On a phone, you can complete the multiple-choice sessions. Code practice
-              (JS, SQL, CSS, Angular) unlocks on desktop or a wide tablet.
+              On a phone, you can complete the multiple-choice sessions. Code practice (JS, SQL, CSS, Angular) unlocks
+              on desktop or a wide tablet.
             </p>
           </div>
         </div>
       )}
 
-      <div className="exam-fade-up">
-        <p className="text-sm text-[var(--exam-muted)]">
-          TrialForge · Technical assessments · Client: Bancolombia
-        </p>
-        <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-[-0.04em] sm:text-6xl">
-          {examMeta.title}
-        </h1>
-        <p className="mt-5 max-w-2xl text-sm leading-7 text-[var(--exam-muted)] sm:mt-6 sm:text-base">
-          <strong className="text-[var(--exam-text)]">Practice #1</strong> through{" "}
-          <strong className="text-[var(--exam-text)]">Practice #{MAX_ATTEMPT_SLOTS}</strong> are
-          separate full runs of the challenge. Each run picks a fresh mix so that across{" "}
-          {MAX_ATTEMPT_SLOTS} practices you cover the entire question bank. When you have used them
-          all, hit Reset all and practice again.
-        </p>
+      <div className="exam-fade-up exam-glass-card relative overflow-hidden rounded-[2rem] p-5 sm:p-8 lg:p-10">
+        <div className="absolute inset-x-8 top-10 h-40 rounded-full bg-[rgba(139,124,246,0.18)] blur-3xl" />
+        <div className="relative grid items-center gap-8 lg:grid-cols-[1.02fr_0.98fr]">
+          <div className="max-w-2xl">
+            <p className="inline-flex items-center gap-2 rounded-full border border-[var(--exam-border)] bg-[rgba(139,124,246,0.12)] px-3 py-1 text-xs font-medium uppercase tracking-[0.24em] text-[var(--exam-accent-2)]">
+              <span className="exam-glow-dot size-1.5 rounded-full bg-[var(--exam-accent-2)]" />
+              TrialForge · Client challenge
+            </p>
+            <h1 className="mt-5 text-4xl font-semibold tracking-[-0.05em] text-[var(--exam-text)] sm:text-6xl lg:text-7xl">
+              Frontend Technical Challenge
+            </h1>
+            <p className="mt-5 max-w-xl text-sm leading-7 text-[var(--exam-muted)] sm:text-base">
+              Practice the full challenge in calm, focused runs.{" "}
+              <strong className="font-semibold text-[var(--exam-text)]">Practice #1</strong> through{" "}
+              <strong className="font-semibold text-[var(--exam-text)]">Practice #{MAX_ATTEMPT_SLOTS}</strong> are
+              complete simulations with fresh mixes, so the full set helps you cover the whole question bank. Then use
+              Reset all · start over and repeat the loop.
+            </p>
+
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <button
+                onClick={onStart}
+                disabled={freeSlots === 0}
+                className="exam-btn exam-glow-button flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+              >
+                <Play size={16} fill="currentColor" />
+                {freeSlots === 0 ? "No Practice slots" : isMobile ? "New Practice (theory)" : "New Practice"}
+              </button>
+              {hasProgress && (
+                <button
+                  onClick={onResume}
+                  className="exam-btn w-full rounded-2xl border border-[var(--exam-border)] bg-[rgba(23,31,54,0.7)] px-5 py-3.5 text-sm font-medium text-[var(--exam-text)] hover:border-[var(--exam-accent)] hover:bg-[var(--exam-accent-soft)] sm:w-auto"
+                >
+                  Continue ({overall}%)
+                </button>
+              )}
+              {freeSlots < MAX_ATTEMPT_SLOTS && (
+                <button
+                  onClick={onResetAll}
+                  className="exam-btn flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--exam-border)] bg-[rgba(23,31,54,0.6)] px-5 py-3.5 text-sm font-medium text-[var(--exam-muted)] hover:border-[var(--exam-magenta)] hover:bg-[var(--exam-magenta-soft)] hover:text-[var(--exam-text)] sm:w-auto"
+                >
+                  <RotateCcw size={16} />
+                  Reset all · start over
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="exam-float relative">
+            <div className="absolute inset-6 rounded-[2rem] bg-[linear-gradient(135deg,rgba(139,124,246,0.2),rgba(103,232,249,0.13),rgba(232,121,249,0.16))] blur-2xl" />
+            <div className="relative overflow-hidden rounded-[2rem] border border-[var(--exam-border)] bg-[rgba(11,16,32,0.44)] shadow-[0_28px_90px_rgba(2,6,23,0.34)]">
+              <img
+                src="/illustrations/hero-mountain.png"
+                alt="Cosmic mountain path illustration"
+                className="aspect-[4/3] w-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
-      <button
-        type="button"
-        onClick={onStudy}
-        className="exam-card exam-fade-up-delayed mt-6 flex w-full items-center gap-3 rounded-xl border border-amber-900/40 bg-gradient-to-r from-amber-950/25 to-[rgba(196,168,130,0.08)] p-4 text-left hover:border-amber-700/50 sm:max-w-md"
-      >
-        <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[rgba(196,168,130,0.22)] text-amber-100">
-          <BookOpen size={18} />
-        </span>
-        <span>
-          <span className="block text-sm font-medium text-amber-100">Estudiar el challenge</span>
-          <span className="mt-0.5 block text-xs leading-5 text-amber-100/60">
-            Modo estudio · pizarra, analogías y roadmap
+      <div className="exam-fade-up-delayed mt-5 grid gap-3 lg:grid-cols-[1fr_0.7fr]">
+        <button
+          type="button"
+          onClick={onStudy}
+          className="exam-card flex w-full items-center gap-3 rounded-2xl border border-[rgba(253,230,138,0.22)] bg-[linear-gradient(135deg,rgba(253,230,138,0.12),rgba(139,124,246,0.08))] p-4 text-left hover:border-[rgba(253,230,138,0.42)]"
+        >
+          <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-[rgba(253,230,138,0.14)] text-[var(--exam-warn)]">
+            <BookOpen size={18} />
           </span>
-        </span>
-      </button>
+          <span>
+            <span className="block text-sm font-medium text-[var(--exam-text)]">Estudiar el challenge</span>
+            <span className="mt-0.5 block text-xs leading-5 text-[var(--exam-muted)]">
+              Modo estudio · pizarra, analogías y roadmap
+            </span>
+          </span>
+        </button>
 
-      <div className="exam-fade-up-delayed mt-8 grid grid-cols-3 gap-2 sm:mt-10 sm:gap-3">
+        <div className="exam-card rounded-2xl border border-[var(--exam-border)] bg-[rgba(23,31,54,0.58)] p-4">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--exam-accent-2)]">Practice loop</p>
+          <p className="mt-2 text-sm leading-6 text-[var(--exam-muted)]">
+            One Practice = one full challenge. Use up to {MAX_ATTEMPT_SLOTS}, reset all, and start over whenever you
+            want another pass through the bank.
+          </p>
+        </div>
+      </div>
+
+      <div className="exam-fade-up-delayed mt-6 grid grid-cols-3 gap-2 sm:gap-3">
         {[
           ["180 min", "Time"],
           ["70%", "Pass"],
-          [`${freeSlots}/${MAX_ATTEMPT_SLOTS}`, "Available"],
+          [`${freeSlots}/${MAX_ATTEMPT_SLOTS}`, "Free practices"],
         ].map(([value, label]) => (
           <div
             key={label}
-            className="exam-card rounded-xl border border-[var(--exam-border-soft)] bg-[var(--exam-surface)] p-3 sm:p-5"
+            className="exam-card rounded-2xl border border-[var(--exam-border)] bg-[rgba(23,31,54,0.62)] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:p-5"
           >
-            <strong className="block text-xl tracking-tight sm:text-2xl">{value}</strong>
+            <strong className="block text-xl tracking-tight text-[var(--exam-text)] sm:text-2xl">{value}</strong>
             <span className="mt-1 block text-[11px] text-[var(--exam-muted)] sm:text-xs">{label}</span>
           </div>
         ))}
@@ -807,59 +834,24 @@ function Home({
         ].map(([value, label]) => (
           <div
             key={label}
-            className="exam-card rounded-lg border border-[var(--exam-border-soft)] bg-[var(--exam-bg-soft)] px-3 py-3 text-center"
+            className="exam-card rounded-2xl border border-[var(--exam-border-soft)] bg-[rgba(17,24,43,0.62)] px-3 py-3 text-center"
           >
-            <strong className="block text-lg">{value}</strong>
+            <strong className="block text-lg text-[var(--exam-text)]">{value}</strong>
             <span className="mt-1 block text-[11px] leading-4 text-[var(--exam-muted)]">{label}</span>
           </div>
         ))}
       </div>
 
       {!isMobile && (
-        <ul className="mt-10 space-y-3 border-t border-[var(--exam-border-soft)] pt-8">
+        <ul className="mt-8 grid gap-3 border-t border-[var(--exam-border)] pt-8 md:grid-cols-2">
           {examMeta.rules.map((rule) => (
             <li key={rule} className="flex gap-3 text-sm leading-6 text-[var(--exam-muted)]">
-              <CheckCircle2 size={16} className="mt-1 shrink-0 text-[var(--exam-faint)]" />
+              <CheckCircle2 size={16} className="mt-1 shrink-0 text-[var(--exam-accent-2)]" />
               {rule}
             </li>
           ))}
         </ul>
       )}
-
-      <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap">
-        <button
-          onClick={onStart}
-          disabled={freeSlots === 0}
-          className="exam-btn flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--exam-accent)] px-5 py-3.5 text-sm font-medium text-[var(--exam-bg)] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
-        >
-          <Play size={16} fill="currentColor" />
-          {freeSlots === 0 ? "No Practice slots" : isMobile ? "New Practice (theory)" : "New Practice"}
-        </button>
-        {hasProgress && (
-          <button
-            onClick={onResume}
-            className="exam-btn w-full rounded-lg border border-[var(--exam-border)] px-5 py-3.5 text-sm font-medium text-[var(--exam-text)] hover:bg-[var(--exam-surface)] sm:w-auto"
-          >
-            Continue ({overall}%)
-          </button>
-        )}
-        {freeSlots < MAX_ATTEMPT_SLOTS && (
-          <button
-            onClick={onResetAll}
-            className="exam-btn flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--exam-border)] bg-[var(--exam-surface)] px-5 py-3.5 text-sm font-medium text-[var(--exam-muted)] hover:border-[var(--exam-warm)] hover:bg-[rgba(196,168,130,0.1)] hover:text-[var(--exam-text)] sm:w-auto"
-          >
-            <RotateCcw size={16} />
-            Reset all · start over
-          </button>
-        )}
-        <button
-          onClick={onStudy}
-          className="exam-btn flex w-full items-center justify-center gap-2 rounded-lg border border-amber-900/50 px-5 py-3.5 text-sm font-medium text-amber-100 sm:hidden"
-        >
-          <BookOpen size={16} />
-          Modo estudio
-        </button>
-      </div>
     </section>
   );
 }
@@ -902,16 +894,25 @@ function Roadmap({
   }
 
   return (
-    <section className="mx-auto max-w-4xl px-4 py-8 sm:px-8 sm:py-10">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-sm text-[var(--exam-muted)]">Roadmap for this Practice run</p>
-          <h2 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">The 5 phases</h2>
-          <p className="mt-2 text-sm text-[var(--exam-muted)]">
-            {isMobile
-              ? `On mobile: ${theoryDone}/${theorySessions.length} theory sessions. Code waits for PC.`
-              : "Content is locked when this Practice starts. An available slot = another fresh mix."}
-          </p>
+    <section className="mx-auto max-w-5xl px-4 py-8 sm:px-8 sm:py-10">
+      <div className="exam-card exam-glass-card flex flex-wrap items-center justify-between gap-5 rounded-[1.75rem] p-5 sm:p-6">
+        <div className="flex min-w-0 items-center gap-4">
+          <div className="hidden size-20 shrink-0 overflow-hidden rounded-2xl border border-[var(--exam-border)] bg-[rgba(103,232,249,0.08)] sm:block">
+            <img
+              src="/illustrations/path-compass.png"
+              alt="Compass path accent"
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <div>
+            <p className="text-sm text-[var(--exam-muted)]">Roadmap for this Practice run</p>
+            <h2 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">The 5 phases</h2>
+            <p className="mt-2 text-sm text-[var(--exam-muted)]">
+              {isMobile
+                ? `On mobile: ${theoryDone}/${theorySessions.length} theory sessions. Code waits for PC.`
+                : "Content is locked when this Practice starts. An available slot = another fresh mix."}
+            </p>
+          </div>
         </div>
         <div className="text-left sm:text-right">
           <p className="text-xs text-[var(--exam-muted)]">Weighted score</p>
@@ -920,10 +921,7 @@ function Roadmap({
               overall >= exam.passThreshold ? "text-[var(--exam-pass)]" : "text-[var(--exam-text)]"
             }`}
           >
-            {overall}%
-            <span className="ml-2 text-sm font-normal text-[var(--exam-muted)]">
-              / {exam.passThreshold}%
-            </span>
+            {overall}%<span className="ml-2 text-sm font-normal text-[var(--exam-muted)]">/ {exam.passThreshold}%</span>
           </p>
         </div>
       </div>
@@ -939,10 +937,10 @@ function Roadmap({
             <li key={session.id}>
               <button
                 onClick={() => onOpen(session.id)}
-                className={`exam-card flex w-full items-start gap-3 rounded-xl border p-4 text-left sm:gap-4 sm:p-5 ${
+                className={`exam-card flex w-full items-start gap-3 rounded-2xl border p-4 text-left sm:gap-4 sm:p-5 ${
                   lockedOnMobile
-                    ? "border-[var(--exam-border-soft)] bg-[var(--exam-bg-soft)] opacity-90"
-                    : "border-[var(--exam-border-soft)] bg-[var(--exam-surface)] hover:border-[var(--exam-border)] hover:bg-[var(--exam-surface-hover)]"
+                    ? "border-[var(--exam-border-soft)] bg-[rgba(17,24,43,0.58)] opacity-90"
+                    : "border-[var(--exam-border-soft)] bg-[rgba(23,31,54,0.7)] hover:border-[var(--exam-border)] hover:bg-[var(--exam-surface-hover)]"
                 }`}
               >
                 <span className="mt-0.5 text-[var(--exam-muted)]">
@@ -956,9 +954,7 @@ function Roadmap({
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs uppercase tracking-wider text-[var(--exam-muted)]">
-                      {session.phase}
-                    </span>
+                    <span className="text-xs uppercase tracking-wider text-[var(--exam-muted)]">{session.phase}</span>
                     <span className="rounded bg-[var(--exam-bg-soft)] px-2 py-0.5 text-xs text-[var(--exam-muted)]">
                       {session.weight}%
                     </span>
@@ -980,18 +976,12 @@ function Roadmap({
                   <h3 className="mt-2 text-sm font-medium sm:text-base">{session.title}</h3>
                   <p className="mt-1 text-xs text-[var(--exam-muted)] sm:text-sm">{session.subtitle}</p>
                   {lockedOnMobile && (
-                    <p className="mt-2 text-xs text-[var(--exam-faint)]">
-                      Available on desktop / wide tablet.
-                    </p>
+                    <p className="mt-2 text-xs text-[var(--exam-faint)]">Available on desktop / wide tablet.</p>
                   )}
                 </div>
                 <div className="shrink-0 text-right">
                   {result ? (
-                    <strong
-                      className={
-                        result.score >= 70 ? "text-[var(--exam-pass)]" : "text-[var(--exam-danger)]"
-                      }
-                    >
+                    <strong className={result.score >= 70 ? "text-[var(--exam-pass)]" : "text-[var(--exam-danger)]"}>
                       {result.score}%
                     </strong>
                   ) : lockedOnMobile ? (
@@ -1007,7 +997,7 @@ function Roadmap({
       </ol>
 
       <RunNextSteps
-        className="exam-card mt-10 rounded-xl border border-[var(--exam-border-soft)] bg-[var(--exam-surface)] p-5"
+        className="exam-card exam-glass-card mt-10 rounded-2xl p-5"
         allPhasesDone={progress.results.length === exam.sessions.length}
         freeSlots={freeSlots}
         onNewRun={onNewRun}
@@ -1068,13 +1058,7 @@ function SessionView({
   );
 }
 
-function DesktopRequiredGate({
-  session,
-  onBack,
-}: {
-  session: ExamSession;
-  onBack: () => void;
-}) {
+function DesktopRequiredGate({ session, onBack }: { session: ExamSession; onBack: () => void }) {
   return (
     <section className="mx-auto flex max-w-lg flex-col px-4 py-12">
       <button onClick={onBack} className="mb-8 flex items-center gap-2 text-sm text-zinc-400">
@@ -1087,8 +1071,8 @@ function DesktopRequiredGate({
         <h1 className="mt-5 text-xl font-semibold tracking-tight">{session.title}</h1>
         <p className="mt-2 text-sm text-zinc-500">{session.subtitle}</p>
         <p className="mt-5 text-sm leading-6 text-zinc-400">
-          This phase includes a code editor and hidden tests. On mobile it is not comfortable or
-          faithful to the real environment: open it from a computer or a wide landscape tablet.
+          This phase includes a code editor and hidden tests. On mobile it is not comfortable or faithful to the real
+          environment: open it from a computer or a wide landscape tablet.
         </p>
         <p className="mt-4 text-xs text-zinc-600">
           Meanwhile, you can complete the multiple-choice sessions from this device.
@@ -1136,9 +1120,7 @@ function McqSessionView({
   const question = session.questions[Math.min(step, total - 1)];
 
   function persistAnswers(next: Record<string, string>) {
-    const namespaced = Object.fromEntries(
-      Object.entries(next).map(([key, value]) => [`${prefix}${key}`, value]),
-    );
+    const namespaced = Object.fromEntries(Object.entries(next).map(([key, value]) => [`${prefix}${key}`, value]));
     onDraftAnswers(namespaced);
   }
 
@@ -1329,8 +1311,7 @@ function PracticalSessionView({
   const skipDraftSave = useRef(true);
 
   const fileLocked =
-    (session.kind === "css" && activeFile.endsWith(".html")) ||
-    (session.kind === "sql" && activeFile === "schema.sql");
+    (session.kind === "css" && activeFile.endsWith(".html")) || (session.kind === "sql" && activeFile === "schema.sql");
 
   useEffect(() => {
     if (skipDraftSave.current) {
@@ -1482,38 +1463,57 @@ function Results({
   const passed = overall >= exam.passThreshold && progress.results.length === exam.sessions.length;
 
   return (
-    <section className="mx-auto max-w-3xl px-4 py-8 sm:px-8 sm:py-10">
-      <p className="text-sm text-[var(--exam-muted)]">Exam results</p>
-      <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
-        {!progress.startedAt
-          ? "No active run"
-          : progress.results.length === 0
-            ? "No submitted phases yet"
-            : passed
-              ? "Passed (>= 70%)"
-              : progress.results.length < exam.sessions.length
-                ? "Simulation in progress"
-                : "Below threshold"}
-      </h1>
+    <section className="mx-auto max-w-4xl px-4 py-8 sm:px-8 sm:py-10">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-sm text-[var(--exam-muted)]">Exam results</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
+            {!progress.startedAt
+              ? "No active run"
+              : progress.results.length === 0
+                ? "No submitted phases yet"
+                : passed
+                  ? "Passed (>= 70%)"
+                  : progress.results.length < exam.sessions.length
+                    ? "Simulation in progress"
+                    : "Below threshold"}
+          </h1>
+        </div>
+        <div className="hidden size-20 overflow-hidden rounded-2xl border border-[var(--exam-border)] bg-[rgba(139,124,246,0.1)] sm:block">
+          <img
+            src="/illustrations/trophy-glow.png"
+            alt="Glowing trophy accent"
+            className="h-full w-full object-cover"
+          />
+        </div>
+      </div>
       {isMobile && (
         <p className="mt-3 text-sm text-[var(--exam-muted)]">
-          Theory on this device: {theoryDone}/{theory.length}. Complete code on PC for the full
-          final score.
+          Theory on this device: {theoryDone}/{theory.length}. Complete code on PC for the full final score.
         </p>
       )}
 
-      <div className="exam-card mt-8 rounded-xl border border-[var(--exam-border-soft)] bg-[var(--exam-surface)] p-6">
-        <p className="text-xs text-[var(--exam-muted)]">Weighted score</p>
-        <p
-          className={`mt-2 text-4xl font-semibold tracking-tight sm:text-5xl ${
-            overall >= exam.passThreshold ? "text-[var(--exam-pass)]" : ""
-          }`}
-        >
-          {overall}%
-        </p>
-        <p className="mt-2 text-sm text-[var(--exam-muted)]">
-          Threshold: {exam.passThreshold}% · Phases: {progress.results.length}/{exam.sessions.length}
-        </p>
+      <div className="exam-card exam-glass-card mt-8 grid items-center gap-5 rounded-[1.75rem] p-6 sm:grid-cols-[1fr_auto]">
+        <div>
+          <p className="text-xs text-[var(--exam-muted)]">Weighted score</p>
+          <p
+            className={`mt-2 text-4xl font-semibold tracking-tight sm:text-5xl ${
+              overall >= exam.passThreshold ? "text-[var(--exam-pass)]" : ""
+            }`}
+          >
+            {overall}%
+          </p>
+          <p className="mt-2 text-sm text-[var(--exam-muted)]">
+            Threshold: {exam.passThreshold}% · Phases: {progress.results.length}/{exam.sessions.length}
+          </p>
+        </div>
+        <div className="relative hidden size-28 overflow-hidden rounded-[1.5rem] border border-[var(--exam-border)] bg-[rgba(103,232,249,0.08)] sm:block">
+          <img
+            src="/illustrations/trophy-glow.png"
+            alt=""
+            className={`h-full w-full object-cover ${passed ? "opacity-100" : "opacity-70"}`}
+          />
+        </div>
       </div>
 
       <ul className="mt-6 space-y-2">
@@ -1522,7 +1522,7 @@ function Results({
           return (
             <li
               key={session.id}
-              className="exam-card flex items-center justify-between gap-3 rounded-lg border border-[var(--exam-border-soft)] bg-[var(--exam-bg-soft)] px-4 py-3 text-sm"
+              className="exam-card flex items-center justify-between gap-3 rounded-2xl border border-[var(--exam-border-soft)] bg-[rgba(17,24,43,0.62)] px-4 py-3 text-sm"
             >
               <span className="min-w-0 text-[var(--exam-text)]">
                 {session.order}. {session.kind === "mcq" ? session.title : session.subtitle}
@@ -1534,7 +1534,7 @@ function Results({
       </ul>
 
       <RunNextSteps
-        className="exam-card mt-8 rounded-xl border border-[var(--exam-border-soft)] bg-[var(--exam-surface)] p-5"
+        className="exam-card exam-glass-card mt-8 rounded-2xl p-5"
         allPhasesDone={progress.results.length === exam.sessions.length}
         freeSlots={freeSlots}
         onNewRun={onNewRun}
@@ -1544,7 +1544,7 @@ function Results({
 
       <button
         onClick={onRoadmap}
-        className="exam-btn mt-8 rounded-lg border border-[var(--exam-border)] px-4 py-2 text-sm text-[var(--exam-muted)] hover:bg-[var(--exam-surface)] hover:text-[var(--exam-text)]"
+        className="exam-btn mt-8 rounded-xl border border-[var(--exam-border)] px-4 py-2 text-sm text-[var(--exam-muted)] hover:bg-[var(--exam-surface)] hover:text-[var(--exam-text)]"
       >
         Back to phases
       </button>
@@ -1571,9 +1571,7 @@ function RunNextSteps({
 
   return (
     <div className={className}>
-      <p className="text-sm font-medium text-[var(--exam-text)]">
-        You completed the 5 phases of this Practice run
-      </p>
+      <p className="text-sm font-medium text-[var(--exam-text)]">You completed the 5 phases of this Practice run</p>
       <p className="mt-1 text-sm text-[var(--exam-muted)]">
         {freeSlots > 0
           ? "You can start another Practice with a different mix of questions and practice tasks."
@@ -1584,11 +1582,11 @@ function RunNextSteps({
           <button
             type="button"
             onClick={onNewRun}
-            className="exam-btn inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--exam-accent)] px-4 py-2.5 text-sm font-medium text-[var(--exam-bg)]"
+            className="exam-btn exam-glow-button inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold"
           >
             <Plus size={16} />
             New Practice
-            <span className="text-[rgba(16,22,28,0.72)]">
+            <span className="text-[rgba(7,11,22,0.72)]">
               ({freeSlots} available slot{freeSlots === 1 ? "" : "s"})
             </span>
           </button>
@@ -1598,7 +1596,7 @@ function RunNextSteps({
               <button
                 type="button"
                 onClick={onRestartSlot}
-                className="exam-btn inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--exam-border)] px-4 py-2.5 text-sm font-medium text-[var(--exam-muted)] hover:bg-[var(--exam-surface)] hover:text-[var(--exam-text)]"
+                className="exam-btn inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--exam-border)] px-4 py-2.5 text-sm font-medium text-[var(--exam-muted)] hover:bg-[var(--exam-surface)] hover:text-[var(--exam-text)]"
               >
                 <RotateCcw size={16} />
                 This Practice · new mix
@@ -1607,7 +1605,7 @@ function RunNextSteps({
             <button
               type="button"
               onClick={onResetAll}
-              className="exam-btn inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--exam-border)] bg-[var(--exam-surface)] px-4 py-2.5 text-sm font-medium text-[var(--exam-muted)] hover:border-[var(--exam-warm)] hover:bg-[rgba(196,168,130,0.1)] hover:text-[var(--exam-text)]"
+              className="exam-btn inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--exam-border)] bg-[rgba(23,31,54,0.68)] px-4 py-2.5 text-sm font-medium text-[var(--exam-muted)] hover:border-[var(--exam-magenta)] hover:bg-[var(--exam-magenta-soft)] hover:text-[var(--exam-text)]"
             >
               <RotateCcw size={16} />
               Reset all · start over

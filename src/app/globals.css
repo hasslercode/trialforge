@@ -4,22 +4,29 @@
 
 :root {
   color-scheme: dark;
-  --exam-bg: #10161c;
-  --exam-bg-soft: #141c23;
-  --exam-surface: #1a242c;
-  --exam-surface-hover: #21303a;
-  --exam-border: #2c3d48;
-  --exam-border-soft: #24333c;
-  --exam-text: #e7eef2;
-  --exam-muted: #8b9ba5;
-  --exam-faint: #5f717c;
-  --exam-accent: #7ea896;
-  --exam-accent-soft: rgba(126, 168, 150, 0.14);
-  --exam-warm: #c4a882;
-  --exam-pass: #7fba95;
-  --exam-warn: #c9a07a;
-  --exam-danger: #c98989;
+  --exam-bg: #0b1020;
+  --exam-bg-soft: #11182b;
+  --exam-surface: #171f36;
+  --exam-surface-hover: #202a46;
+  --exam-border: rgba(167, 139, 250, 0.18);
+  --exam-border-soft: rgba(148, 163, 184, 0.12);
+  --exam-text: #eef2ff;
+  --exam-muted: #9aa6c3;
+  --exam-faint: #64718f;
+  --exam-accent: #8b7cf6;
+  --exam-accent-2: #67e8f9;
+  --exam-magenta: #e879f9;
+  --exam-accent-soft: rgba(139, 124, 246, 0.16);
+  --exam-cyan-soft: rgba(103, 232, 249, 0.13);
+  --exam-magenta-soft: rgba(232, 121, 249, 0.12);
+  --exam-pass: #86efac;
+  --exam-pass-soft: rgba(134, 239, 172, 0.12);
+  --exam-warn: #fde68a;
+  --exam-warn-soft: rgba(253, 230, 138, 0.13);
+  --exam-danger: #fda4af;
+  --exam-danger-soft: rgba(253, 164, 175, 0.13);
   --font-exam: var(--font-exam-sans), "Segoe UI", sans-serif;
+  --exam-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 * {
@@ -40,13 +47,14 @@ select {
 }
 
 ::selection {
-  background: #3d525c;
+  background: rgba(139, 124, 246, 0.38);
+  color: var(--exam-text);
 }
 
 @keyframes exam-fade-up {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -57,63 +65,129 @@ select {
 @keyframes exam-soft-in {
   from {
     opacity: 0;
+    filter: blur(4px);
   }
   to {
     opacity: 1;
+    filter: blur(0);
   }
 }
 
 @keyframes exam-breathe {
   0%,
   100% {
-    opacity: 0.55;
+    opacity: 0.52;
+    transform: scale(1);
   }
   50% {
     opacity: 0.9;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes exam-gentle-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -8px, 0);
   }
 }
 
 .exam-shell {
+  position: relative;
+  isolation: isolate;
+  overflow-x: hidden;
   background:
-    radial-gradient(ellipse 90% 60% at 0% -10%, rgba(126, 168, 150, 0.1), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 100% 0%, rgba(104, 140, 168, 0.08), transparent 50%),
-    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(196, 168, 130, 0.05), transparent 55%),
-    var(--exam-bg);
+    radial-gradient(ellipse 75% 45% at 10% -10%, rgba(139, 124, 246, 0.2), transparent 60%),
+    radial-gradient(ellipse 60% 42% at 90% 8%, rgba(103, 232, 249, 0.12), transparent 58%),
+    radial-gradient(ellipse 55% 35% at 55% 105%, rgba(232, 121, 249, 0.12), transparent 60%), var(--exam-bg);
   color: var(--exam-text);
   font-family: var(--font-exam);
 }
 
+.exam-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(238, 242, 255, 0.36) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 30% 74%, rgba(103, 232, 249, 0.22) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 66% 22%, rgba(232, 121, 249, 0.22) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 82% 68%, rgba(238, 242, 255, 0.22) 0 1px, transparent 1.5px),
+    radial-gradient(ellipse 42% 30% at 50% 0%, rgba(167, 139, 250, 0.1), transparent 70%);
+  background-size:
+    260px 260px,
+    340px 340px,
+    300px 300px,
+    380px 380px,
+    100% 100%;
+  opacity: 0.58;
+}
+
+.exam-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
 .exam-fade-up {
-  animation: exam-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: exam-fade-up 0.55s var(--exam-ease) both;
 }
 
 .exam-fade-up-delayed {
-  animation: exam-fade-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+  animation: exam-fade-up 0.65s var(--exam-ease) 0.08s both;
 }
 
 .exam-soft-in {
-  animation: exam-soft-in 0.45s ease both;
+  animation: exam-soft-in 0.5s var(--exam-ease) both;
+}
+
+.exam-float {
+  animation: exam-gentle-float 7s ease-in-out infinite;
 }
 
 .exam-card {
   transition:
-    border-color 0.35s ease,
-    background-color 0.35s ease,
-    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.35s ease;
+    border-color 0.45s var(--exam-ease),
+    background-color 0.45s var(--exam-ease),
+    transform 0.45s var(--exam-ease),
+    box-shadow 0.45s var(--exam-ease),
+    color 0.35s var(--exam-ease);
 }
 
 .exam-card:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 16px 48px rgba(2, 6, 23, 0.28);
+}
+
+.exam-glass-card {
+  border: 1px solid var(--exam-border);
+  background:
+    linear-gradient(145deg, rgba(23, 31, 54, 0.88), rgba(17, 24, 43, 0.68)),
+    radial-gradient(circle at 10% 0%, rgba(139, 124, 246, 0.16), transparent 34%);
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(18px);
+}
+
+.exam-soft-glow {
+  box-shadow:
+    0 0 0 1px rgba(167, 139, 250, 0.16),
+    0 18px 60px rgba(139, 124, 246, 0.18),
+    0 8px 36px rgba(103, 232, 249, 0.08);
 }
 
 .exam-btn {
   transition:
-    background-color 0.3s ease,
-    border-color 0.3s ease,
-    color 0.3s ease,
-    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    background-color 0.35s var(--exam-ease),
+    border-color 0.35s var(--exam-ease),
+    color 0.35s var(--exam-ease),
+    transform 0.35s var(--exam-ease),
+    box-shadow 0.35s var(--exam-ease);
 }
 
 .exam-btn:hover:not(:disabled) {
@@ -126,4 +200,20 @@ select {
 
 .exam-glow-dot {
   animation: exam-breathe 4.5s ease-in-out infinite;
+}
+
+.exam-glow-button {
+  background:
+    linear-gradient(135deg, rgba(139, 124, 246, 0.96), rgba(232, 121, 249, 0.82) 48%, rgba(103, 232, 249, 0.9)),
+    var(--exam-accent);
+  color: #070b16;
+  box-shadow:
+    0 14px 44px rgba(139, 124, 246, 0.28),
+    0 8px 28px rgba(103, 232, 249, 0.13);
+}
+
+.exam-glow-button:hover:not(:disabled) {
+  box-shadow:
+    0 18px 58px rgba(139, 124, 246, 0.34),
+    0 10px 34px rgba(103, 232, 249, 0.18);
 }
