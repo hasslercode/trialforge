@@ -1263,6 +1263,7 @@ function McqSessionView({
   const safeStep = Math.min(Math.max(step, 0), Math.max(total - 1, 0));
   const question = session.questions[safeStep];
   const isLast = safeStep >= total - 1;
+  const currentAnswered = Boolean(question && answers[question.id]);
   const progressPct = total > 0 ? ((safeStep + 1) / total) * 100 : 0;
 
   function persistAnswers(next: Record<string, string>) {
@@ -1421,8 +1422,9 @@ function McqSessionView({
           {!isLast ? (
             <button
               type="button"
+              disabled={!result && !currentAnswered}
               onClick={() => setStep((s) => Math.min(total - 1, s + 1))}
-              className="exam-btn exam-glow-button flex-1 rounded-xl py-3 text-sm font-semibold sm:flex-none sm:min-w-[9rem]"
+              className="exam-btn exam-glow-button flex-1 rounded-xl py-3 text-sm font-semibold disabled:opacity-40 sm:flex-none sm:min-w-[9rem]"
             >
               Next
             </button>
