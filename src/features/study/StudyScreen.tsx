@@ -1,9 +1,8 @@
 "use client";
 
 import { type CSSProperties, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, Circle, Code2, Lightbulb, Map, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { ArrowLeft, Check, Circle, Code2, Lightbulb, Map, Sparkles } from "lucide-react";
 import { loadStudyProgress, saveStudyProgress } from "@/infrastructure/storage/progress.repository";
-import { useStudyAmbience } from "@/features/study/useStudyAmbience";
 import {
   allTopicIds,
   getTopic,
@@ -25,7 +24,6 @@ export function StudyScreen({ onBack }: { onBack: () => void }) {
   const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
   const [activeTopicId, setActiveTopicId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const ambience = useStudyAmbience(true);
 
   useEffect(() => {
     void loadStudyProgress().then((stored) => {
@@ -71,16 +69,6 @@ export function StudyScreen({ onBack }: { onBack: () => void }) {
   return (
     <div className="study-board min-h-[calc(100vh-3.5rem)]">
       <div className="study-noise" aria-hidden />
-      <button
-        type="button"
-        onClick={() => ambience.toggleMuted()}
-        className="study-music-btn"
-        aria-label={ambience.muted ? "Activar ambiente de estudio" : "Silenciar ambiente de estudio"}
-        title="Ambiente de foco para estudiar"
-      >
-        {ambience.muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
-        <span>{ambience.muted ? "Sin música" : "Ambiente foco"}</span>
-      </button>
       <div className="relative mx-auto max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
         {!loaded ? (
           <p className="font-[family-name:var(--font-study-body)] text-sm text-[var(--study-muted)]">
