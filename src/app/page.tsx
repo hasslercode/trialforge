@@ -934,8 +934,8 @@ function Home({
       <div className="exam-fade-up-delayed mt-6 hidden gap-3 sm:grid sm:grid-cols-3 lg:grid-cols-6">
         {[
           [`${bankStats.mcqFundamentos}`, "MCQ fundamentals"],
-          [`${bankStats.mcqWeb}`, "Web+SQL MCQ"],
-          [`${bankStats.mcqSql}`, "SQL concepts"],
+          [`${bankStats.mcqWeb}`, "Web+SQL+Eng MCQ"],
+          [`${bankStats.mcqEngineering}`, "Engineering"],
           [`${bankStats.logic}`, "JS/SQL practice"],
           [`${bankStats.css}`, "CSS variants"],
           [`${bankStats.angular}`, "Angular variants"],

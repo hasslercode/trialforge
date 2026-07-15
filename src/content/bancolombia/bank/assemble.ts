@@ -10,6 +10,7 @@ import { mcqFundamentosBank } from "./mcq-fundamentos";
 import { mcqFundamentosExtra } from "./mcq-fundamentos-extra";
 import { mcqWebBank } from "./mcq-web";
 import { mcqSqlBank } from "./mcq-sql";
+import { mcqEngineeringBank } from "./mcq-engineering";
 import { javascriptBank } from "./javascript";
 import { cssBank } from "./css";
 import { angularBank } from "./angular";
@@ -18,8 +19,8 @@ import { sqlBank } from "./sql";
 export const MCQ_PER_SESSION = 10;
 
 const mcqSession1Bank = [...mcqFundamentosBank, ...mcqFundamentosExtra];
-/** Session 2 mixes web/Angular + SQL concepts */
-const mcqSession2Bank = [...mcqWebBank, ...mcqSqlBank];
+/** Session 2 mixes web/Angular + SQL + engineering quality */
+const mcqSession2Bank = [...mcqWebBank, ...mcqSqlBank, ...mcqEngineeringBank];
 /** Session 3: JS algorithms or SQL */
 const logicBank: PracticalVariant[] = [...javascriptBank, ...sqlBank];
 
@@ -53,6 +54,7 @@ export const bankStats = {
   mcqFundamentos: mcqSession1Bank.length,
   mcqWeb: mcqSession2Bank.length,
   mcqSql: mcqSqlBank.length,
+  mcqEngineering: mcqEngineeringBank.length,
   javascript: javascriptBank.length,
   css: cssBank.length,
   angular: angularBank.length,
@@ -189,8 +191,8 @@ export function buildExam(selection: VariantSelection | null): Exam {
       weight: 15,
       phase: "Session 2 · Theory",
       kind: "mcq",
-      title: "Multiple-choice questions — Web, Angular & SQL",
-      subtitle: "CSS, Angular, exam environment, and SQL concepts",
+      title: "Multiple-choice questions — Web, Angular, SQL & Engineering",
+      subtitle: "CSS, Angular, SQL concepts, Clean Code, SOLID, architecture & quality",
       estimatedMinutes: 25,
       questions: mcq2Questions,
       variantId: sel.mcq2.join(","),

@@ -256,6 +256,48 @@ export const TOPIC_EXAM_COVERAGE: Record<string, ExamCoverage> = {
     session: "s3-logic",
     label: "Práctica · Sesión 3",
   },
+  "eng-clean-code": {
+    kind: "mcq",
+    primaryId: "eng-clean-naming-intent",
+    session: "s2-mcq",
+    label: "MCQ · Ingeniería",
+  },
+  "eng-solid": {
+    kind: "mcq",
+    primaryId: "eng-solid-srp-component",
+    session: "s2-mcq",
+    label: "MCQ · Ingeniería",
+  },
+  "eng-patterns-gof": {
+    kind: "mcq",
+    primaryId: "eng-pattern-strategy-validation",
+    session: "s2-mcq",
+    label: "MCQ · Ingeniería",
+  },
+  "eng-clean-arch": {
+    kind: "mcq",
+    primaryId: "eng-architecture-layering",
+    session: "s2-mcq",
+    label: "MCQ · Ingeniería",
+  },
+  "eng-unit-tests": {
+    kind: "mcq",
+    primaryId: "eng-testing-aaa-structure",
+    session: "s2-mcq",
+    label: "MCQ · Ingeniería",
+  },
+  "eng-sonarqube": {
+    kind: "mcq",
+    primaryId: "eng-sonarqube-coverage-gate",
+    session: "s2-mcq",
+    label: "MCQ · Ingeniería",
+  },
+  "eng-fluid-attacks": {
+    kind: "mcq",
+    primaryId: "eng-appsec-fluid-attacks-sdlc",
+    session: "s2-mcq",
+    label: "MCQ · Ingeniería",
+  },
   "exam-structure": {
     kind: "meta",
     primaryId: "w-pass-70",

@@ -828,6 +828,115 @@ LEFT JOIN movements m ON m.account_id = a.id
 GROUP BY c.id, c.name, a.balance;`,
     },
   ],
+  "eng-clean-code": [
+    {
+      title: "Nombre claro + early return",
+      language: "typescript",
+      code: `function formatCustomerName(customer?: { firstName?: string; lastName?: string }) {
+  if (!customer?.firstName) return "Cliente sin nombre";
+
+  const fullName = [customer.firstName, customer.lastName].filter(Boolean).join(" ");
+  return fullName.trim();
+}`,
+      note: "La intención se lee sin explicar: validar, armar nombre y devolver.",
+    },
+  ],
+  "eng-solid": [
+    {
+      title: "DIP: depender de una abstracción",
+      language: "typescript",
+      code: `interface TransferRepository {
+  save(amount: number): Promise<void>;
+}
+
+class CreateTransfer {
+  constructor(private readonly transfers: TransferRepository) {}
+
+  execute(amount: number) {
+    if (amount <= 0) throw new Error("Monto inválido");
+    return this.transfers.save(amount);
+  }
+}`,
+      note: "El caso de uso no sabe si guarda con HTTP, IndexedDB o un mock.",
+    },
+  ],
+  "eng-patterns-gof": [
+    {
+      title: "Strategy para formatear estados",
+      language: "typescript",
+      code: `const statusLabel: Record<string, (amount: number) => string> = {
+  debit: amount => \`Sale $\${amount}\`,
+  credit: amount => \`Entra $\${amount}\`,
+};
+
+function labelMovement(type: string, amount: number) {
+  return (statusLabel[type] ?? (() => "Movimiento desconocido"))(amount);
+}`,
+      note: "Cambias una estrategia sin llenar la función de if/else.",
+    },
+  ],
+  "eng-clean-arch": [
+    {
+      title: "UI llama caso de uso, no fetch directo",
+      language: "typescript",
+      code: `type Account = { id: string; balance: number };
+
+interface AccountRepository {
+  findById(id: string): Promise<Account>;
+}
+
+export function getAvailableBalance(repo: AccountRepository, accountId: string) {
+  return repo.findById(accountId).then(account => account.balance);
+}`,
+      note: "El dominio depende del contrato AccountRepository; Infra decide cómo traer datos.",
+    },
+  ],
+  "eng-unit-tests": [
+    {
+      title: "AAA en un test unitario",
+      language: "typescript",
+      code: `it("suma solo movimientos aprobados", () => {
+  const movements = [
+    { amount: 100, status: "ok" },
+    { amount: 50, status: "rejected" },
+  ];
+
+  const total = sumApproved(movements);
+
+  expect(total).toBe(100);
+});`,
+      note: "Arrange: datos. Act: ejecutar. Assert: verificar comportamiento.",
+    },
+  ],
+  "eng-sonarqube": [
+    {
+      title: "Quality gate mental",
+      language: "text",
+      code: `Antes de aprobar:
+- Sin bugs/blockers nuevos.
+- Cobertura suficiente en código nuevo.
+- Duplicación controlada.
+- Security hotspots revisados.`,
+      note: "SonarQube ayuda a priorizar, pero el equipo decide el arreglo correcto.",
+    },
+  ],
+  "eng-fluid-attacks": [
+    {
+      title: "No filtrar secretos al frontend",
+      language: "typescript",
+      code: `// Malo: queda visible en el bundle del navegador.
+const apiSecret = "sk_live_...";
+
+// Mejor: el backend firma o consulta con el secreto.
+async function requestSignedTransfer(transferId: string) {
+  return fetch("/api/transfers/sign", {
+    method: "POST",
+    body: JSON.stringify({ transferId }),
+  });
+}`,
+      note: "Seguridad continua detecta secretos y obliga a moverlos al lugar correcto.",
+    },
+  ],
   "exam-structure": [
     {
       title: "Las 5 fases",
@@ -838,7 +947,7 @@ GROUP BY c.id, c.name, a.balance;`,
 4. Práctica CSS (sin frameworks)
 5. Práctica Angular (sin ReactiveForms)
 
-Meta: ≥ 70% ponderado · 180 min · 10 slots de historial`,
+Meta: ≥ 70% ponderado · 180 min · 15 slots de historial`,
     },
     {
       title: "Anti-repetición entre slots",

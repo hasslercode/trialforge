@@ -792,8 +792,181 @@ const rawStudyTracks: RawStudyTrack[] = [
     ],
   },
   {
-    id: "exam-meta",
+    id: "eng-practices",
     order: 6,
+    title: "Ingeniería & calidad",
+    emoji: "🧭",
+    tagline: "Clean code, arquitectura y calidad para construir sin perderse.",
+    ink: "#1d2b53",
+    fill: "#c7d2fe",
+    topics: [
+      {
+        id: "eng-clean-code",
+        title: "Clean Code",
+        kidAnalogy:
+          "Es como ordenar tu cuarto antes de invitar amigos: si cada juguete tiene nombre claro y está en su caja, cualquiera encuentra lo que necesita sin tropezarse.",
+        summary:
+          "Código legible, pequeño y mantenible: nombres claros, funciones cortas, poco duplicado y condiciones fáciles de entender.",
+        keyPoints: [
+          "Nombra variables por intención: `isLoading`, `totalAmount`, `selectedAccount`.",
+          "Funciones pequeñas: una tarea, un nivel de abstracción.",
+          "Evita duplicación; extrae helpers cuando la regla se repite de verdad.",
+          "Prefiere early returns para reducir `else` y anidación.",
+          "Comentarios explican el porqué; el código debe explicar el qué.",
+        ],
+        bankLinks: [
+          "eng-clean-naming-intent",
+          "eng-clean-function-size",
+          "eng-clean-comments-why",
+          "eng-clean-boy-scout-rule",
+          "eng-clean-dry-kiss-yagni",
+        ],
+        remember: "Si un compañero lo entiende rápido, el código ya empezó bien.",
+      },
+      {
+        id: "eng-solid",
+        title: "SOLID",
+        kidAnalogy:
+          "Imagina robots de LEGO: uno barre, otro cocina y otro prende la luz. Si cada robot hace su trabajo y se conectan con piezas estándar, puedes cambiar uno sin romper toda la ciudad.",
+        summary:
+          "Principios para diseñar piezas con responsabilidades claras, extensibles y poco acopladas.",
+        keyPoints: [
+          "SRP: una clase/módulo debe tener una razón principal para cambiar.",
+          "OCP: extiende comportamiento sin abrir y romper lo existente.",
+          "LSP: un reemplazo debe comportarse como promete su contrato.",
+          "ISP: interfaces pequeñas; no obligues a depender de métodos que no usas.",
+          "DIP: módulos de alto nivel dependen de abstracciones, no detalles concretos.",
+        ],
+        bankLinks: [
+          "eng-solid-srp-component",
+          "eng-solid-ocp-pricing",
+          "eng-solid-lsp-substitution",
+          "eng-solid-isp-fat-interface",
+          "eng-solid-dip-frontend",
+          "eng-solid-common-god-component",
+          "eng-solid-common-switch-violation",
+        ],
+        remember: "SOLID baja el ‘si toco aquí, explota allá’.",
+      },
+      {
+        id: "eng-patterns-gof",
+        title: "Patrones de diseño (GoF) aplicados a frontend",
+        kidAnalogy:
+          "Son recetas de cocina para problemas repetidos. No inventas una bicicleta nueva: eliges la receta correcta, como Strategy para cambiar la salsa sin cambiar toda la pizza.",
+        summary:
+          "Patrones útiles en frontend cuando simplifican variaciones, eventos, creación de objetos o adaptación de APIs.",
+        keyPoints: [
+          "Strategy: intercambia algoritmos (formatos, validaciones, filtros) sin `if` gigantes.",
+          "Observer: eventos, stores y streams notifican cambios a suscriptores.",
+          "Factory: centraliza creación de objetos/componentes según tipo.",
+          "Adapter: traduce una API externa al formato que la UI espera.",
+          "Facade: expone una puerta simple sobre lógica o servicios complejos.",
+        ],
+        bankLinks: [
+          "eng-pattern-strategy-validation",
+          "eng-pattern-observer-state",
+          "eng-pattern-factory-creation",
+          "eng-pattern-adapter-api",
+          "eng-pattern-decorator-crosscutting",
+          "eng-pattern-singleton-pitfall",
+          "eng-pattern-facade-http",
+        ],
+        remember: "Patrón útil = menos ramas y contratos más claros.",
+      },
+      {
+        id: "eng-clean-arch",
+        title: "Arquitectura limpia (UI, Domain, Infra) en frontend",
+        kidAnalogy:
+          "Es una lonchera con pisos: arriba va la UI bonita, en medio las reglas del juego y abajo los cables que hablan con internet. La salsa de abajo no debe mojar las reglas del medio.",
+        summary:
+          "Separar presentación, reglas de negocio e infraestructura para que la UI cambie sin ensuciar el dominio.",
+        keyPoints: [
+          "UI: componentes, estado visual, eventos del usuario.",
+          "Domain: entidades, reglas y casos de uso sin depender del framework.",
+          "Infra: HTTP, storage, SDKs y mappers hacia datos externos.",
+          "Las dependencias apuntan hacia el dominio; detalles externos quedan afuera.",
+          "Repositorios/adapters esconden APIs para que los casos de uso sean testeables.",
+        ],
+        bankLinks: [
+          "eng-architecture-layering",
+          "eng-architecture-dependency-rule",
+          "eng-architecture-ui-http-details",
+          "eng-architecture-infrastructure-adapters",
+        ],
+        remember: "La regla del negocio no debería saber si vive en Angular, React o fetch.",
+      },
+      {
+        id: "eng-unit-tests",
+        title: "Tests unitarios",
+        kidAnalogy:
+          "Cada test es probar una pieza de LEGO antes de meterla al castillo. Si la rueda gira sola, luego es más fácil saber por qué el carro completo no anda.",
+        summary:
+          "Pruebas pequeñas, rápidas y deterministas para validar funciones, componentes o casos de uso aislados.",
+        keyPoints: [
+          "AAA: Arrange, Act, Assert para ordenar la intención del test.",
+          "Testea comportamiento observable, no detalles internos frágiles.",
+          "Mocks/stubs aíslan red, reloj, storage y dependencias lentas.",
+          "Incluye bordes: vacío, error, duplicados, límites numéricos.",
+          "Cobertura sirve si protege reglas importantes; 100% sin asserts buenos no vale.",
+        ],
+        bankLinks: [
+          "eng-testing-aaa-structure",
+          "eng-testing-what-to-test",
+          "eng-testing-mocks-vs-stubs",
+          "eng-testing-pure-functions",
+          "eng-testing-avoid-implementation",
+        ],
+        remember: "Un buen test falla por una regla rota, no por un detalle cosmético.",
+      },
+      {
+        id: "eng-sonarqube",
+        title: "SonarQube",
+        kidAnalogy:
+          "SonarQube es un detector de humo para el código: no cocina por ti, pero te avisa si hay olor a quemado, cables repetidos o una puerta de seguridad mal cerrada.",
+        summary:
+          "Análisis estático para code smells, bugs, duplicación, cobertura, security hotspots y quality gates.",
+        keyPoints: [
+          "Quality Gate define si el cambio puede pasar según reglas de calidad.",
+          "Code smells señalan mantenibilidad; no siempre son bugs inmediatos.",
+          "Duplicación alta aumenta costo de cambios y riesgo de inconsistencias.",
+          "Coverage ayuda a ver zonas sin pruebas, especialmente en código nuevo.",
+          "Security hotspots requieren revisión humana antes de marcar como seguro.",
+        ],
+        bankLinks: [
+          "eng-sonarqube-coverage-gate",
+          "eng-sonarqube-code-smells",
+          "eng-sonarqube-cognitive-complexity",
+          "eng-sonarqube-fix-blockers",
+        ],
+        remember: "Sonar no reemplaza criterio; lo enfoca.",
+      },
+      {
+        id: "eng-fluid-attacks",
+        title: "Fluid Attacks / seguridad continua",
+        kidAnalogy:
+          "Es como tener guardianes revisando el parque todos los días: buscan huecos en la reja, juguetes peligrosos y puertas abiertas antes de que entre alguien malo.",
+        summary:
+          "Seguridad continua con análisis, hallazgos priorizados, remediación y prevención de vulnerabilidades en el ciclo de desarrollo.",
+        keyPoints: [
+          "SAST/DAST revisan código y comportamiento para encontrar riesgos temprano.",
+          "Prioriza vulnerabilidades por severidad, impacto y exposición real.",
+          "Corrige la causa raíz; no tapes solo el mensaje de la herramienta.",
+          "Evita secretos en repositorios, logs o bundles del frontend.",
+          "La seguridad continua entra al pipeline, no al final con afán.",
+        ],
+        bankLinks: [
+          "eng-appsec-fluid-attacks-sdlc",
+          "eng-appsec-xss-output-encoding",
+          "eng-appsec-secrets-client",
+          "eng-appsec-dependency-scanning",
+        ],
+        remember: "Seguridad tarde = apagar incendio; continua = revisar la reja cada día.",
+      },
+    ],
+  },
+  {
+    id: "exam-meta",
+    order: 7,
     title: "Cómo funciona el simulacro",
     emoji: "🗺️",
     tagline: "Reglas del juego para no perder puntos bobos.",
@@ -809,7 +982,7 @@ const rawStudyTracks: RawStudyTrack[] = [
         keyPoints: [
           "5 fases · ~180 minutos · aprobar ≥ 70%.",
           "S1/S2: MCQ · S3: JS o SQL · S4: CSS · S5: Angular.",
-          "Hasta 10 corridas; cada slot mezcla preguntas distintas (cubre el banco completo).",
+          "Hasta 15 slots de práctica; cubren el banco expandido antes de reciclar preguntas.",
           "En celular: solo teoría; código en PC.",
         ],
         bankLinks: ["w-pass-70", "w-exam-hours", "w-sessions-count"],
