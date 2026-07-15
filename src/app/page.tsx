@@ -71,6 +71,44 @@ function formatShortDate(iso: string) {
   }
 }
 
+const PHASES_PER_PRACTICE = 5;
+
+function isPracticeComplete(attempt: ExamAttempt | null): boolean {
+  return Boolean(attempt && attempt.results.length >= PHASES_PER_PRACTICE);
+}
+
+/** Next empty Practice index only if every previous Practice is finished. */
+function nextStartablePracticeIndex(slots: (ExamAttempt | null)[]): number {
+  const freeIndex = slots.findIndex((slot) => slot === null);
+  if (freeIndex === -1) return -1;
+  for (let i = 0; i < freeIndex; i += 1) {
+    if (!isPracticeComplete(slots[i])) return -1;
+  }
+  return freeIndex;
+}
+
+function canStartPracticeAt(slots: (ExamAttempt | null)[], index: number): boolean {
+  if (slots[index] !== null) return false;
+  for (let i = 0; i < index; i += 1) {
+    if (!isPracticeComplete(slots[i])) return false;
+  }
+  return true;
+}
+
+function firstIncompletePracticeIndex(slots: (ExamAttempt | null)[]): number {
+  return slots.findIndex((slot) => slot !== null && !isPracticeComplete(slot));
+}
+
+/** Phase N unlocks only after phases 0..N-1 are submitted. */
+function canOpenPhase(sessions: ExamSession[], results: SessionResult[], sessionId: string): boolean {
+  const index = sessions.findIndex((session) => session.id === sessionId);
+  if (index <= 0) return index === 0;
+  for (let i = 0; i < index; i += 1) {
+    if (!results.some((result) => result.sessionId === sessions[i].id)) return false;
+  }
+  return true;
+}
+
 export default function App() {
   const [screen, setScreen] = useState<Screen>("home");
   const [app, setApp] = useState<AppState>(emptyAppState);
@@ -91,6 +129,9 @@ export default function App() {
   const activeSession = exam.sessions.find((s) => s.id === activeId) ?? exam.sessions[0];
   const freeSlots = app.slots.filter((slot) => slot === null).length;
   const hasActive = app.activeSlot !== null && Boolean(app.slots[app.activeSlot ?? -1]);
+  const nextPracticeIndex = nextStartablePracticeIndex(app.slots);
+  const canStartNewPractice = nextPracticeIndex !== -1;
+  const blockedByIncomplete = firstIncompletePracticeIndex(app.slots);
   const sessionMode = screen === "session";
   const studyMode = screen === "study";
   const sidebarCollapsed = (sessionMode && !sidebarPinnedOpen) || studyMode;
@@ -212,8 +253,15 @@ export default function App() {
   }
 
   function startExam() {
-    const freeIndex = app.slots.findIndex((slot) => slot === null);
+    const freeIndex = nextStartablePracticeIndex(app.slots);
     if (freeIndex === -1) {
+      const incomplete = firstIncompletePracticeIndex(app.slots);
+      if (incomplete !== -1) {
+        persist({ ...app, activeSlot: incomplete });
+        setExamRunning((app.slots[incomplete]?.remainingSeconds ?? 0) > 0);
+        setScreen("roadmap");
+        return;
+      }
       setScreen("home");
       return;
     }
@@ -231,12 +279,14 @@ export default function App() {
   }
 
   function restartSlot(slotIndex: number) {
-    if (app.slots[slotIndex]) {
-      const ok = window.confirm(
-        `The run in slot #${slotIndex + 1} will be replaced with a new random mix from the bank. Continue?`,
-      );
-      if (!ok) return;
+    if (!isPracticeComplete(app.slots[slotIndex])) {
+      window.alert(`Finish Practice #${slotIndex + 1} before replacing it with a new mix.`);
+      return;
     }
+    const ok = window.confirm(
+      `Practice #${slotIndex + 1} will be replaced with a new random mix from the bank. Continue?`,
+    );
+    if (!ok) return;
     startInSlot(slotIndex);
   }
 
@@ -248,6 +298,12 @@ export default function App() {
   function selectSlot(slotIndex: number) {
     const attempt = app.slots[slotIndex];
     if (!attempt) {
+      if (!canStartPracticeAt(app.slots, slotIndex)) {
+        const incomplete = firstIncompletePracticeIndex(app.slots);
+        const prior = incomplete !== -1 ? incomplete + 1 : slotIndex;
+        window.alert(`Finish Practice #${prior} before starting Practice #${slotIndex + 1}.`);
+        return;
+      }
       startInSlot(slotIndex);
       return;
     }
@@ -266,6 +322,16 @@ export default function App() {
   }
 
   function openSession(sessionId: string) {
+    if (!canOpenPhase(exam.sessions, progress.results, sessionId)) {
+      const index = exam.sessions.findIndex((session) => session.id === sessionId);
+      const prior = exam.sessions[Math.max(0, index - 1)];
+      window.alert(
+        prior
+          ? `Finish ${prior.phase} before opening the next phase.`
+          : "Finish the previous phases before opening this one.",
+      );
+      return;
+    }
     setActiveId(sessionId);
     setScreen("session");
   }
@@ -295,6 +361,7 @@ export default function App() {
         activeSlot={app.activeSlot}
         passThreshold={examMeta.passThreshold}
         freeSlots={freeSlots}
+        nextPracticeIndex={nextPracticeIndex}
         onSelect={(index) => {
           selectSlot(index);
           setSidebarPinnedOpen(false);
@@ -369,6 +436,7 @@ export default function App() {
               slots={app.slots}
               activeSlot={app.activeSlot}
               passThreshold={examMeta.passThreshold}
+              nextPracticeIndex={nextPracticeIndex}
               onSelect={selectSlot}
               onResetAll={resetAllAttempts}
             />
@@ -381,6 +449,8 @@ export default function App() {
               overall={overall}
               hasProgress={hasActive}
               freeSlots={freeSlots}
+              canStartNewPractice={canStartNewPractice}
+              blockedPracticeNumber={blockedByIncomplete === -1 ? null : blockedByIncomplete + 1}
               isMobile={isMobile}
               onStart={startExam}
               onResume={resumeExam}
@@ -441,6 +511,7 @@ function AttemptsPanel({
   activeSlot,
   passThreshold,
   freeSlots,
+  nextPracticeIndex,
   onSelect,
   onResetAll,
   onCollapse,
@@ -451,6 +522,7 @@ function AttemptsPanel({
   activeSlot: number | null;
   passThreshold: number;
   freeSlots: number;
+  nextPracticeIndex: number;
   onSelect: (index: number) => void;
   onResetAll: () => void;
   onCollapse: () => void;
@@ -508,12 +580,13 @@ function AttemptsPanel({
           <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto p-3">
             <p className="px-1 text-[11px] leading-4 text-[var(--exam-faint)]">
               {freeSlots > 0
-                ? `${freeSlots} Practice slot${freeSlots === 1 ? "" : "s"} available`
+                ? nextPracticeIndex === -1
+                  ? "Finish the open Practice before unlocking the next slot"
+                  : `${freeSlots} left · next unlock: Practice #${nextPracticeIndex + 1}`
                 : "All Practice slots are full"}
             </p>
             <p className="px-1 text-[11px] leading-5 text-[var(--exam-muted)]">
-              Each Practice is one full challenge. Use up to {MAX_ATTEMPT_SLOTS} to cover the whole question bank. Then
-              Reset all and start again.
+              Finish one Practice before unlocking the next. Cover the bank with all {MAX_ATTEMPT_SLOTS}, then Reset all.
             </p>
             {slots.map((attempt, index) => (
               <AttemptCard
@@ -522,6 +595,7 @@ function AttemptsPanel({
                 index={index}
                 active={activeSlot === index}
                 passThreshold={passThreshold}
+                locked={attempt === null && index !== nextPracticeIndex}
                 onSelect={onSelect}
               />
             ))}
@@ -554,12 +628,14 @@ function AttemptsStrip({
   slots,
   activeSlot,
   passThreshold,
+  nextPracticeIndex,
   onSelect,
   onResetAll,
 }: {
   slots: (ExamAttempt | null)[];
   activeSlot: number | null;
   passThreshold: number;
+  nextPracticeIndex: number;
   onSelect: (index: number) => void;
   onResetAll: () => void;
 }) {
@@ -572,8 +648,7 @@ function AttemptsStrip({
             {MAX_ATTEMPT_SLOTS} practice runs
           </p>
           <p className="mt-1 text-[11px] leading-5 text-[var(--exam-faint)]">
-            Each Practice is one full challenge. Use up to {MAX_ATTEMPT_SLOTS} to cover the whole question bank. Then
-            Reset all and start again.
+            Finish each Practice before unlocking the next. Cover the bank with all {MAX_ATTEMPT_SLOTS}, then Reset all.
           </p>
         </div>
         {hasAnyRun && (
@@ -595,6 +670,7 @@ function AttemptsStrip({
             index={index}
             active={activeSlot === index}
             passThreshold={passThreshold}
+            locked={attempt === null && index !== nextPracticeIndex}
             onSelect={onSelect}
             compact
           />
@@ -610,6 +686,7 @@ function AttemptCard({
   active,
   passThreshold,
   onSelect,
+  locked = false,
   compact = false,
 }: {
   attempt: ExamAttempt | null;
@@ -617,6 +694,7 @@ function AttemptCard({
   active: boolean;
   passThreshold: number;
   onSelect: (index: number) => void;
+  locked?: boolean;
   compact?: boolean;
 }) {
   const practiceLabel = `Practice #${index + 1}`;
@@ -624,23 +702,34 @@ function AttemptCard({
   if (!attempt) {
     return (
       <button
+        type="button"
         onClick={() => onSelect(index)}
-        className={`exam-card group flex flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-[var(--exam-border)] bg-[rgba(23,31,54,0.58)] text-center hover:border-[var(--exam-accent)] hover:bg-[var(--exam-accent-soft)] ${
+        disabled={locked}
+        title={locked ? `Finish previous Practice before unlocking ${practiceLabel}` : `Start ${practiceLabel}`}
+        className={`exam-card group flex flex-col items-center justify-center gap-1 rounded-2xl border border-dashed text-center ${
           compact ? "min-h-[72px] min-w-[96px] px-2 py-2" : "min-h-[88px] px-3 py-4"
+        } ${
+          locked
+            ? "cursor-not-allowed border-[var(--exam-border-soft)] bg-[rgba(17,24,43,0.45)] opacity-55"
+            : "border-[var(--exam-border)] bg-[rgba(23,31,54,0.58)] hover:border-[var(--exam-accent)] hover:bg-[var(--exam-accent-soft)]"
         }`}
       >
         <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--exam-faint)] group-hover:text-[var(--exam-muted)]">
           {practiceLabel}
         </span>
-        <Plus size={compact ? 14 : 16} className="text-[var(--exam-faint)] group-hover:text-[var(--exam-accent)]" />
+        {locked ? (
+          <Lock size={compact ? 14 : 16} className="text-[var(--exam-faint)]" />
+        ) : (
+          <Plus size={compact ? 14 : 16} className="text-[var(--exam-faint)] group-hover:text-[var(--exam-accent)]" />
+        )}
         <span className="text-xs font-medium text-[var(--exam-muted)] group-hover:text-[var(--exam-text)]">
-          Available
+          {locked ? "Locked" : "Available"}
         </span>
       </button>
     );
   }
 
-  const done = attempt.results.length >= 5;
+  const done = isPracticeComplete(attempt);
   const passed = done && attempt.overallScore >= passThreshold;
   const label = done ? (passed ? "Passed" : "Below threshold") : "In progress";
   const statusClass = done
@@ -663,6 +752,7 @@ function AttemptCard({
 
   return (
     <button
+      type="button"
       onClick={() => onSelect(index)}
       className={`exam-card rounded-2xl border text-left ${
         compact ? "min-h-[72px] min-w-[118px] px-2.5 py-2" : "min-h-[88px] px-3 py-3"
@@ -679,7 +769,7 @@ function AttemptCard({
       </p>
       {!compact && (
         <p className="mt-1 text-[11px] text-[var(--exam-faint)]">
-          {attempt.results.length}/5 phases · {formatShortDate(attempt.startedAt)}
+          {attempt.results.length}/{PHASES_PER_PRACTICE} phases · {formatShortDate(attempt.startedAt)}
         </p>
       )}
     </button>
@@ -690,6 +780,8 @@ function Home({
   overall,
   hasProgress,
   freeSlots,
+  canStartNewPractice,
+  blockedPracticeNumber,
   isMobile,
   onStart,
   onResume,
@@ -699,6 +791,8 @@ function Home({
   overall: number;
   hasProgress: boolean;
   freeSlots: number;
+  canStartNewPractice: boolean;
+  blockedPracticeNumber: number | null;
   isMobile: boolean;
   onStart: () => void;
   onResume: () => void;
@@ -734,19 +828,25 @@ function Home({
             <p className="mt-5 max-w-xl text-sm leading-7 text-[var(--exam-muted)] sm:text-base">
               Practice the full challenge in calm, focused runs.{" "}
               <strong className="font-semibold text-[var(--exam-text)]">Practice #1</strong> through{" "}
-              <strong className="font-semibold text-[var(--exam-text)]">Practice #{MAX_ATTEMPT_SLOTS}</strong> are
-              complete simulations with fresh mixes, so the full set helps you cover the whole question bank. Then use
+              <strong className="font-semibold text-[var(--exam-text)]">Practice #{MAX_ATTEMPT_SLOTS}</strong> unlock in
+              order — finish one completely before starting the next. The full set covers the question bank. Then use
               Reset all · start over and repeat the loop.
             </p>
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <button
                 onClick={onStart}
-                disabled={freeSlots === 0}
+                disabled={freeSlots === 0 && !hasProgress}
                 className="exam-btn exam-glow-button flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
               >
                 <Play size={16} fill="currentColor" />
-                {freeSlots === 0 ? "No Practice slots" : isMobile ? "New Practice (theory)" : "New Practice"}
+                {freeSlots === 0
+                  ? "No Practice slots"
+                  : !canStartNewPractice && blockedPracticeNumber
+                    ? `Finish Practice #${blockedPracticeNumber} first`
+                    : isMobile
+                      ? "New Practice (theory)"
+                      : "New Practice"}
               </button>
               {hasProgress && (
                 <button
@@ -766,6 +866,11 @@ function Home({
                 </button>
               )}
             </div>
+            {!canStartNewPractice && blockedPracticeNumber && freeSlots > 0 && (
+              <p className="mt-3 text-xs leading-5 text-[var(--exam-muted)]">
+                Complete all 5 phases of Practice #{blockedPracticeNumber} to unlock the next Practice slot.
+              </p>
+            )}
           </div>
 
           <div className="exam-float relative">
@@ -801,8 +906,8 @@ function Home({
         <div className="exam-card rounded-2xl border border-[var(--exam-border)] bg-[rgba(23,31,54,0.58)] p-4">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--exam-accent-2)]">Practice loop</p>
           <p className="mt-2 text-sm leading-6 text-[var(--exam-muted)]">
-            One Practice = one full challenge. Use up to {MAX_ATTEMPT_SLOTS}, reset all, and start over whenever you
-            want another pass through the bank.
+            One Practice = one full challenge. Finish it before the next unlocks. Use up to {MAX_ATTEMPT_SLOTS}, then
+            Reset all and start over.
           </p>
         </div>
       </div>
@@ -909,8 +1014,8 @@ function Roadmap({
             <h2 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">The 5 phases</h2>
             <p className="mt-2 text-sm text-[var(--exam-muted)]">
               {isMobile
-                ? `On mobile: ${theoryDone}/${theorySessions.length} theory sessions. Code waits for PC.`
-                : "Content is locked when this Practice starts. An available slot = another fresh mix."}
+                ? `On mobile: ${theoryDone}/${theorySessions.length} theory sessions. Code waits for PC. Phases unlock in order.`
+                : "Phases unlock in order — finish one before opening the next. An available Practice slot unlocks only after this run is complete."}
             </p>
           </div>
         </div>
@@ -927,27 +1032,31 @@ function Roadmap({
       </div>
 
       <ol className="mt-6 space-y-2.5 sm:mt-8 sm:space-y-3">
-        {exam.sessions.map((session) => {
+        {exam.sessions.map((session, sessionIndex) => {
           const result = byId.get(session.id);
           const done = Boolean(result);
           const mobileOk = isMobileFriendlySession(session);
           const lockedOnMobile = isMobile && !mobileOk;
+          const lockedByOrder = !done && !canOpenPhase(exam.sessions, progress.results, session.id);
+          const locked = lockedOnMobile || lockedByOrder;
 
           return (
             <li key={session.id}>
               <button
+                type="button"
                 onClick={() => onOpen(session.id)}
+                disabled={lockedByOrder}
                 className={`exam-card flex w-full items-start gap-3 rounded-2xl border p-4 text-left sm:gap-4 sm:p-5 ${
-                  lockedOnMobile
-                    ? "border-[var(--exam-border-soft)] bg-[rgba(17,24,43,0.58)] opacity-90"
+                  locked
+                    ? "cursor-not-allowed border-[var(--exam-border-soft)] bg-[rgba(17,24,43,0.58)] opacity-80"
                     : "border-[var(--exam-border-soft)] bg-[rgba(23,31,54,0.7)] hover:border-[var(--exam-border)] hover:bg-[var(--exam-surface-hover)]"
                 }`}
               >
                 <span className="mt-0.5 text-[var(--exam-muted)]">
                   {done ? (
                     <CheckCircle2 size={20} className="text-[var(--exam-pass)]" />
-                  ) : lockedOnMobile ? (
-                    <Monitor size={20} className="text-[var(--exam-faint)]" />
+                  ) : lockedOnMobile || lockedByOrder ? (
+                    <Lock size={20} className="text-[var(--exam-faint)]" />
                   ) : (
                     <Circle size={20} />
                   )}
@@ -958,6 +1067,11 @@ function Roadmap({
                     <span className="rounded bg-[var(--exam-bg-soft)] px-2 py-0.5 text-xs text-[var(--exam-muted)]">
                       {session.weight}%
                     </span>
+                    {lockedByOrder && !lockedOnMobile && (
+                      <span className="rounded bg-[rgba(139,124,246,0.12)] px-2 py-0.5 text-[10px] text-[var(--exam-accent-2)]">
+                        Finish phase {sessionIndex} first
+                      </span>
+                    )}
                     {mobileOk ? (
                       <span className="flex items-center gap-1 rounded bg-[var(--exam-accent-soft)] px-2 py-0.5 text-xs text-[var(--exam-accent)] md:hidden">
                         <Smartphone size={11} /> mobile
@@ -978,13 +1092,18 @@ function Roadmap({
                   {lockedOnMobile && (
                     <p className="mt-2 text-xs text-[var(--exam-faint)]">Available on desktop / wide tablet.</p>
                   )}
+                  {lockedByOrder && !lockedOnMobile && (
+                    <p className="mt-2 text-xs text-[var(--exam-faint)]">
+                      Complete the previous phase before opening this one.
+                    </p>
+                  )}
                 </div>
                 <div className="shrink-0 text-right">
                   {result ? (
                     <strong className={result.score >= 70 ? "text-[var(--exam-pass)]" : "text-[var(--exam-danger)]"}>
                       {result.score}%
                     </strong>
-                  ) : lockedOnMobile ? (
+                  ) : locked ? (
                     <Lock size={14} className="ml-auto text-[var(--exam-faint)]" />
                   ) : (
                     <span className="text-sm text-[var(--exam-faint)]">Open →</span>
