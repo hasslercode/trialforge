@@ -1260,7 +1260,10 @@ function McqSessionView({
 
   const total = session.questions.length;
   const answered = session.questions.filter((q) => answers[q.id]).length;
-  const question = session.questions[Math.min(step, total - 1)];
+  const safeStep = Math.min(Math.max(step, 0), Math.max(total - 1, 0));
+  const question = session.questions[safeStep];
+  const isLast = safeStep >= total - 1;
+  const progressPct = total > 0 ? ((safeStep + 1) / total) * 100 : 0;
 
   function persistAnswers(next: Record<string, string>) {
     const namespaced = Object.fromEntries(Object.entries(next).map(([key, value]) => [`${prefix}${key}`, value]));
@@ -1281,192 +1284,170 @@ function McqSessionView({
       persistAnswers(next);
       return next;
     });
-    if (isMobile && step < total - 1) {
+    if (!result && !isLast) {
       window.setTimeout(() => setStep((s) => Math.min(s + 1, total - 1)), 180);
     }
   }
 
-  if (isMobile) {
-    return (
-      <section className="exam-session-scene exam-fade-up mx-auto flex min-h-[calc(100vh-7.5rem)] max-w-lg flex-col px-4 pb-28 pt-6">
-        <div className="mb-5 flex items-center justify-between gap-3">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-2 text-sm text-[var(--exam-muted)] hover:text-[var(--exam-text)]"
-          >
-            <ArrowLeft size={15} /> Phases
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              ambience.toggleMuted();
-            }}
-            className="exam-btn inline-flex items-center gap-1.5 rounded-full border border-[var(--exam-border)] bg-[rgba(23,31,54,0.72)] px-3 py-1.5 text-[11px] font-medium text-[var(--exam-muted)] hover:border-[var(--exam-accent)] hover:text-[var(--exam-text)]"
-            aria-label={ambience.muted ? "Unmute question music" : "Mute question music"}
-            title="Ambient music"
-          >
-            {ambience.muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
-            {ambience.muted ? "Music off" : "Music"}
-          </button>
-        </div>
+  return (
+    <section
+      className={`exam-session-scene exam-fade-up mx-auto flex max-w-3xl flex-col px-4 pt-6 sm:px-5 sm:pt-8 ${
+        isMobile ? "min-h-[calc(100vh-7.5rem)] pb-28" : "pb-10"
+      }`}
+    >
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex items-center gap-2 text-sm text-[var(--exam-muted)] hover:text-[var(--exam-text)]"
+        >
+          <ArrowLeft size={15} /> {isMobile ? "Phases" : "Back to phases"}
+        </button>
+        <button
+          type="button"
+          onClick={() => ambience.toggleMuted()}
+          className="exam-btn inline-flex items-center gap-1.5 rounded-full border border-[var(--exam-border)] bg-[rgba(23,31,54,0.72)] px-3 py-1.5 text-[11px] font-medium text-[var(--exam-muted)] hover:border-[var(--exam-accent)] hover:text-[var(--exam-text)] sm:text-xs"
+          aria-label={ambience.muted ? "Unmute question music" : "Mute question music"}
+          title="Ambient music"
+        >
+          {ambience.muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+          <span className="hidden sm:inline">{ambience.muted ? "Music off" : "Ambience"}</span>
+          <span className="sm:hidden">{ambience.muted ? "Off" : "Music"}</span>
+        </button>
+      </div>
+
+      <header className="text-left">
         <p className="text-xs uppercase tracking-wider text-[var(--exam-faint)]">{session.phase}</p>
-        <h1 className="mt-1 text-lg font-semibold tracking-tight text-[var(--exam-text)]">{session.title}</h1>
-        <div className="mt-4 flex items-center justify-between text-xs text-[var(--exam-muted)]">
-          <span>
-            Question {step + 1} / {total}
+        <h1 className="mt-1 text-lg font-semibold tracking-tight text-[var(--exam-text)] sm:mt-2 sm:text-2xl">
+          {session.title}
+        </h1>
+        <p className="mt-2 hidden text-sm text-[var(--exam-muted)] sm:block">{session.subtitle}</p>
+      </header>
+
+      <div className="mt-5 sm:mt-6">
+        <div className="flex items-center justify-between text-xs text-[var(--exam-muted)] sm:text-sm">
+          <span className="font-medium text-[var(--exam-text)]">
+            Question {safeStep + 1} of {total}
           </span>
           <span>
             {answered}/{total} answered
           </span>
         </div>
-        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[rgba(23,31,54,0.7)]">
+        <div
+          className="mt-2 h-1.5 overflow-hidden rounded-full bg-[rgba(23,31,54,0.7)]"
+          role="progressbar"
+          aria-valuenow={safeStep + 1}
+          aria-valuemin={1}
+          aria-valuemax={total}
+          aria-label={`Question ${safeStep + 1} of ${total}`}
+        >
           <div
             className="h-full rounded-full bg-[linear-gradient(90deg,var(--exam-accent),var(--exam-accent-2))] transition-all duration-500"
-            style={{ width: `${((step + 1) / total) * 100}%` }}
+            style={{ width: `${progressPct}%` }}
           />
         </div>
-
-        <fieldset className="exam-glass-card mt-6 flex-1 rounded-[1.75rem] border border-[var(--exam-border)] p-5 shadow-[0_24px_70px_rgba(2,6,23,0.28)]">
-          <legend className="sr-only">Question {step + 1}</legend>
-          <p className="text-base font-medium leading-7 text-[var(--exam-text)]">{question.prompt}</p>
-          <div className="mt-5 space-y-2.5">
-            {question.options.map((option) => {
-              const selected = answers[question.id] === option.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => selectOption(question.id, option.id)}
-                  className={`exam-btn flex w-full items-start gap-3 rounded-2xl border px-4 py-3.5 text-left text-sm ${
-                    selected
-                      ? "border-[var(--exam-accent)] bg-[var(--exam-accent-soft)] shadow-[0_0_24px_rgba(139,124,246,0.18)]"
-                      : "border-[var(--exam-border-soft)] bg-[rgba(17,24,43,0.55)] hover:border-[var(--exam-border)]"
-                  }`}
-                >
-                  <span
-                    className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border text-[10px] ${
-                      selected
-                        ? "border-[var(--exam-accent-2)] bg-[var(--exam-accent-2)] text-[#070b16]"
-                        : "border-[var(--exam-faint)] text-[var(--exam-muted)]"
-                    }`}
-                  >
-                    {option.id.toUpperCase()}
-                  </span>
-                  <span>{option.label}</span>
-                </button>
-              );
-            })}
-          </div>
-          {result && <p className="mt-4 text-xs leading-5 text-[var(--exam-muted)]">{question.explanation}</p>}
-        </fieldset>
-
-        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-[var(--exam-border)] bg-[rgba(11,16,32,0.82)] px-4 py-3 backdrop-blur-xl">
-          <div className="mx-auto flex max-w-lg gap-2">
-            <button
-              type="button"
-              disabled={step === 0}
-              onClick={() => setStep((s) => Math.max(0, s - 1))}
-              className="exam-btn rounded-xl border border-[var(--exam-border)] px-4 py-3 text-sm text-[var(--exam-muted)] disabled:opacity-30"
-            >
-              Previous
-            </button>
-            {step < total - 1 ? (
-              <button
-                type="button"
-                onClick={() => setStep((s) => Math.min(total - 1, s + 1))}
-                className="exam-btn exam-glow-button flex-1 rounded-xl py-3 text-sm font-semibold"
-              >
-                Next
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={submit}
-                disabled={answered < total && !result}
-                className="exam-btn exam-glow-button flex-1 rounded-xl py-3 text-sm font-semibold disabled:opacity-40"
-              >
-                {result ? `Submitted · ${result.score}%` : "Submit session"}
-              </button>
-            )}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  return (
-    <section className="exam-session-scene exam-fade-up mx-auto max-w-3xl px-5 py-8">
-      <div className="mb-6 flex items-center justify-between gap-3">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-sm text-[var(--exam-muted)] hover:text-[var(--exam-text)]"
-        >
-          <ArrowLeft size={15} /> Back to phases
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            ambience.toggleMuted();
-          }}
-          className="exam-btn inline-flex items-center gap-1.5 rounded-full border border-[var(--exam-border)] bg-[rgba(23,31,54,0.72)] px-3 py-1.5 text-xs font-medium text-[var(--exam-muted)] hover:border-[var(--exam-accent)] hover:text-[var(--exam-text)]"
-          aria-label={ambience.muted ? "Unmute question music" : "Mute question music"}
-          title="Ambient music"
-        >
-          {ambience.muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
-          {ambience.muted ? "Music off" : "Ambience"}
-        </button>
       </div>
-      <p className="text-xs uppercase tracking-wider text-[var(--exam-faint)]">{session.phase}</p>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--exam-text)]">{session.title}</h1>
-      <p className="mt-2 text-sm text-[var(--exam-muted)]">{session.subtitle}</p>
 
-      <div className="mt-8 space-y-6">
-        {session.questions.map((q, index) => (
-          <fieldset
-            key={q.id}
-            className="exam-glass-card rounded-2xl border border-[var(--exam-border)] p-5 shadow-[0_18px_50px_rgba(2,6,23,0.22)]"
-          >
-            <legend className="px-1 text-sm font-medium text-[var(--exam-text)]">
-              {index + 1}. {q.prompt}
-            </legend>
-            <div className="mt-4 space-y-2">
-              {q.options.map((option) => {
-                const selected = answers[q.id] === option.id;
+      {question ? (
+        <article
+          key={question.id}
+          className="exam-glass-card mt-6 flex flex-1 flex-col overflow-hidden rounded-[1.75rem] border border-[var(--exam-border)] shadow-[0_24px_70px_rgba(2,6,23,0.28)] sm:mt-8"
+        >
+          <div className="border-b border-[var(--exam-border-soft)] px-5 py-5 sm:px-6 sm:py-6">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[var(--exam-faint)]">
+              Step {safeStep + 1}
+            </p>
+            <h2 className="mt-2 text-pretty text-base font-semibold leading-7 text-[var(--exam-text)] sm:text-lg sm:leading-8">
+              {question.prompt}
+            </h2>
+          </div>
+
+          <fieldset className="m-0 flex flex-1 flex-col border-0 p-0">
+            <legend className="sr-only">{question.prompt}</legend>
+            <div className="space-y-2.5 p-4 sm:space-y-3 sm:p-6">
+              {question.options.map((option) => {
+                const selected = answers[question.id] === option.id;
                 return (
-                  <label
+                  <button
                     key={option.id}
-                    className={`exam-btn flex cursor-pointer gap-3 rounded-xl border px-3 py-2.5 text-sm transition ${
+                    type="button"
+                    onClick={() => selectOption(question.id, option.id)}
+                    disabled={Boolean(result)}
+                    className={`exam-btn flex w-full items-start gap-3 rounded-2xl border px-4 py-3.5 text-left text-sm transition disabled:cursor-default ${
                       selected
-                        ? "border-[var(--exam-accent)] bg-[var(--exam-accent-soft)]"
-                        : "border-[var(--exam-border-soft)] bg-[rgba(17,24,43,0.5)] hover:border-[var(--exam-border)]"
+                        ? "border-[var(--exam-accent)] bg-[var(--exam-accent-soft)] shadow-[0_0_24px_rgba(139,124,246,0.18)]"
+                        : "border-[var(--exam-border-soft)] bg-[rgba(17,24,43,0.55)] hover:border-[var(--exam-border)]"
                     }`}
                   >
-                    <input
-                      type="radio"
-                      className="mt-0.5"
-                      name={q.id}
-                      checked={selected}
-                      onChange={() => selectOption(q.id, option.id)}
-                    />
-                    <span>{option.label}</span>
-                  </label>
+                    <span
+                      className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border text-[10px] ${
+                        selected
+                          ? "border-[var(--exam-accent-2)] bg-[var(--exam-accent-2)] text-[#070b16]"
+                          : "border-[var(--exam-faint)] text-[var(--exam-muted)]"
+                      }`}
+                    >
+                      {option.id.toUpperCase()}
+                    </span>
+                    <span className="leading-6 text-[var(--exam-text)]">{option.label}</span>
+                  </button>
                 );
               })}
             </div>
-            {result && <p className="mt-3 text-xs text-[var(--exam-muted)]">{q.explanation}</p>}
+            {result ? (
+              <p className="border-t border-[var(--exam-border-soft)] px-5 py-4 text-xs leading-5 text-[var(--exam-muted)] sm:px-6">
+                {question.explanation}
+              </p>
+            ) : null}
           </fieldset>
-        ))}
-      </div>
+        </article>
+      ) : null}
 
-      <div className="mt-8 flex flex-wrap items-center gap-3">
-        <button onClick={submit} className="exam-btn exam-glow-button rounded-xl px-4 py-2.5 text-sm font-semibold">
-          Submit session
-        </button>
-        {result && (
-          <span className="text-sm text-[var(--exam-muted)]">
-            Result: <strong className="text-[var(--exam-text)]">{result.score}%</strong> ({result.passed}/{result.total})
-          </span>
-        )}
+      <div
+        className={
+          isMobile
+            ? "fixed inset-x-0 bottom-0 z-20 border-t border-[var(--exam-border)] bg-[rgba(11,16,32,0.82)] px-4 py-3 backdrop-blur-xl"
+            : "mt-8"
+        }
+      >
+        <div className={`flex gap-2 ${isMobile ? "mx-auto max-w-3xl" : "flex-wrap items-center"}`}>
+          <button
+            type="button"
+            disabled={safeStep === 0}
+            onClick={() => setStep((s) => Math.max(0, s - 1))}
+            className="exam-btn rounded-xl border border-[var(--exam-border)] px-4 py-3 text-sm text-[var(--exam-muted)] disabled:opacity-30"
+          >
+            Previous
+          </button>
+          {!isLast ? (
+            <button
+              type="button"
+              onClick={() => setStep((s) => Math.min(total - 1, s + 1))}
+              className="exam-btn exam-glow-button flex-1 rounded-xl py-3 text-sm font-semibold sm:flex-none sm:min-w-[9rem]"
+            >
+              Next
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={submit}
+              disabled={(answered < total && !result) || Boolean(result)}
+              className="exam-btn exam-glow-button flex-1 rounded-xl py-3 text-sm font-semibold disabled:opacity-40 sm:flex-none sm:min-w-[11rem]"
+            >
+              {result ? `Submitted · ${result.score}%` : "Submit session"}
+            </button>
+          )}
+          {result && !isMobile ? (
+            <span className="text-sm text-[var(--exam-muted)]">
+              Result: <strong className="text-[var(--exam-text)]">{result.score}%</strong> ({result.passed}/
+              {result.total})
+            </span>
+          ) : null}
+        </div>
+        {result && isMobile ? (
+          <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-[var(--exam-muted)]">
+            Result: {result.score}% ({result.passed}/{result.total}) · use Previous/Next to review
+          </p>
+        ) : null}
       </div>
     </section>
   );
