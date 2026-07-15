@@ -1000,34 +1000,40 @@ function Roadmap({
 
   return (
     <section className="mx-auto max-w-5xl px-4 py-8 sm:px-8 sm:py-10">
-      <div className="exam-card exam-glass-card flex flex-wrap items-center justify-between gap-5 rounded-[1.75rem] p-5 sm:p-6">
-        <div className="flex min-w-0 items-center gap-4">
-          <div className="hidden size-20 shrink-0 overflow-hidden rounded-2xl border border-[var(--exam-border)] bg-[rgba(103,232,249,0.08)] sm:block">
-            <img
-              src="/illustrations/path-compass.png"
-              alt="Compass path accent"
-              className="h-full w-full object-cover"
-            />
+      <div className="exam-fade-up exam-card exam-glass-card overflow-hidden rounded-[1.75rem]">
+        <div className="relative">
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(11,16,32,0.15)_0%,rgba(11,16,32,0.55)_55%,rgba(11,16,32,0.92)_100%)]" />
+          <img
+            src="/illustrations/roadmap-path.png"
+            alt="Mountain path toward the challenge peak"
+            className="h-40 w-full object-cover sm:h-52"
+          />
+          <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-sm text-[var(--exam-muted)]">Roadmap for this Practice run</p>
+                <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--exam-text)] sm:text-3xl">
+                  The 5 phases
+                </h2>
+                <p className="mt-2 max-w-xl text-sm text-[var(--exam-muted)]">
+                  {isMobile
+                    ? `On mobile: ${theoryDone}/${theorySessions.length} theory sessions. Code waits for PC. Phases unlock in order.`
+                    : "Phases unlock in order — finish one before opening the next. An available Practice slot unlocks only after this run is complete."}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-[var(--exam-border)] bg-[rgba(11,16,32,0.72)] px-4 py-3 text-left backdrop-blur-md sm:text-right">
+                <p className="text-xs text-[var(--exam-muted)]">Weighted score</p>
+                <p
+                  className={`text-2xl font-semibold ${
+                    overall >= exam.passThreshold ? "text-[var(--exam-pass)]" : "text-[var(--exam-text)]"
+                  }`}
+                >
+                  {overall}%
+                  <span className="ml-2 text-sm font-normal text-[var(--exam-muted)]">/ {exam.passThreshold}%</span>
+                </p>
+              </div>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-[var(--exam-muted)]">Roadmap for this Practice run</p>
-            <h2 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">The 5 phases</h2>
-            <p className="mt-2 text-sm text-[var(--exam-muted)]">
-              {isMobile
-                ? `On mobile: ${theoryDone}/${theorySessions.length} theory sessions. Code waits for PC. Phases unlock in order.`
-                : "Phases unlock in order — finish one before opening the next. An available Practice slot unlocks only after this run is complete."}
-            </p>
-          </div>
-        </div>
-        <div className="text-left sm:text-right">
-          <p className="text-xs text-[var(--exam-muted)]">Weighted score</p>
-          <p
-            className={`text-2xl font-semibold ${
-              overall >= exam.passThreshold ? "text-[var(--exam-pass)]" : "text-[var(--exam-text)]"
-            }`}
-          >
-            {overall}%<span className="ml-2 text-sm font-normal text-[var(--exam-muted)]">/ {exam.passThreshold}%</span>
-          </p>
         </div>
       </div>
 
