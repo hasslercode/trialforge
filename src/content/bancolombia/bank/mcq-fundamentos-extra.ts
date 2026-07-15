@@ -1,0 +1,149 @@
+import type { McqQuestion } from "@/domain/exam";
+
+/** Ampliación del banco MCQ fundamentos */
+export const mcqFundamentosExtra: McqQuestion[] = [
+  {
+    id: "f-spread-object",
+    prompt: "`const next = { ...user, role: 'admin' }` produce:",
+    options: [
+      { id: "a", label: "Una copia superficial con role actualizado" },
+      { id: "b", label: "Mutación in-place de user" },
+      { id: "c", label: "Un Proxy obligatorio" },
+      { id: "d", label: "Error si user es nullish (siempre)" },
+    ],
+    answerId: "a",
+    explanation: "Spread de objeto clona en superficial y sobrescribe keys.",
+  },
+  {
+    id: "f-promise-race",
+    prompt: "`Promise.race` se resuelve/rechaza con:",
+    options: [
+      { id: "a", label: "El resultado de la primera promesa que se asiente" },
+      { id: "b", label: "Todas las promesas en paralelo esperando la última" },
+      { id: "c", label: "Solo valores fulfilled" },
+      { id: "d", label: "Un array siempre" },
+    ],
+    answerId: "a",
+    explanation: "Race toma el primer settled.",
+  },
+  {
+    id: "f-array-flatmap",
+    prompt: "`flatMap` es útil cuando:",
+    options: [
+      { id: "a", label: "Mapeas a arreglos y quieres aplanar un nivel" },
+      { id: "b", label: "Solo ordenas números" },
+      { id: "c", label: "Congelas el array" },
+      { id: "d", label: "Reemplazas JSON.parse" },
+    ],
+    answerId: "a",
+    explanation: "map + flat(1) en un solo paso.",
+  },
+  {
+    id: "f-typeof-null",
+    prompt: "`typeof null` en JavaScript es:",
+    options: [
+      { id: "a", label: "'object' (quirk histórico)" },
+      { id: "b", label: "'null'" },
+      { id: "c", label: "'undefined'" },
+      { id: "d", label: "'nil'" },
+    ],
+    answerId: "a",
+    explanation: "Bug legado del lenguaje: typeof null === 'object'.",
+  },
+  {
+    id: "f-structured-clone",
+    prompt: "`structuredClone(value)` frente a JSON clone:",
+    options: [
+      { id: "a", label: "Preserva más tipos (Date, Map, etc.) sin pasar por JSON" },
+      { id: "b", label: "Solo clona strings" },
+      { id: "c", label: "No existe en navegadores modernos" },
+      { id: "d", label: "Congela el resultado" },
+    ],
+    answerId: "a",
+    explanation: "API nativa de clonado profundo estructural.",
+  },
+  {
+    id: "f-weakmap",
+    prompt: "Una ventaja de WeakMap es:",
+    options: [
+      { id: "a", label: "Las keys objeto pueden ser GC si no hay otras refs" },
+      { id: "b", label: "Es iterable con for...of siempre" },
+      { id: "c", label: "Acepta solo keys string" },
+      { id: "d", label: "Persiste en localStorage" },
+    ],
+    answerId: "a",
+    explanation: "Refs débiles permiten no retener objetos innecesariamente.",
+  },
+  {
+    id: "f-event-delegation",
+    prompt: "Delegación de eventos consiste en:",
+    options: [
+      { id: "a", label: "Escuchar en un ancestro y filtrar el target" },
+      { id: "b", label: "Registrar un listener por cada celda siempre" },
+      { id: "c", label: "Usar eval en el handler" },
+      { id: "d", label: "Bloquear el bubbling siempre con alert" },
+    ],
+    answerId: "a",
+    explanation: "Un listener en el padre maneja muchos hijos.",
+  },
+  {
+    id: "f-module-import",
+    prompt: "`import()` dinámico retorna:",
+    options: [
+      { id: "a", label: "Una Promise que resuelve al módulo" },
+      { id: "b", label: "El módulo de forma síncrona siempre" },
+      { id: "c", label: "undefined" },
+      { id: "d", label: "Un Worker" },
+    ],
+    answerId: "a",
+    explanation: "Code-splitting: import() es async.",
+  },
+  {
+    id: "f-bignumber",
+    prompt: "Para montos monetarios exactos en JS conviene:",
+    options: [
+      { id: "a", label: "Evitar float binary; usar enteros (centavos) o decimal libs" },
+      { id: "b", label: "Usar siempre 0.1 + 0.2 sin cuidado" },
+      { id: "c", label: "Guardar plata como boolean" },
+      { id: "d", label: "Math.random como redondeo" },
+    ],
+    answerId: "a",
+    explanation: "IEEE-754 no es ideal para dinero.",
+  },
+  {
+    id: "f-idempotent",
+    prompt: "Una API de cobro idempotente significa:",
+    options: [
+      { id: "a", label: "Reintentar con la misma key no duplica el efecto" },
+      { id: "b", label: "Siempre cobra dos veces" },
+      { id: "c", label: "No puede usar HTTP" },
+      { id: "d", label: "Ignora autenticación" },
+    ],
+    answerId: "a",
+    explanation: "Clave en pagos y reintentos de red.",
+  },
+  {
+    id: "f-csp",
+    prompt: "Content-Security-Policy ayuda a:",
+    options: [
+      { id: "a", label: "Mitigar XSS limitando orígenes de scripts" },
+      { id: "b", label: "Acelerar CSS Grid" },
+      { id: "c", label: "Reemplazar HTTPS" },
+      { id: "d", label: "Compilar TypeScript" },
+    ],
+    answerId: "a",
+    explanation: "CSP es control de qué puede ejecutar el navegador.",
+  },
+  {
+    id: "f-aria-label",
+    prompt: "Un ícono-botón sin texto visible debería tener:",
+    options: [
+      { id: "a", label: "aria-label (o texto sr-only) descriptivo" },
+      { id: "b", label: "Solo title en el HTML siempre suficiente WCAG" },
+      { id: "c", label: "display:none en el botón" },
+      { id: "d", label: "tabindex='-1' obligatorio" },
+    ],
+    answerId: "a",
+    explanation: "Nombre accesible para AT.",
+  },
+];
