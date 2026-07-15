@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Caveat, Nunito } from "next/font/google";
+import { Kalam, Nunito } from "next/font/google";
 import "./globals.css";
 
-const studyHand = Caveat({
+const studyHand = Kalam({
   subsets: ["latin"],
   variable: "--font-study-hand",
-  weight: ["500", "600", "700"],
+  weight: ["300", "400", "700"],
 });
 
 const studyBody = Nunito({
