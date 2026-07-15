@@ -2,8 +2,128 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: dark; }
-* { box-sizing: border-box; }
-body { margin: 0; background: #09090b; color: #f4f4f5; font-family: Arial, Helvetica, sans-serif; }
-button, input, select { font: inherit; }
-::selection { background: #52525b; }
+:root {
+  color-scheme: dark;
+  --exam-bg: #10161c;
+  --exam-bg-soft: #141c23;
+  --exam-surface: #1a242c;
+  --exam-surface-hover: #21303a;
+  --exam-border: #2c3d48;
+  --exam-border-soft: #24333c;
+  --exam-text: #e7eef2;
+  --exam-muted: #8b9ba5;
+  --exam-faint: #5f717c;
+  --exam-accent: #7ea896;
+  --exam-accent-soft: rgba(126, 168, 150, 0.14);
+  --exam-warm: #c4a882;
+  --exam-pass: #7fba95;
+  --exam-warn: #c9a07a;
+  --exam-danger: #c98989;
+  --font-exam: var(--font-exam-sans), "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--exam-bg);
+  color: var(--exam-text);
+  font-family: var(--font-exam);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: #3d525c;
+}
+
+@keyframes exam-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes exam-soft-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes exam-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.exam-shell {
+  background:
+    radial-gradient(ellipse 90% 60% at 0% -10%, rgba(126, 168, 150, 0.1), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 100% 0%, rgba(104, 140, 168, 0.08), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(196, 168, 130, 0.05), transparent 55%),
+    var(--exam-bg);
+  color: var(--exam-text);
+  font-family: var(--font-exam);
+}
+
+.exam-fade-up {
+  animation: exam-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.exam-fade-up-delayed {
+  animation: exam-fade-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+
+.exam-soft-in {
+  animation: exam-soft-in 0.45s ease both;
+}
+
+.exam-card {
+  transition:
+    border-color 0.35s ease,
+    background-color 0.35s ease,
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease;
+}
+
+.exam-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.exam-btn {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease,
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.exam-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.exam-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.exam-glow-dot {
+  animation: exam-breathe 4.5s ease-in-out infinite;
+}

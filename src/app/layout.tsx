@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
-import { Kalam, Nunito } from "next/font/google";
+import { Figtree, Kalam, Nunito } from "next/font/google";
 import "./globals.css";
+
+const examSans = Figtree({
+  subsets: ["latin"],
+  variable: "--font-exam-sans",
+  weight: ["400", "500", "600", "700"],
+});
 
 const studyHand = Kalam({
   subsets: ["latin"],
@@ -22,7 +28,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${studyHand.variable} ${studyBody.variable}`}>
+    <html
+      lang="en"
+      className={`${examSans.variable} ${studyHand.variable} ${studyBody.variable}`}
+    >
       <body>{children}</body>
     </html>
   );

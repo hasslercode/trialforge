@@ -243,7 +243,7 @@ export default function App() {
 
   function resetAllAttempts() {
     const ok = window.confirm(
-      `This will delete the ${MAX_ATTEMPT_SLOTS} saved runs on this device. You will start over with new random questions and practice tasks. Continue?`,
+      `Reset all Practice slots? This stops the current timer and clears all ${MAX_ATTEMPT_SLOTS} Practice runs on this device, so you can start over and practice ${MAX_ATTEMPT_SLOTS} more times with fresh mixes. Continue?`,
     );
     if (!ok) return;
     persist(emptyAppState());
@@ -310,7 +310,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#09090b] text-zinc-100">
+    <div className={`exam-shell flex min-h-screen ${studyMode ? "" : "text-[var(--exam-text)]"}`}>
       <AttemptsPanel
         collapsed={sidebarCollapsed}
         sessionMode={sessionMode}
@@ -327,12 +327,12 @@ export default function App() {
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center justify-between border-b border-zinc-800/80 bg-[#09090b]/95 px-4 backdrop-blur sm:px-6">
+        <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center justify-between border-b border-[var(--exam-border-soft)] bg-[var(--exam-bg)] px-4 backdrop-blur-md sm:px-6">
           <div className="flex items-center gap-2">
             {sessionMode && (
               <button
                 onClick={() => setSidebarPinnedOpen((v) => !v)}
-                className="rounded-md border border-zinc-800 p-1.5 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
+                className="exam-btn rounded-md border border-[var(--exam-border)] p-1.5 text-[var(--exam-muted)] hover:bg-[var(--exam-surface)] hover:text-[var(--exam-text)]"
                 title={sidebarCollapsed ? "View runs" : "Hide runs"}
                 aria-label={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
               >
@@ -343,11 +343,11 @@ export default function App() {
               onClick={() => setScreen("home")}
               className="flex items-center gap-2 font-semibold tracking-tight"
             >
-              <span className="grid size-7 place-items-center rounded-md bg-zinc-100 text-zinc-900">
+              <span className="grid size-7 place-items-center rounded-md bg-[var(--exam-accent-soft)] text-[var(--exam-accent)]">
                 <Code2 size={16} />
               </span>
               trial
-              <span className="text-zinc-500">.forge</span>
+              <span className="text-[var(--exam-muted)]">.forge</span>
             </button>
           </div>
 
@@ -355,17 +355,19 @@ export default function App() {
             {progress.startedAt && (
               <span
                 className={`flex items-center gap-1.5 font-mono text-xs tabular-nums sm:gap-2 sm:text-sm ${
-                  progress.remainingSeconds < 600 ? "text-red-400" : "text-zinc-300"
+                  progress.remainingSeconds < 600
+                    ? "text-[var(--exam-danger)]"
+                    : "text-[var(--exam-muted)]"
                 }`}
               >
-                <Clock3 size={14} className="shrink-0" />
+                <Clock3 size={14} className="exam-glow-dot shrink-0" />
                 {formatTime(progress.remainingSeconds)}
               </span>
             )}
             <button
               onClick={() => setScreen("study")}
               className={`hidden items-center gap-1.5 sm:inline-flex ${
-                studyMode ? "text-white" : "text-zinc-400 hover:text-white"
+                studyMode ? "text-white" : "text-[var(--exam-muted)] hover:text-[var(--exam-text)]"
               }`}
             >
               <BookOpen size={14} />
@@ -373,13 +375,13 @@ export default function App() {
             </button>
             <button
               onClick={() => setScreen("roadmap")}
-              className="hidden text-zinc-400 hover:text-white sm:inline"
+              className="hidden text-[var(--exam-muted)] hover:text-[var(--exam-text)] sm:inline"
             >
               Phases
             </button>
             <button
               onClick={() => setScreen("results")}
-              className="hidden text-zinc-400 hover:text-white sm:inline"
+              className="hidden text-[var(--exam-muted)] hover:text-[var(--exam-text)] sm:inline"
             >
               Results
             </button>
@@ -387,7 +389,7 @@ export default function App() {
         </header>
 
         {!sessionMode && !studyMode && (
-          <div className="border-b border-zinc-800 p-3 lg:hidden">
+          <div className="exam-soft-in border-b border-[var(--exam-border-soft)] px-3 py-3 lg:hidden">
             <AttemptsStrip
               slots={app.slots}
               activeSlot={app.activeSlot}
@@ -492,32 +494,36 @@ function AttemptsPanel({
 
       <aside
         className={[
-          "z-40 flex h-screen shrink-0 flex-col border-r border-zinc-800 bg-[#0c0c0e]",
+          "z-40 flex h-screen shrink-0 flex-col border-r border-[var(--exam-border-soft)] bg-[var(--exam-bg-soft)]",
           "transition-[width,transform] duration-300 ease-out",
           // Desktop: real sidebar in the flow. Session -> width 0 (collapsed/hidden).
           "hidden lg:flex",
-          open ? "lg:w-60" : "lg:w-0 lg:border-transparent lg:overflow-hidden",
+          open ? "lg:w-64" : "lg:w-0 lg:border-transparent lg:overflow-hidden",
           // Mobile (only when reopened in a session): drawer overlay.
-          sessionMode && open ? "max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:flex max-lg:w-60" : "",
+          sessionMode && open ? "max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:flex max-lg:w-64" : "",
         ].join(" ")}
         aria-hidden={!open}
       >
         <div
           className={[
-            "flex h-full w-60 flex-col",
+            "flex h-full w-64 flex-col",
             open ? "opacity-100" : "pointer-events-none opacity-0",
             "transition-opacity duration-200",
           ].join(" ")}
         >
-          <div className="flex h-14 shrink-0 items-center justify-between border-b border-zinc-800 px-4">
+          <div className="flex h-16 shrink-0 items-center justify-between border-b border-[var(--exam-border-soft)] px-4">
             <div>
-              <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">Runs</p>
-              <p className="text-sm font-semibold text-zinc-200">Last {MAX_ATTEMPT_SLOTS}</p>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--exam-muted)]">
+                Practice runs
+              </p>
+              <p className="text-sm font-semibold text-[var(--exam-text)]">
+                {MAX_ATTEMPT_SLOTS} full attempts
+              </p>
             </div>
             {sessionMode && (
               <button
                 onClick={onCollapse}
-                className="rounded-md p-1.5 text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200"
+                className="exam-btn rounded-md p-1.5 text-[var(--exam-muted)] hover:bg-[var(--exam-surface)] hover:text-[var(--exam-text)]"
                 aria-label="Collapse sidebar"
               >
                 <PanelLeftClose size={16} />
@@ -526,10 +532,14 @@ function AttemptsPanel({
           </div>
 
           <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto p-3">
-            <p className="px-1 text-[11px] leading-4 text-zinc-600">
+            <p className="px-1 text-[11px] leading-4 text-[var(--exam-faint)]">
               {freeSlots > 0
-                ? `${freeSlots} free slot${freeSlots === 1 ? "" : "s"}`
-                : "No free slots"}
+                ? `${freeSlots} Practice slot${freeSlots === 1 ? "" : "s"} available`
+                : "All Practice slots are full"}
+            </p>
+            <p className="px-1 text-[11px] leading-5 text-[var(--exam-muted)]">
+              Each Practice # is one complete challenge. Up to {MAX_ATTEMPT_SLOTS} runs cover the
+              full question bank (new mix each time). Then Reset all and practice again.
             </p>
             {slots.map((attempt, index) => (
               <AttemptCard
@@ -543,18 +553,18 @@ function AttemptsPanel({
             ))}
           </div>
 
-          <div className="shrink-0 border-t border-zinc-800 p-3">
+          <div className="shrink-0 border-t border-[var(--exam-border-soft)] p-3">
             <button
               type="button"
               onClick={onResetAll}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-800 px-3 py-2 text-[11px] text-zinc-500 transition hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-300"
+              className="exam-btn flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--exam-border)] px-3 py-2 text-[11px] text-[var(--exam-muted)] hover:border-[var(--exam-accent)] hover:bg-[var(--exam-accent-soft)] hover:text-[var(--exam-text)]"
             >
               <RotateCcw size={12} />
-              Reset all · clear slots
+              Reset all · start over
             </button>
             {freeSlots === 0 && (
-              <p className="mt-2 px-1 text-center text-[10px] leading-4 text-zinc-600">
-                Slots full · reset for another bank wave
+              <p className="mt-2 px-1 text-center text-[10px] leading-4 text-[var(--exam-faint)]">
+                Reset when you are ready for {MAX_ATTEMPT_SLOTS} more Practice runs.
               </p>
             )}
           </div>
@@ -579,17 +589,25 @@ function AttemptsStrip({
 }) {
   const hasAnyRun = slots.some(Boolean);
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">Tests</p>
+    <div className="exam-card space-y-3 rounded-2xl border border-[var(--exam-border-soft)] bg-[var(--exam-bg-soft)] p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--exam-muted)]">
+            Practice runs
+          </p>
+          <p className="mt-1 text-[11px] leading-5 text-[var(--exam-faint)]">
+            Each Practice # = 1 full challenge. Up to {MAX_ATTEMPT_SLOTS} cover the whole question
+            bank. Reset all when done and start again.
+          </p>
+        </div>
         {hasAnyRun && (
           <button
             type="button"
             onClick={onResetAll}
-            className="inline-flex items-center gap-1.5 rounded-md border border-zinc-700 bg-zinc-900 px-2.5 py-1 text-[11px] font-medium text-zinc-300"
+            className="exam-btn inline-flex shrink-0 items-center gap-1.5 rounded-md border border-[var(--exam-border)] bg-[var(--exam-surface)] px-2.5 py-1 text-[11px] font-medium text-[var(--exam-muted)] hover:border-[var(--exam-accent)] hover:bg-[var(--exam-accent-soft)] hover:text-[var(--exam-text)]"
           >
             <RotateCcw size={11} />
-            Reset all
+            Reset all · start over
           </button>
         )}
       </div>
@@ -625,21 +643,26 @@ function AttemptCard({
   onSelect: (index: number) => void;
   compact?: boolean;
 }) {
-  const testLabel = `Test #${index + 1}`;
+  const practiceLabel = `Practice #${index + 1}`;
 
   if (!attempt) {
     return (
       <button
         onClick={() => onSelect(index)}
-        className={`group flex flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-zinc-700/80 text-center transition hover:border-zinc-500 hover:bg-zinc-900/40 ${
+        className={`exam-card group flex flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-[var(--exam-border)] bg-[var(--exam-surface)] text-center hover:border-[var(--exam-accent)] hover:bg-[var(--exam-accent-soft)] ${
           compact ? "min-h-[72px] min-w-[96px] px-2 py-2" : "min-h-[88px] px-3 py-4"
         }`}
       >
-        <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-600 group-hover:text-zinc-400">
-          {testLabel}
+        <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--exam-faint)] group-hover:text-[var(--exam-muted)]">
+          {practiceLabel}
         </span>
-        <Plus size={compact ? 14 : 16} className="text-zinc-600 group-hover:text-zinc-300" />
-        <span className="text-xs font-medium text-zinc-500 group-hover:text-zinc-300">Free</span>
+        <Plus
+          size={compact ? 14 : 16}
+          className="text-[var(--exam-faint)] group-hover:text-[var(--exam-accent)]"
+        />
+        <span className="text-xs font-medium text-[var(--exam-muted)] group-hover:text-[var(--exam-text)]">
+          Available
+        </span>
       </button>
     );
   }
@@ -647,33 +670,43 @@ function AttemptCard({
   const done = attempt.results.length >= 5;
   const passed = done && attempt.overallScore >= passThreshold;
   const label = done ? (passed ? "Passed" : "Below threshold") : "In progress";
+  const statusClass = done
+    ? passed
+      ? "text-[var(--exam-pass)]"
+      : "text-[var(--exam-danger)]"
+    : "text-[var(--exam-muted)]";
+  const scoreClass = done
+    ? passed
+      ? "text-[var(--exam-pass)]"
+      : "text-[var(--exam-danger)]"
+    : "text-[var(--exam-muted)]";
 
   return (
     <button
       onClick={() => onSelect(index)}
-      className={`rounded-xl border text-left transition ${
+      className={`exam-card rounded-xl border text-left ${
         compact ? "min-h-[72px] min-w-[118px] px-2.5 py-2" : "min-h-[88px] px-3 py-3"
-      } ${active ? "border-zinc-400 bg-zinc-900" : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-600"}`}
+      } ${
+        active
+          ? "border-[var(--exam-accent)] bg-[var(--exam-accent-soft)]"
+          : "border-[var(--exam-border-soft)] bg-[var(--exam-surface)] hover:border-[var(--exam-border)] hover:bg-[var(--exam-surface-hover)]"
+      }`}
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">{testLabel}</span>
-        <span
-          className={`shrink-0 text-[10px] ${
-            done ? (passed ? "text-emerald-400" : "text-red-400") : "text-zinc-500"
-          }`}
-        >
+        <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--exam-muted)]">
+          {practiceLabel}
+        </span>
+        <span className={`shrink-0 text-[10px] ${statusClass}`}>
           {label}
         </span>
       </div>
       <p
-        className={`mt-1.5 font-semibold tracking-tight ${compact ? "text-xl" : "text-2xl"} ${
-          done && passed ? "text-emerald-400" : "text-zinc-100"
-        }`}
+        className={`mt-1.5 font-semibold tracking-tight ${compact ? "text-xl" : "text-2xl"} ${scoreClass}`}
       >
         {attempt.overallScore}%
       </p>
       {!compact && (
-        <p className="mt-1 text-[11px] text-zinc-500">
+        <p className="mt-1 text-[11px] text-[var(--exam-faint)]">
           {attempt.results.length}/5 phases · {formatShortDate(attempt.startedAt)}
         </p>
       )}
@@ -703,11 +736,11 @@ function Home({
   return (
     <section className="px-4 pb-24 pt-10 sm:px-10 sm:pt-24">
       {isMobile && (
-        <div className="mb-6 flex gap-3 rounded-xl border border-sky-900/60 bg-sky-950/30 p-4">
-          <Smartphone size={18} className="mt-0.5 shrink-0 text-sky-400" />
+        <div className="exam-soft-in mb-6 flex gap-3 rounded-xl border border-[var(--exam-border)] bg-[var(--exam-accent-soft)] p-4">
+          <Smartphone size={18} className="mt-0.5 shrink-0 text-[var(--exam-accent)]" />
           <div>
-            <p className="text-sm font-medium text-sky-200">Mobile mode · theory only</p>
-            <p className="mt-1 text-xs leading-5 text-sky-200/70">
+            <p className="text-sm font-medium text-[var(--exam-text)]">Mobile mode · theory only</p>
+            <p className="mt-1 text-xs leading-5 text-[var(--exam-muted)]">
               On a phone, you can complete the multiple-choice sessions. Code practice
               (JS, SQL, CSS, Angular) unlocks on desktop or a wide tablet.
             </p>
@@ -715,22 +748,28 @@ function Home({
         </div>
       )}
 
-      <p className="text-sm text-zinc-500">TrialForge · Technical assessments · Client: Bancolombia</p>
-      <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-[-0.04em] sm:text-6xl">
-        {examMeta.title}
-      </h1>
-      <p className="mt-5 max-w-2xl text-sm leading-7 text-zinc-400 sm:mt-6 sm:text-base">
-        Up to <strong className="text-zinc-200">{MAX_ATTEMPT_SLOTS} runs</strong> in history —
-        enough to cover the full bank (MCQ + practice) without repeats until it is exhausted.
-        Ideal for theory on mobile and code on PC.
-      </p>
+      <div className="exam-fade-up">
+        <p className="text-sm text-[var(--exam-muted)]">
+          TrialForge · Technical assessments · Client: Bancolombia
+        </p>
+        <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-[-0.04em] sm:text-6xl">
+          {examMeta.title}
+        </h1>
+        <p className="mt-5 max-w-2xl text-sm leading-7 text-[var(--exam-muted)] sm:mt-6 sm:text-base">
+          <strong className="text-[var(--exam-text)]">Practice #1</strong> through{" "}
+          <strong className="text-[var(--exam-text)]">Practice #{MAX_ATTEMPT_SLOTS}</strong> are
+          separate full runs of the challenge. Each run picks a fresh mix so that across{" "}
+          {MAX_ATTEMPT_SLOTS} practices you cover the entire question bank. When you have used them
+          all, hit Reset all and practice again.
+        </p>
+      </div>
 
       <button
         type="button"
         onClick={onStudy}
-        className="mt-6 flex w-full items-center gap-3 rounded-xl border border-amber-900/50 bg-gradient-to-r from-amber-950/40 to-rose-950/30 p-4 text-left transition hover:border-amber-700/60 sm:max-w-md"
+        className="exam-card exam-fade-up-delayed mt-6 flex w-full items-center gap-3 rounded-xl border border-amber-900/40 bg-gradient-to-r from-amber-950/25 to-[rgba(196,168,130,0.08)] p-4 text-left hover:border-amber-700/50 sm:max-w-md"
       >
-        <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-amber-100 text-amber-950">
+        <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[rgba(196,168,130,0.22)] text-amber-100">
           <BookOpen size={18} />
         </span>
         <span>
@@ -741,20 +780,23 @@ function Home({
         </span>
       </button>
 
-      <div className="mt-8 grid grid-cols-3 gap-2 sm:mt-10 sm:gap-3">
+      <div className="exam-fade-up-delayed mt-8 grid grid-cols-3 gap-2 sm:mt-10 sm:gap-3">
         {[
           ["180 min", "Time"],
           ["70%", "Pass"],
-          [`${freeSlots}/${MAX_ATTEMPT_SLOTS}`, "Free"],
+          [`${freeSlots}/${MAX_ATTEMPT_SLOTS}`, "Available"],
         ].map(([value, label]) => (
-          <div key={label} className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 sm:p-5">
+          <div
+            key={label}
+            className="exam-card rounded-xl border border-[var(--exam-border-soft)] bg-[var(--exam-surface)] p-3 sm:p-5"
+          >
             <strong className="block text-xl tracking-tight sm:text-2xl">{value}</strong>
-            <span className="mt-1 block text-[11px] text-zinc-500 sm:text-xs">{label}</span>
+            <span className="mt-1 block text-[11px] text-[var(--exam-muted)] sm:text-xs">{label}</span>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 hidden gap-3 sm:grid sm:grid-cols-3 lg:grid-cols-6">
+      <div className="exam-fade-up-delayed mt-6 hidden gap-3 sm:grid sm:grid-cols-3 lg:grid-cols-6">
         {[
           [`${bankStats.mcqFundamentos}`, "MCQ fundamentals"],
           [`${bankStats.mcqWeb}`, "Web+SQL MCQ"],
@@ -763,18 +805,21 @@ function Home({
           [`${bankStats.css}`, "CSS variants"],
           [`${bankStats.angular}`, "Angular variants"],
         ].map(([value, label]) => (
-          <div key={label} className="rounded-lg border border-zinc-800/80 px-3 py-3 text-center">
+          <div
+            key={label}
+            className="exam-card rounded-lg border border-[var(--exam-border-soft)] bg-[var(--exam-bg-soft)] px-3 py-3 text-center"
+          >
             <strong className="block text-lg">{value}</strong>
-            <span className="mt-1 block text-[11px] leading-4 text-zinc-500">{label}</span>
+            <span className="mt-1 block text-[11px] leading-4 text-[var(--exam-muted)]">{label}</span>
           </div>
         ))}
       </div>
 
       {!isMobile && (
-        <ul className="mt-10 space-y-3 border-t border-zinc-800 pt-8">
+        <ul className="mt-10 space-y-3 border-t border-[var(--exam-border-soft)] pt-8">
           {examMeta.rules.map((rule) => (
-            <li key={rule} className="flex gap-3 text-sm leading-6 text-zinc-400">
-              <CheckCircle2 size={16} className="mt-1 shrink-0 text-zinc-600" />
+            <li key={rule} className="flex gap-3 text-sm leading-6 text-[var(--exam-muted)]">
+              <CheckCircle2 size={16} className="mt-1 shrink-0 text-[var(--exam-faint)]" />
               {rule}
             </li>
           ))}
@@ -785,15 +830,15 @@ function Home({
         <button
           onClick={onStart}
           disabled={freeSlots === 0}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-100 px-5 py-3.5 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+          className="exam-btn flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--exam-accent)] px-5 py-3.5 text-sm font-medium text-[var(--exam-bg)] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
         >
           <Play size={16} fill="currentColor" />
-          {freeSlots === 0 ? "No free slots" : isMobile ? "New run (theory)" : "New run"}
+          {freeSlots === 0 ? "No Practice slots" : isMobile ? "New Practice (theory)" : "New Practice"}
         </button>
         {hasProgress && (
           <button
             onClick={onResume}
-            className="w-full rounded-lg border border-zinc-700 px-5 py-3.5 text-sm font-medium sm:w-auto"
+            className="exam-btn w-full rounded-lg border border-[var(--exam-border)] px-5 py-3.5 text-sm font-medium text-[var(--exam-text)] hover:bg-[var(--exam-surface)] sm:w-auto"
           >
             Continue ({overall}%)
           </button>
@@ -801,15 +846,15 @@ function Home({
         {freeSlots < MAX_ATTEMPT_SLOTS && (
           <button
             onClick={onResetAll}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-amber-800/60 bg-amber-950/20 px-5 py-3.5 text-sm font-medium text-amber-100 sm:w-auto"
+            className="exam-btn flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--exam-border)] bg-[var(--exam-surface)] px-5 py-3.5 text-sm font-medium text-[var(--exam-muted)] hover:border-[var(--exam-warm)] hover:bg-[rgba(196,168,130,0.1)] hover:text-[var(--exam-text)] sm:w-auto"
           >
             <RotateCcw size={16} />
-            Reset all · clear slots
+            Reset all · start over
           </button>
         )}
         <button
           onClick={onStudy}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-700 px-5 py-3.5 text-sm font-medium sm:hidden"
+          className="exam-btn flex w-full items-center justify-center gap-2 rounded-lg border border-amber-900/50 px-5 py-3.5 text-sm font-medium text-amber-100 sm:hidden"
         >
           <BookOpen size={16} />
           Modo estudio
@@ -848,10 +893,10 @@ function Roadmap({
 
   if (!progress.selection) {
     return (
-      <section className="px-4 py-16 text-sm text-zinc-500 sm:px-10">
+      <section className="px-4 py-16 text-sm text-[var(--exam-muted)] sm:px-10">
         {isMobile
-          ? "Choose a free slot above to start a run."
-          : "Select a free slot in the side panel to start a run."}
+          ? "Choose an available Practice slot above to start a run."
+          : "Select an available Practice slot in the side panel to start a run."}
       </section>
     );
   }
@@ -860,23 +905,25 @@ function Roadmap({
     <section className="mx-auto max-w-4xl px-4 py-8 sm:px-8 sm:py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm text-zinc-500">Roadmap for this run</p>
+          <p className="text-sm text-[var(--exam-muted)]">Roadmap for this Practice run</p>
           <h2 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">The 5 phases</h2>
-          <p className="mt-2 text-sm text-zinc-500">
+          <p className="mt-2 text-sm text-[var(--exam-muted)]">
             {isMobile
               ? `On mobile: ${theoryDone}/${theorySessions.length} theory sessions. Code waits for PC.`
-              : "Content is locked when this slot starts. A free slot = another bank mix."}
+              : "Content is locked when this Practice starts. An available slot = another fresh mix."}
           </p>
         </div>
         <div className="text-left sm:text-right">
-          <p className="text-xs text-zinc-500">Weighted score</p>
+          <p className="text-xs text-[var(--exam-muted)]">Weighted score</p>
           <p
             className={`text-2xl font-semibold ${
-              overall >= exam.passThreshold ? "text-emerald-400" : "text-zinc-100"
+              overall >= exam.passThreshold ? "text-[var(--exam-pass)]" : "text-[var(--exam-text)]"
             }`}
           >
             {overall}%
-            <span className="ml-2 text-sm font-normal text-zinc-500">/ {exam.passThreshold}%</span>
+            <span className="ml-2 text-sm font-normal text-[var(--exam-muted)]">
+              / {exam.passThreshold}%
+            </span>
           </p>
         </div>
       </div>
@@ -892,55 +939,65 @@ function Roadmap({
             <li key={session.id}>
               <button
                 onClick={() => onOpen(session.id)}
-                className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition sm:gap-4 sm:p-5 ${
+                className={`exam-card flex w-full items-start gap-3 rounded-xl border p-4 text-left sm:gap-4 sm:p-5 ${
                   lockedOnMobile
-                    ? "border-zinc-800/80 bg-zinc-950/40 opacity-90"
-                    : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-600 hover:bg-zinc-900"
+                    ? "border-[var(--exam-border-soft)] bg-[var(--exam-bg-soft)] opacity-90"
+                    : "border-[var(--exam-border-soft)] bg-[var(--exam-surface)] hover:border-[var(--exam-border)] hover:bg-[var(--exam-surface-hover)]"
                 }`}
               >
-                <span className="mt-0.5 text-zinc-500">
+                <span className="mt-0.5 text-[var(--exam-muted)]">
                   {done ? (
-                    <CheckCircle2 size={20} className="text-emerald-400" />
+                    <CheckCircle2 size={20} className="text-[var(--exam-pass)]" />
                   ) : lockedOnMobile ? (
-                    <Monitor size={20} className="text-zinc-600" />
+                    <Monitor size={20} className="text-[var(--exam-faint)]" />
                   ) : (
                     <Circle size={20} />
                   )}
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs uppercase tracking-wider text-zinc-500">{session.phase}</span>
-                    <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-400">{session.weight}%</span>
+                    <span className="text-xs uppercase tracking-wider text-[var(--exam-muted)]">
+                      {session.phase}
+                    </span>
+                    <span className="rounded bg-[var(--exam-bg-soft)] px-2 py-0.5 text-xs text-[var(--exam-muted)]">
+                      {session.weight}%
+                    </span>
                     {mobileOk ? (
-                      <span className="flex items-center gap-1 rounded bg-sky-950/50 px-2 py-0.5 text-xs text-sky-300 md:hidden">
+                      <span className="flex items-center gap-1 rounded bg-[var(--exam-accent-soft)] px-2 py-0.5 text-xs text-[var(--exam-accent)] md:hidden">
                         <Smartphone size={11} /> mobile
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1 rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500 md:hidden">
+                      <span className="flex items-center gap-1 rounded bg-[var(--exam-bg-soft)] px-2 py-0.5 text-xs text-[var(--exam-faint)] md:hidden">
                         <Monitor size={11} /> PC
                       </span>
                     )}
                     {session.kind !== "mcq" && (
-                      <span className="hidden items-center gap-1 rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-400 sm:flex">
+                      <span className="hidden items-center gap-1 rounded bg-[var(--exam-bg-soft)] px-2 py-0.5 text-xs text-[var(--exam-muted)] sm:flex">
                         <Lock size={11} /> locked tests
                       </span>
                     )}
                   </div>
                   <h3 className="mt-2 text-sm font-medium sm:text-base">{session.title}</h3>
-                  <p className="mt-1 text-xs text-zinc-500 sm:text-sm">{session.subtitle}</p>
+                  <p className="mt-1 text-xs text-[var(--exam-muted)] sm:text-sm">{session.subtitle}</p>
                   {lockedOnMobile && (
-                    <p className="mt-2 text-xs text-zinc-600">Available on desktop / wide tablet.</p>
+                    <p className="mt-2 text-xs text-[var(--exam-faint)]">
+                      Available on desktop / wide tablet.
+                    </p>
                   )}
                 </div>
                 <div className="shrink-0 text-right">
                   {result ? (
-                    <strong className={result.score >= 70 ? "text-emerald-400" : "text-zinc-300"}>
+                    <strong
+                      className={
+                        result.score >= 70 ? "text-[var(--exam-pass)]" : "text-[var(--exam-danger)]"
+                      }
+                    >
                       {result.score}%
                     </strong>
                   ) : lockedOnMobile ? (
-                    <Lock size={14} className="ml-auto text-zinc-600" />
+                    <Lock size={14} className="ml-auto text-[var(--exam-faint)]" />
                   ) : (
-                    <span className="text-sm text-zinc-600">Open →</span>
+                    <span className="text-sm text-[var(--exam-faint)]">Open →</span>
                   )}
                 </div>
               </button>
@@ -950,7 +1007,7 @@ function Roadmap({
       </ol>
 
       <RunNextSteps
-        className="mt-10 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5"
+        className="exam-card mt-10 rounded-xl border border-[var(--exam-border-soft)] bg-[var(--exam-surface)] p-5"
         allPhasesDone={progress.results.length === exam.sessions.length}
         freeSlots={freeSlots}
         onNewRun={onNewRun}
@@ -958,7 +1015,10 @@ function Roadmap({
         onRestartSlot={onRestartSlot}
       />
 
-      <button onClick={onResults} className="mt-8 text-sm text-zinc-400 underline underline-offset-4">
+      <button
+        onClick={onResults}
+        className="mt-8 text-sm text-[var(--exam-muted)] underline underline-offset-4 hover:text-[var(--exam-text)]"
+      >
         View final results
       </button>
     </section>
@@ -1423,7 +1483,7 @@ function Results({
 
   return (
     <section className="mx-auto max-w-3xl px-4 py-8 sm:px-8 sm:py-10">
-      <p className="text-sm text-zinc-500">Exam results</p>
+      <p className="text-sm text-[var(--exam-muted)]">Exam results</p>
       <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
         {!progress.startedAt
           ? "No active run"
@@ -1436,22 +1496,22 @@ function Results({
                 : "Below threshold"}
       </h1>
       {isMobile && (
-        <p className="mt-3 text-sm text-zinc-500">
+        <p className="mt-3 text-sm text-[var(--exam-muted)]">
           Theory on this device: {theoryDone}/{theory.length}. Complete code on PC for the full
           final score.
         </p>
       )}
 
-      <div className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
-        <p className="text-xs text-zinc-500">Weighted score</p>
+      <div className="exam-card mt-8 rounded-xl border border-[var(--exam-border-soft)] bg-[var(--exam-surface)] p-6">
+        <p className="text-xs text-[var(--exam-muted)]">Weighted score</p>
         <p
           className={`mt-2 text-4xl font-semibold tracking-tight sm:text-5xl ${
-            overall >= exam.passThreshold ? "text-emerald-400" : ""
+            overall >= exam.passThreshold ? "text-[var(--exam-pass)]" : ""
           }`}
         >
           {overall}%
         </p>
-        <p className="mt-2 text-sm text-zinc-500">
+        <p className="mt-2 text-sm text-[var(--exam-muted)]">
           Threshold: {exam.passThreshold}% · Phases: {progress.results.length}/{exam.sessions.length}
         </p>
       </div>
@@ -1462,9 +1522,9 @@ function Results({
           return (
             <li
               key={session.id}
-              className="flex items-center justify-between gap-3 rounded-lg border border-zinc-800 px-4 py-3 text-sm"
+              className="exam-card flex items-center justify-between gap-3 rounded-lg border border-[var(--exam-border-soft)] bg-[var(--exam-bg-soft)] px-4 py-3 text-sm"
             >
-              <span className="min-w-0 text-zinc-300">
+              <span className="min-w-0 text-[var(--exam-text)]">
                 {session.order}. {session.kind === "mcq" ? session.title : session.subtitle}
               </span>
               <strong className="shrink-0">{result ? `${result.score}%` : "—"}</strong>
@@ -1474,7 +1534,7 @@ function Results({
       </ul>
 
       <RunNextSteps
-        className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5"
+        className="exam-card mt-8 rounded-xl border border-[var(--exam-border-soft)] bg-[var(--exam-surface)] p-5"
         allPhasesDone={progress.results.length === exam.sessions.length}
         freeSlots={freeSlots}
         onNewRun={onNewRun}
@@ -1482,7 +1542,10 @@ function Results({
         onRestartSlot={onRestartSlot}
       />
 
-      <button onClick={onRoadmap} className="mt-8 rounded-lg border border-zinc-700 px-4 py-2 text-sm">
+      <button
+        onClick={onRoadmap}
+        className="exam-btn mt-8 rounded-lg border border-[var(--exam-border)] px-4 py-2 text-sm text-[var(--exam-muted)] hover:bg-[var(--exam-surface)] hover:text-[var(--exam-text)]"
+      >
         Back to phases
       </button>
     </section>
@@ -1508,23 +1571,25 @@ function RunNextSteps({
 
   return (
     <div className={className}>
-      <p className="text-sm font-medium text-zinc-200">You completed the 5 phases of this run</p>
-      <p className="mt-1 text-sm text-zinc-500">
+      <p className="text-sm font-medium text-[var(--exam-text)]">
+        You completed the 5 phases of this Practice run
+      </p>
+      <p className="mt-1 text-sm text-[var(--exam-muted)]">
         {freeSlots > 0
-          ? "You can start another run with different random questions and practice tasks."
-          : `Your ${MAX_ATTEMPT_SLOTS} slots are full. Reset history or replace this slot.`}
+          ? "You can start another Practice with a different mix of questions and practice tasks."
+          : `Your ${MAX_ATTEMPT_SLOTS} Practice slots are full. Reset all or replace this slot.`}
       </p>
       <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
         {freeSlots > 0 ? (
           <button
             type="button"
             onClick={onNewRun}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-100 px-4 py-2.5 text-sm font-medium text-zinc-950"
+            className="exam-btn inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--exam-accent)] px-4 py-2.5 text-sm font-medium text-[var(--exam-bg)]"
           >
             <Plus size={16} />
-            New random run
-            <span className="text-zinc-600">
-              ({freeSlots} free slot{freeSlots === 1 ? "" : "s"})
+            New Practice
+            <span className="text-[rgba(16,22,28,0.72)]">
+              ({freeSlots} available slot{freeSlots === 1 ? "" : "s"})
             </span>
           </button>
         ) : (
@@ -1533,19 +1598,19 @@ function RunNextSteps({
               <button
                 type="button"
                 onClick={onRestartSlot}
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-600 px-4 py-2.5 text-sm font-medium"
+                className="exam-btn inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--exam-border)] px-4 py-2.5 text-sm font-medium text-[var(--exam-muted)] hover:bg-[var(--exam-surface)] hover:text-[var(--exam-text)]"
               >
                 <RotateCcw size={16} />
-                This slot · new mix
+                This Practice · new mix
               </button>
             )}
             <button
               type="button"
               onClick={onResetAll}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-amber-800/60 bg-amber-950/30 px-4 py-2.5 text-sm font-medium text-amber-100"
+              className="exam-btn inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--exam-border)] bg-[var(--exam-surface)] px-4 py-2.5 text-sm font-medium text-[var(--exam-muted)] hover:border-[var(--exam-warm)] hover:bg-[rgba(196,168,130,0.1)] hover:text-[var(--exam-text)]"
             >
               <RotateCcw size={16} />
-              Reset all · clear slots
+              Reset all · start over
             </button>
           </>
         )}
