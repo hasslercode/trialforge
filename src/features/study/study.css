@@ -1,14 +1,29 @@
-/* Pizarra tipo Excalidraw — scoped al módulo de estudio */
+/* Cosmic calm study board — aligned with exam relaxing aesthetic */
 
 .study-board {
+  --study-bg: #0b1020;
+  --study-bg-soft: #11182b;
+  --study-surface: rgba(23, 31, 54, 0.72);
+  --study-surface-strong: rgba(17, 24, 43, 0.88);
+  --study-border: rgba(167, 139, 250, 0.2);
+  --study-border-soft: rgba(148, 163, 184, 0.14);
+  --study-text: #eef2ff;
+  --study-muted: #9aa6c3;
+  --study-faint: #64718f;
+  --study-accent: #8b7cf6;
+  --study-cyan: #67e8f9;
+  --study-magenta: #e879f9;
+  --study-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
   position: relative;
   isolation: isolate;
   background:
-    radial-gradient(ellipse 80% 50% at 10% 0%, #fff7ed 0%, transparent 55%),
-    radial-gradient(ellipse 70% 40% at 90% 10%, #e0f2fe 0%, transparent 50%),
-    radial-gradient(ellipse 60% 50% at 50% 100%, #fce7f3 0%, transparent 55%),
-    #f5f0e6;
-  color: #1c1917;
+    radial-gradient(ellipse 90% 55% at 8% -8%, rgba(139, 124, 246, 0.18), transparent 55%),
+    radial-gradient(ellipse 70% 45% at 100% 0%, rgba(103, 232, 249, 0.1), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(232, 121, 249, 0.08), transparent 55%),
+    var(--study-bg);
+  color: var(--study-text);
+  font-family: var(--font-exam-sans), var(--font-study-body), system-ui, sans-serif;
 }
 
 .study-board::before {
@@ -17,19 +32,21 @@
   inset: 0;
   z-index: 0;
   opacity: 0.35;
-  background-image:
-    linear-gradient(#c4b5a0 1px, transparent 1px),
-    linear-gradient(90deg, #c4b5a0 1px, transparent 1px);
-  background-size: 28px 28px;
-  mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, black 20%, transparent 75%);
   pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, rgba(255, 255, 255, 0.35), transparent),
+    radial-gradient(1px 1px at 30% 70%, rgba(167, 139, 250, 0.4), transparent),
+    radial-gradient(1px 1px at 70% 30%, rgba(103, 232, 249, 0.35), transparent),
+    radial-gradient(1px 1px at 85% 80%, rgba(255, 255, 255, 0.25), transparent),
+    radial-gradient(1px 1px at 50% 50%, rgba(232, 121, 249, 0.28), transparent);
+  background-size: 140px 140px;
 }
 
 .study-noise {
   position: absolute;
   inset: 0;
   z-index: 0;
-  opacity: 0.04;
+  opacity: 0.05;
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
@@ -40,112 +57,135 @@
 }
 
 .study-hand {
-  font-family: var(--font-study-hand), "Kalam", "Segoe Print", cursive;
+  font-family: var(--font-exam-sans), var(--font-study-body), system-ui, sans-serif;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+}
+
+.study-glass {
+  border: 1px solid var(--study-border);
+  background:
+    linear-gradient(145deg, rgba(23, 31, 54, 0.86), rgba(17, 24, 43, 0.64)),
+    radial-gradient(circle at 12% 0%, rgba(139, 124, 246, 0.16), transparent 36%);
+  box-shadow:
+    0 22px 70px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
 }
 
 .study-rough {
-  border: 2px solid #1c1917;
-  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
-  box-shadow: 4px 4px 0 rgba(28, 25, 23, 0.12);
+  border: 1px solid var(--study-border);
+  border-radius: 1.35rem;
+  box-shadow:
+    0 18px 50px rgba(2, 6, 23, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(14px);
+  transition:
+    transform 0.35s var(--study-ease),
+    border-color 0.35s var(--study-ease),
+    box-shadow 0.35s var(--study-ease);
 }
 
 .study-sticky {
-  border: 2px solid rgba(28, 25, 23, 0.15);
-  border-radius: 2px;
-  box-shadow:
-    2px 3px 0 rgba(28, 25, 23, 0.08),
-    0 1px 0 rgba(255, 255, 255, 0.4) inset;
+  border: 1px solid var(--study-border);
+  border-radius: 1.15rem;
+  box-shadow: 0 16px 40px rgba(2, 6, 23, 0.22);
+  backdrop-filter: blur(12px);
 }
 
 .study-sticky-lemon {
-  background: #fef08a;
+  background: linear-gradient(135deg, rgba(253, 230, 138, 0.14), rgba(139, 124, 246, 0.1));
+  color: #fde68a;
 }
+
 .study-sticky-sky {
-  background: #bae6fd;
+  background: linear-gradient(135deg, rgba(103, 232, 249, 0.12), rgba(139, 124, 246, 0.12));
+  color: var(--study-cyan);
 }
+
 .study-sticky-peach {
-  background: #fed7aa;
+  background: linear-gradient(135deg, rgba(251, 146, 60, 0.12), rgba(232, 121, 249, 0.1));
+  color: #fdba74;
 }
 
 .study-chip {
   display: inline-block;
-  border: 1.5px dashed #57534e;
+  border: 1px dashed var(--study-border);
   border-radius: 999px;
   padding: 0.2rem 0.65rem;
   font-size: 0.7rem;
-  color: #44403c;
-  background: rgba(255, 253, 248, 0.8);
+  color: var(--study-muted);
+  background: rgba(17, 24, 43, 0.55);
 }
 
 .study-chip-primary {
   display: inline-block;
-  border: 2px solid #1c1917;
+  border: 1px solid rgba(139, 124, 246, 0.45);
   border-radius: 999px;
   padding: 0.25rem 0.7rem;
   font-size: 0.72rem;
   font-weight: 700;
-  color: #1c1917;
-  background: #fef08a;
-  box-shadow: 2px 2px 0 rgba(28, 25, 23, 0.12);
+  color: var(--study-text);
+  background: rgba(139, 124, 246, 0.18);
+  box-shadow: 0 0 18px rgba(139, 124, 246, 0.16);
 }
 
 .study-inline-code {
   font-family: ui-monospace, Menlo, monospace;
   font-size: 0.85em;
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(103, 232, 249, 0.1);
+  color: var(--study-cyan);
   padding: 0.1rem 0.35rem;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 .study-coverage-badge {
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  border: 1.5px solid;
+  border: 1px solid;
   padding: 0.2rem 0.55rem;
-  font-family: var(--font-study-body), system-ui, sans-serif;
+  font-family: var(--font-exam-sans), var(--font-study-body), system-ui, sans-serif;
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.01em;
 }
 
 .study-coverage-mcq {
-  border-color: #0369a1;
-  background: #e0f2fe;
-  color: #0c4a6e;
+  border-color: rgba(103, 232, 249, 0.35);
+  background: rgba(103, 232, 249, 0.12);
+  color: #a5f3fc;
 }
 
 .study-coverage-practical {
-  border-color: #6d28d9;
-  background: #ede9fe;
-  color: #4c1d95;
+  border-color: rgba(167, 139, 250, 0.4);
+  background: rgba(139, 124, 246, 0.16);
+  color: #ddd6fe;
 }
 
 .study-coverage-both {
-  border-color: #047857;
-  background: #d1fae5;
-  color: #065f46;
+  border-color: rgba(134, 239, 172, 0.35);
+  background: rgba(134, 239, 172, 0.12);
+  color: #bbf7d0;
 }
 
 .study-coverage-meta {
-  border-color: #b45309;
-  background: #fef3c7;
-  color: #92400e;
+  border-color: rgba(253, 230, 138, 0.35);
+  background: rgba(253, 230, 138, 0.12);
+  color: #fde68a;
 }
 
 .study-code-block {
   margin: 0;
-  border: 1.5px solid #1c1917;
-  border-radius: 8px 14px 10px 12px / 12px 8px 14px 10px;
-  background: #1c1917;
+  border: 1px solid var(--study-border);
+  border-radius: 1rem;
+  background: rgba(7, 11, 22, 0.82);
   padding: 0.85rem 1rem;
   font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, monospace;
   font-size: 0.75rem;
   line-height: 1.55;
   color: #e7e5e4;
-  box-shadow: 3px 3px 0 rgba(28, 25, 23, 0.15);
+  box-shadow: 0 14px 36px rgba(2, 6, 23, 0.28);
   -webkit-overflow-scrolling: touch;
 }
 
@@ -165,20 +205,24 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  border: 2px solid #1c1917;
-  border-radius: 255px 10px 225px 10px / 10px 225px 10px 255px;
-  background: #fffdf8;
-  padding: 0.5rem 0.9rem;
-  font-family: var(--font-study-body), system-ui, sans-serif;
+  border: 1px solid var(--study-border);
+  border-radius: 999px;
+  background: rgba(23, 31, 54, 0.7);
+  padding: 0.5rem 0.95rem;
+  font-family: var(--font-exam-sans), var(--font-study-body), system-ui, sans-serif;
   font-size: 0.875rem;
-  color: #1c1917;
-  box-shadow: 2px 2px 0 rgba(28, 25, 23, 0.1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  color: var(--study-text);
+  box-shadow: 0 10px 28px rgba(2, 6, 23, 0.2);
+  transition:
+    transform 0.3s var(--study-ease),
+    border-color 0.3s var(--study-ease),
+    background 0.3s var(--study-ease);
 }
 
 .study-ghost-btn:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 rgba(28, 25, 23, 0.12);
+  transform: translateY(-1px);
+  border-color: rgba(139, 124, 246, 0.45);
+  background: rgba(139, 124, 246, 0.14);
 }
 
 .study-music-btn {
@@ -189,22 +233,24 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  border: 2px solid #1c1917;
-  border-radius: 255px 12px 225px 12px / 12px 225px 12px 255px;
-  background: rgba(255, 253, 248, 0.92);
+  border: 1px solid var(--study-border);
+  border-radius: 999px;
+  background: rgba(17, 24, 43, 0.82);
   padding: 0.45rem 0.85rem;
-  font-family: var(--font-study-body), system-ui, sans-serif;
+  font-family: var(--font-exam-sans), var(--font-study-body), system-ui, sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #1c1917;
-  box-shadow: 2px 2px 0 rgba(28, 25, 23, 0.1);
-  backdrop-filter: blur(8px);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  color: var(--study-text);
+  box-shadow: 0 12px 32px rgba(2, 6, 23, 0.28);
+  backdrop-filter: blur(10px);
+  transition:
+    transform 0.3s var(--study-ease),
+    border-color 0.3s var(--study-ease);
 }
 
 .study-music-btn:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 rgba(28, 25, 23, 0.12);
+  transform: translateY(-1px);
+  border-color: rgba(103, 232, 249, 0.45);
 }
 
 @media (min-width: 640px) {
@@ -215,13 +261,13 @@
 }
 
 .study-fade-in {
-  animation: study-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: study-in 0.5s var(--study-ease) both;
 }
 
 @keyframes study-in {
   from {
     opacity: 0;
-    transform: translateY(10px) rotate(-0.4deg);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -229,12 +275,39 @@
   }
 }
 
+.study-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: 999px;
+  border: none;
+  padding: 0.7rem 1.15rem;
+  font-weight: 650;
+  color: #070b16;
+  background:
+    linear-gradient(135deg, rgba(139, 124, 246, 0.96), rgba(232, 121, 249, 0.82) 48%, rgba(103, 232, 249, 0.9));
+  box-shadow:
+    0 14px 40px rgba(139, 124, 246, 0.26),
+    0 8px 24px rgba(103, 232, 249, 0.12);
+  transition: transform 0.3s var(--study-ease), box-shadow 0.3s var(--study-ease);
+}
+
+.study-cta:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 18px 52px rgba(139, 124, 246, 0.32),
+    0 10px 30px rgba(103, 232, 249, 0.16);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .study-fade-in {
     animation: none;
   }
   .study-ghost-btn,
-  .study-rough {
+  .study-rough,
+  .study-music-btn,
+  .study-cta {
     transition: none;
   }
 }
