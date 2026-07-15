@@ -1289,7 +1289,7 @@ function McqSessionView({
             }}
             className="exam-btn inline-flex items-center gap-1.5 rounded-full border border-[var(--exam-border)] bg-[rgba(23,31,54,0.72)] px-3 py-1.5 text-[11px] font-medium text-[var(--exam-muted)] hover:border-[var(--exam-accent)] hover:text-[var(--exam-text)]"
             aria-label={ambience.muted ? "Unmute question music" : "Mute question music"}
-            title="Relaxing question music"
+            title="Ambient music"
           >
             {ambience.muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
             {ambience.muted ? "Music off" : "Music"}
@@ -1396,10 +1396,10 @@ function McqSessionView({
           }}
           className="exam-btn inline-flex items-center gap-1.5 rounded-full border border-[var(--exam-border)] bg-[rgba(23,31,54,0.72)] px-3 py-1.5 text-xs font-medium text-[var(--exam-muted)] hover:border-[var(--exam-accent)] hover:text-[var(--exam-text)]"
           aria-label={ambience.muted ? "Unmute question music" : "Mute question music"}
-          title="Relaxing question music"
+          title="Ambient music"
         >
           {ambience.muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
-          {ambience.muted ? "Music off" : "Question music"}
+          {ambience.muted ? "Music off" : "Ambience"}
         </button>
       </div>
       <p className="text-xs uppercase tracking-wider text-[var(--exam-faint)]">{session.phase}</p>

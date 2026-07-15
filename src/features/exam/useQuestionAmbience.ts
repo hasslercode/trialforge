@@ -22,93 +22,121 @@ function writeMutedPreference(muted: boolean) {
 }
 
 /**
- * Soft Kahoot-like "waiting for answer" loop:
- * warm pad + gentle arpeggio plucks + light pulse.
+ * Monument Valley–like ambience: soft synth drones + sparse crystalline tones.
+ * No guitar, no piano — only sine/triangle pads and airy high notes.
  */
-function startThinkingLoop(ctx: AudioContext, master: GainNode) {
-  const tempo = 92;
-  const beat = 60 / tempo;
-  const pattern = [261.63, 329.63, 392.0, 440.0, 392.0, 329.63];
-  let note = 0;
-  let beatCount = 0;
-  const scheduleAhead = 0.12;
-  let nextTime = ctx.currentTime + 0.05;
+function startMonumentValleyAmbience(ctx: AudioContext, master: GainNode) {
+  const now = ctx.currentTime;
 
-  function pluck(time: number, freq: number, gain = 0.045) {
+  // Wide airy filter into master
+  const air = ctx.createBiquadFilter();
+  air.type = "lowpass";
+  air.frequency.value = 1400;
+  air.Q.value = 0.4;
+  air.connect(master);
+
+  // Soft drifting drone cluster (pure synth)
+  const droneFreqs = [110, 164.81, 220, 277.18]; // A2 E3 A3 C#4
+  const droneNodes: { osc: OscillatorNode; gain: GainNode }[] = [];
+
+  droneFreqs.forEach((freq, index) => {
     const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+
+    osc.type = index % 2 === 0 ? "sine" : "triangle";
+    osc.frequency.value = freq;
+    // Tiny detune for shimmer
+    osc.detune.value = index * 3 - 4;
+
+    lfo.type = "sine";
+    lfo.frequency.value = 0.05 + index * 0.02;
+    lfoGain.gain.value = 0.008 + index * 0.002;
+    lfo.connect(lfoGain);
+    lfoGain.connect(gain.gain);
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.028 - index * 0.003, now + 2.4);
+
+    osc.connect(gain);
+    gain.connect(air);
+    osc.start(now);
+    lfo.start(now);
+    droneNodes.push({ osc, gain });
+  });
+
+  // Sparse crystalline motif (bell-soft sine, not piano)
+  const motif = [329.63, 392.0, 493.88, 587.33, 523.25, 392.0]; // E G B D C G
+  let motifIndex = 0;
+  let nextChime = now + 2.8;
+
+  function chime(time: number, freq: number) {
+    const osc = ctx.createOscillator();
+    const partial = ctx.createOscillator();
     const filt = ctx.createBiquadFilter();
     const env = ctx.createGain();
-    osc.type = "triangle";
-    osc.frequency.setValueAtTime(freq, time);
-    filt.type = "lowpass";
-    filt.frequency.setValueAtTime(1800, time);
-    filt.Q.setValueAtTime(0.7, time);
-    env.gain.setValueAtTime(0.0001, time);
-    env.gain.exponentialRampToValueAtTime(gain, time + 0.02);
-    env.gain.exponentialRampToValueAtTime(0.0001, time + beat * 0.9);
-    osc.connect(filt);
-    filt.connect(env);
-    env.connect(master);
-    osc.start(time);
-    osc.stop(time + beat);
-  }
 
-  function softTick(time: number) {
-    const osc = ctx.createOscillator();
-    const env = ctx.createGain();
     osc.type = "sine";
-    osc.frequency.setValueAtTime(880, time);
-    env.gain.setValueAtTime(0.0001, time);
-    env.gain.exponentialRampToValueAtTime(0.012, time + 0.01);
-    env.gain.exponentialRampToValueAtTime(0.0001, time + 0.08);
-    osc.connect(env);
-    env.connect(master);
-    osc.start(time);
-    osc.stop(time + 0.1);
-  }
+    partial.type = "sine";
+    osc.frequency.setValueAtTime(freq, time);
+    partial.frequency.setValueAtTime(freq * 2.01, time);
 
-  const pad = ctx.createOscillator();
-  const pad2 = ctx.createOscillator();
-  const padGain = ctx.createGain();
-  const padFilter = ctx.createBiquadFilter();
-  pad.type = "sine";
-  pad2.type = "sine";
-  pad.frequency.value = 130.81;
-  pad2.frequency.value = 196.0;
-  padFilter.type = "lowpass";
-  padFilter.frequency.value = 520;
-  padGain.gain.value = 0.035;
-  pad.connect(padFilter);
-  pad2.connect(padFilter);
-  padFilter.connect(padGain);
-  padGain.connect(master);
-  pad.start();
-  pad2.start();
+    filt.type = "lowpass";
+    filt.frequency.setValueAtTime(2400, time);
+    filt.frequency.exponentialRampToValueAtTime(900, time + 2.2);
+
+    env.gain.setValueAtTime(0.0001, time);
+    env.gain.exponentialRampToValueAtTime(0.03, time + 0.08);
+    env.gain.exponentialRampToValueAtTime(0.0001, time + 2.6);
+
+    const partialGain = ctx.createGain();
+    partialGain.gain.value = 0.35;
+
+    osc.connect(filt);
+    partial.connect(partialGain);
+    partialGain.connect(filt);
+    filt.connect(env);
+    env.connect(air);
+
+    osc.start(time);
+    partial.start(time);
+    osc.stop(time + 2.8);
+    partial.stop(time + 2.8);
+  }
 
   const timer = window.setInterval(() => {
-    const now = ctx.currentTime;
-    while (nextTime < now + scheduleAhead) {
-      const freq = pattern[note % pattern.length];
-      pluck(nextTime, freq, beatCount % 4 === 0 ? 0.055 : 0.038);
-      if (beatCount % 2 === 0) softTick(nextTime);
-      note += 1;
-      beatCount += 1;
-      nextTime += beat;
+    const t = ctx.currentTime;
+    while (nextChime < t + 0.2) {
+      chime(nextChime, motif[motifIndex % motif.length]);
+      motifIndex += 1;
+      // Irregular, contemplative spacing
+      nextChime += 2.4 + (motifIndex % 3) * 0.55;
     }
-  }, 40);
+  }, 80);
 
   return () => {
     window.clearInterval(timer);
+    for (const node of droneNodes) {
+      try {
+        node.gain.gain.cancelScheduledValues(ctx.currentTime);
+        node.gain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.2);
+        node.osc.stop(ctx.currentTime + 0.5);
+      } catch {
+        // ignore
+      }
+      try {
+        node.osc.disconnect();
+        node.gain.disconnect();
+      } catch {
+        // ignore
+      }
+    }
     try {
-      pad.stop();
-      pad2.stop();
+      air.disconnect();
     } catch {
       // ignore
     }
-    pad.disconnect();
-    pad2.disconnect();
-    padFilter.disconnect();
-    padGain.disconnect();
   };
 }
 
@@ -119,7 +147,6 @@ export function useQuestionAmbience(active: boolean) {
   const ctxRef = useRef<AudioContext | null>(null);
   const masterRef = useRef<GainNode | null>(null);
   const stopLoopRef = useRef<(() => void) | null>(null);
-  const bedRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     mutedRef.current = muted;
@@ -129,10 +156,7 @@ export function useQuestionAmbience(active: boolean) {
     const ctx = ctxRef.current;
     const master = masterRef.current;
     if (master && ctx) {
-      master.gain.setTargetAtTime(isMuted ? 0 : 0.7, ctx.currentTime, 0.05);
-    }
-    if (bedRef.current) {
-      bedRef.current.volume = isMuted ? 0 : 0.22;
+      master.gain.setTargetAtTime(isMuted ? 0 : 0.85, ctx.currentTime, 0.08);
     }
   }, []);
 
@@ -143,7 +167,7 @@ export function useQuestionAmbience(active: boolean) {
         (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       ctxRef.current = new Ctx();
       masterRef.current = ctxRef.current.createGain();
-      masterRef.current.gain.value = mutedRef.current ? 0 : 0.7;
+      masterRef.current.gain.value = mutedRef.current ? 0 : 0.85;
       masterRef.current.connect(ctxRef.current.destination);
     }
     if (ctxRef.current.state === "suspended") {
@@ -158,20 +182,7 @@ export function useQuestionAmbience(active: boolean) {
     if (!ctx || !masterRef.current) return;
 
     if (!stopLoopRef.current) {
-      stopLoopRef.current = startThinkingLoop(ctx, masterRef.current);
-    }
-
-    if (!bedRef.current) {
-      const bed = new Audio("/audio/calm-theme.ogg");
-      bed.loop = true;
-      bed.volume = 0.22;
-      bedRef.current = bed;
-    }
-
-    try {
-      await bedRef.current.play();
-    } catch {
-      // Needs a gesture on some browsers; toggle control covers it.
+      stopLoopRef.current = startMonumentValleyAmbience(ctx, masterRef.current);
     }
 
     applyVolume(false);
@@ -181,10 +192,6 @@ export function useQuestionAmbience(active: boolean) {
   const stop = useCallback(() => {
     stopLoopRef.current?.();
     stopLoopRef.current = null;
-    if (bedRef.current) {
-      bedRef.current.pause();
-      bedRef.current.currentTime = 0;
-    }
     setPlaying(false);
   }, []);
 
@@ -201,7 +208,6 @@ export function useQuestionAmbience(active: boolean) {
     writeMutedPreference(muted);
     applyVolume(muted);
     if (muted) {
-      bedRef.current?.pause();
       setPlaying(false);
       return;
     }
@@ -211,7 +217,6 @@ export function useQuestionAmbience(active: boolean) {
   useEffect(() => {
     return () => {
       stop();
-      bedRef.current = null;
       void ctxRef.current?.close();
       ctxRef.current = null;
       masterRef.current = null;
