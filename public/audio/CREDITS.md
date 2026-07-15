@@ -1,5 +1,5 @@
-# Audio credits (CC0)
+# Audio
 
-- `calm-theme.ogg` — “calm theme” by pebonius (CC0), via OpenGameArt  
-  https://opengameart.org/content/calm-theme  
-  https://pebonius.itch.io/
+Question ambience is synthesized in-browser (Web Audio API): soft drones and
+crystalline tones inspired by contemplative ambient game scores (e.g. Monument Valley).
+No sampled guitar or piano.
