@@ -55,7 +55,7 @@ export type ExamSession = {
   variantId?: string;
 } & (McqSession | PracticalSession);
 
-/** IDs del banco elegidos para esta corrida del examen */
+/** Bank IDs chosen for this exam run */
 export type VariantSelection = {
   mcq1: string[];
   mcq2: string[];
@@ -93,7 +93,7 @@ export type ExamProgress = {
   submissions: Record<string, Record<string, string>>;
 };
 
-/** Una corrida completa del examen (ocupa 1 slot del panel) */
+/** One complete exam run (occupies 1 panel slot) */
 export type ExamAttempt = {
   id: string;
   startedAt: string;
@@ -102,18 +102,18 @@ export type ExamAttempt = {
   results: SessionResult[];
   answers: Record<string, string>;
   submissions: Record<string, Record<string, string>>;
-  /** Puntaje ponderado cacheado para el panel */
+  /** Cached weighted score for the panel */
   overallScore: number;
 };
 
 /**
- * Slots de historial suficientes para cubrir el banco completo
- * (cuello de botella: 10 variantes JS/SQL en sesión 3 · 1 por corrida).
+ * Enough history slots to cover the full bank
+ * (bottleneck: 10 JS/SQL variants in session 3 · 1 per run).
  */
 export const MAX_ATTEMPT_SLOTS = 10;
 
 export type AppState = {
-  /** Length = MAX_ATTEMPT_SLOTS: null = slot libre */
+  /** Length = MAX_ATTEMPT_SLOTS: null = free slot */
   slots: (ExamAttempt | null)[];
   activeSlot: number | null;
 };
