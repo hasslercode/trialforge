@@ -352,19 +352,13 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-3 text-sm sm:gap-4">
-            {isMobile && (
-              <span className="flex items-center gap-1 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-[11px] text-zinc-400">
-                <Smartphone size={12} />
-                Theory only
-              </span>
-            )}
             {progress.startedAt && (
               <span
-                className={`flex items-center gap-2 font-mono text-xs sm:text-sm ${
+                className={`flex items-center gap-1.5 font-mono text-xs tabular-nums sm:gap-2 sm:text-sm ${
                   progress.remainingSeconds < 600 ? "text-red-400" : "text-zinc-300"
                 }`}
               >
-                <Clock3 size={14} />
+                <Clock3 size={14} className="shrink-0" />
                 {formatTime(progress.remainingSeconds)}
               </span>
             )}
@@ -379,11 +373,14 @@ export default function App() {
             </button>
             <button
               onClick={() => setScreen("roadmap")}
-              className="text-zinc-400 hover:text-white"
+              className="hidden text-zinc-400 hover:text-white sm:inline"
             >
               Phases
             </button>
-            <button onClick={() => setScreen("results")} className="text-zinc-400 hover:text-white">
+            <button
+              onClick={() => setScreen("results")}
+              className="hidden text-zinc-400 hover:text-white sm:inline"
+            >
               Results
             </button>
           </div>
@@ -553,7 +550,7 @@ function AttemptsPanel({
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-800 px-3 py-2 text-[11px] text-zinc-500 transition hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-300"
             >
               <RotateCcw size={12} />
-              Reset all {MAX_ATTEMPT_SLOTS} runs
+              Reset all · clear slots
             </button>
             {freeSlots === 0 && (
               <p className="mt-2 px-1 text-center text-[10px] leading-4 text-zinc-600">
@@ -580,9 +577,22 @@ function AttemptsStrip({
   onSelect: (index: number) => void;
   onResetAll: () => void;
 }) {
-  const allFull = slots.every(Boolean);
+  const hasAnyRun = slots.some(Boolean);
   return (
     <div className="space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">Tests</p>
+        {hasAnyRun && (
+          <button
+            type="button"
+            onClick={onResetAll}
+            className="inline-flex items-center gap-1.5 rounded-md border border-zinc-700 bg-zinc-900 px-2.5 py-1 text-[11px] font-medium text-zinc-300"
+          >
+            <RotateCcw size={11} />
+            Reset all
+          </button>
+        )}
+      </div>
       <div className="flex gap-2 overflow-x-auto pb-1">
         {slots.map((attempt, index) => (
           <AttemptCard
@@ -596,16 +606,6 @@ function AttemptsStrip({
           />
         ))}
       </div>
-      {allFull && (
-        <button
-          type="button"
-          onClick={onResetAll}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-800 py-2 text-xs text-zinc-500"
-        >
-          <RotateCcw size={12} />
-          Reset {MAX_ATTEMPT_SLOTS} runs
-        </button>
-      )}
     </div>
   );
 }
@@ -625,17 +625,21 @@ function AttemptCard({
   onSelect: (index: number) => void;
   compact?: boolean;
 }) {
+  const testLabel = `Test #${index + 1}`;
+
   if (!attempt) {
     return (
       <button
         onClick={() => onSelect(index)}
         className={`group flex flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-zinc-700/80 text-center transition hover:border-zinc-500 hover:bg-zinc-900/40 ${
-          compact ? "min-h-[72px] min-w-[88px] px-2 py-2" : "min-h-[88px] px-3 py-4"
+          compact ? "min-h-[72px] min-w-[96px] px-2 py-2" : "min-h-[88px] px-3 py-4"
         }`}
       >
+        <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-600 group-hover:text-zinc-400">
+          {testLabel}
+        </span>
         <Plus size={compact ? 14 : 16} className="text-zinc-600 group-hover:text-zinc-300" />
         <span className="text-xs font-medium text-zinc-500 group-hover:text-zinc-300">Free</span>
-        {!compact && <span className="text-[10px] text-zinc-700">Slot {index + 1}</span>}
       </button>
     );
   }
@@ -648,13 +652,13 @@ function AttemptCard({
     <button
       onClick={() => onSelect(index)}
       className={`rounded-xl border text-left transition ${
-        compact ? "min-h-[72px] min-w-[110px] px-2.5 py-2" : "min-h-[88px] px-3 py-3"
+        compact ? "min-h-[72px] min-w-[118px] px-2.5 py-2" : "min-h-[88px] px-3 py-3"
       } ${active ? "border-zinc-400 bg-zinc-900" : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-600"}`}
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="text-[10px] uppercase tracking-wider text-zinc-500">#{index + 1}</span>
+        <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">{testLabel}</span>
         <span
-          className={`text-[10px] ${
+          className={`shrink-0 text-[10px] ${
             done ? (passed ? "text-emerald-400" : "text-red-400") : "text-zinc-500"
           }`}
         >
@@ -786,21 +790,21 @@ function Home({
           <Play size={16} fill="currentColor" />
           {freeSlots === 0 ? "No free slots" : isMobile ? "New run (theory)" : "New run"}
         </button>
-        {freeSlots === 0 && (
-          <button
-            onClick={onResetAll}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-amber-800/60 bg-amber-950/20 px-5 py-3.5 text-sm font-medium text-amber-100 sm:w-auto"
-          >
-            <RotateCcw size={16} />
-            Reset history · {MAX_ATTEMPT_SLOTS} new runs
-          </button>
-        )}
         {hasProgress && (
           <button
             onClick={onResume}
             className="w-full rounded-lg border border-zinc-700 px-5 py-3.5 text-sm font-medium sm:w-auto"
           >
             Continue ({overall}%)
+          </button>
+        )}
+        {freeSlots < MAX_ATTEMPT_SLOTS && (
+          <button
+            onClick={onResetAll}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-amber-800/60 bg-amber-950/20 px-5 py-3.5 text-sm font-medium text-amber-100 sm:w-auto"
+          >
+            <RotateCcw size={16} />
+            Reset all · clear slots
           </button>
         )}
         <button
@@ -1541,7 +1545,7 @@ function RunNextSteps({
               className="inline-flex items-center justify-center gap-2 rounded-lg border border-amber-800/60 bg-amber-950/30 px-4 py-2.5 text-sm font-medium text-amber-100"
             >
               <RotateCcw size={16} />
-              Reset history · {MAX_ATTEMPT_SLOTS} new runs
+              Reset all · clear slots
             </button>
           </>
         )}
