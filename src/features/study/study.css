@@ -1,0 +1,125 @@
+/* Pizarra tipo Excalidraw — scoped al módulo de estudio */
+
+.study-board {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse 80% 50% at 10% 0%, #fff7ed 0%, transparent 55%),
+    radial-gradient(ellipse 70% 40% at 90% 10%, #e0f2fe 0%, transparent 50%),
+    radial-gradient(ellipse 60% 50% at 50% 100%, #fce7f3 0%, transparent 55%),
+    #f5f0e6;
+  color: #1c1917;
+}
+
+.study-board::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.35;
+  background-image:
+    linear-gradient(#c4b5a0 1px, transparent 1px),
+    linear-gradient(90deg, #c4b5a0 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, black 20%, transparent 75%);
+  pointer-events: none;
+}
+
+.study-noise {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.04;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.study-board > * {
+  position: relative;
+  z-index: 1;
+}
+
+.study-hand {
+  font-family: var(--font-study-hand), "Segoe Print", "Comic Sans MS", cursive;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.study-rough {
+  border: 2px solid #1c1917;
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  box-shadow: 4px 4px 0 rgba(28, 25, 23, 0.12);
+}
+
+.study-sticky {
+  border: 2px solid rgba(28, 25, 23, 0.15);
+  border-radius: 2px;
+  box-shadow:
+    2px 3px 0 rgba(28, 25, 23, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.4) inset;
+}
+
+.study-sticky-lemon {
+  background: #fef08a;
+}
+.study-sticky-sky {
+  background: #bae6fd;
+}
+.study-sticky-peach {
+  background: #fed7aa;
+}
+
+.study-chip {
+  display: inline-block;
+  border: 1.5px dashed #57534e;
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.7rem;
+  color: #44403c;
+  background: rgba(255, 253, 248, 0.8);
+}
+
+.study-ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 2px solid #1c1917;
+  border-radius: 255px 10px 225px 10px / 10px 225px 10px 255px;
+  background: #fffdf8;
+  padding: 0.5rem 0.9rem;
+  font-family: var(--font-study-body), system-ui, sans-serif;
+  font-size: 0.875rem;
+  color: #1c1917;
+  box-shadow: 2px 2px 0 rgba(28, 25, 23, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.study-ghost-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 rgba(28, 25, 23, 0.12);
+}
+
+.study-fade-in {
+  animation: study-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes study-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) rotate(-0.4deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .study-fade-in {
+    animation: none;
+  }
+  .study-ghost-btn,
+  .study-rough {
+    transition: none;
+  }
+}

@@ -8,10 +8,13 @@ import {
   Clock3,
   Code2,
   Lock,
+  Monitor,
   PanelLeft,
   PanelLeftClose,
+  BookOpen,
   Play,
   Plus,
+  Smartphone,
   Trophy,
 } from "lucide-react";
 import {
@@ -21,6 +24,7 @@ import {
   examMeta,
   pickVariantSelection,
 } from "@/content/bancolombia/exam";
+import { StudyScreen } from "@/features/study/StudyScreen";
 import type {
   AppState,
   Exam,
@@ -45,7 +49,24 @@ import {
   saveAppState,
 } from "@/infrastructure/storage/progress.repository";
 
-type Screen = "home" | "roadmap" | "session" | "results";
+type Screen = "home" | "roadmap" | "session" | "results" | "study";
+
+/** Viewport estrecho: modo teoría (MCQ). Las prácticas de código quedan para desktop. */
+function useIsMobile(breakpointPx = 768) {
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpointPx - 1}px)`);
+    const sync = () => setMobile(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, [breakpointPx]);
+  return mobile;
+}
+
+function isMobileFriendlySession(session: ExamSession) {
+  return session.kind === "mcq";
+}
 
 function formatTime(totalSeconds: number) {
   const h = Math.floor(totalSeconds / 3600);
@@ -73,6 +94,7 @@ export default function App() {
   const [activeId, setActiveId] = useState("s1-mcq");
   const [examRunning, setExamRunning] = useState(false);
   const [sidebarPinnedOpen, setSidebarPinnedOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const progress: ExamProgress = useMemo(() => {
     if (app.activeSlot === null) return emptyProgress();
@@ -90,7 +112,8 @@ export default function App() {
   const freeSlots = app.slots.filter((slot) => slot === null).length;
   const hasActive = app.activeSlot !== null && Boolean(app.slots[app.activeSlot ?? -1]);
   const sessionMode = screen === "session";
-  const sidebarCollapsed = sessionMode && !sidebarPinnedOpen;
+  const studyMode = screen === "study";
+  const sidebarCollapsed = (sessionMode && !sidebarPinnedOpen) || studyMode;
 
   useEffect(() => {
     void loadAppState().then((stored) => {
@@ -257,10 +280,16 @@ export default function App() {
             </button>
           </div>
 
-          <div className="flex items-center gap-4 text-sm">
+          <div className="flex items-center gap-3 text-sm sm:gap-4">
+            {isMobile && (
+              <span className="flex items-center gap-1 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-[11px] text-zinc-400">
+                <Smartphone size={12} />
+                Solo teoría
+              </span>
+            )}
             {progress.startedAt && (
               <span
-                className={`flex items-center gap-2 font-mono ${
+                className={`flex items-center gap-2 font-mono text-xs sm:text-sm ${
                   progress.remainingSeconds < 600 ? "text-red-400" : "text-zinc-300"
                 }`}
               >
@@ -269,8 +298,17 @@ export default function App() {
               </span>
             )}
             <button
+              onClick={() => setScreen("study")}
+              className={`hidden items-center gap-1.5 sm:inline-flex ${
+                studyMode ? "text-white" : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <BookOpen size={14} />
+              Estudiar
+            </button>
+            <button
               onClick={() => setScreen("roadmap")}
-              className="hidden text-zinc-400 hover:text-white sm:inline"
+              className="text-zinc-400 hover:text-white"
             >
               Fases
             </button>
@@ -280,7 +318,7 @@ export default function App() {
           </div>
         </header>
 
-        {!sessionMode && (
+        {!sessionMode && !studyMode && (
           <div className="border-b border-zinc-800 p-3 lg:hidden">
             <AttemptsStrip
               slots={app.slots}
@@ -297,15 +335,19 @@ export default function App() {
               overall={overall}
               hasProgress={hasActive}
               freeSlots={freeSlots}
+              isMobile={isMobile}
               onStart={startExam}
               onResume={resumeExam}
+              onStudy={() => setScreen("study")}
             />
           )}
+          {screen === "study" && <StudyScreen onBack={() => setScreen("home")} />}
           {screen === "roadmap" && (
             <Roadmap
               exam={exam}
               progress={progress}
               overall={overall}
+              isMobile={isMobile}
               onOpen={openSession}
               onResults={() => setScreen("results")}
             />
@@ -315,6 +357,7 @@ export default function App() {
               key={`${app.activeSlot}-${activeSession.variantId ?? activeSession.id}`}
               session={activeSession}
               progress={progress}
+              isMobile={isMobile}
               onBack={() => setScreen("roadmap")}
               onComplete={saveSessionResult}
             />
@@ -324,6 +367,7 @@ export default function App() {
               exam={exam}
               progress={progress}
               overall={overall}
+              isMobile={isMobile}
               onRoadmap={() => setScreen("roadmap")}
             />
           )}
@@ -521,71 +565,73 @@ function Home({
   overall,
   hasProgress,
   freeSlots,
+  isMobile,
   onStart,
   onResume,
+  onStudy,
 }: {
   overall: number;
   hasProgress: boolean;
   freeSlots: number;
+  isMobile: boolean;
   onStart: () => void;
   onResume: () => void;
+  onStudy: () => void;
 }) {
   return (
-    <section className="px-6 pb-24 pt-16 sm:px-10 sm:pt-24">
-      <p className="text-sm text-zinc-500">TrialForge · Pruebas técnicas · Cliente activo: Bancolombia</p>
-      <h1 className="mt-3 max-w-3xl text-4xl font-semibold tracking-[-0.04em] sm:text-6xl">
+    <section className="px-4 pb-24 pt-10 sm:px-10 sm:pt-24">
+      {isMobile && (
+        <div className="mb-6 flex gap-3 rounded-xl border border-sky-900/60 bg-sky-950/30 p-4">
+          <Smartphone size={18} className="mt-0.5 shrink-0 text-sky-400" />
+          <div>
+            <p className="text-sm font-medium text-sky-200">Modo celular · solo teoría</p>
+            <p className="mt-1 text-xs leading-5 text-sky-200/70">
+              En el teléfono puedes resolver las sesiones de selección múltiple. Las prácticas de
+              código (JS, SQL, CSS, Angular) se desbloquean en escritorio o tablet ancha.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <p className="text-sm text-zinc-500">TrialForge · Pruebas técnicas · Cliente: Bancolombia</p>
+      <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-[-0.04em] sm:text-6xl">
         {examMeta.title}
       </h1>
-      <p className="mt-6 max-w-2xl text-base leading-7 text-zinc-400">
-        El panel lateral guarda hasta <strong className="text-zinc-200">5 corridas</strong>. Los
-        cuadrados vacíos están libres; cada nueva prueba llena un slot con un set distinto
-        (JS, CSS, Angular y SQL). Arquitectura lista para otros clientes además de Bancolombia.
+      <p className="mt-5 max-w-2xl text-sm leading-7 text-zinc-400 sm:mt-6 sm:text-base">
+        Hasta <strong className="text-zinc-200">5 corridas</strong> en el historial. Cada una arma un
+        set distinto del banco. Ideal para practicar teoría en móvil y código en PC.
       </p>
 
-      {/* Mobile slots */}
-      <div className="mt-8 grid grid-cols-5 gap-2 lg:hidden">
-        {Array.from({ length: MAX_ATTEMPT_SLOTS }, (_, i) => (
-          <div
-            key={i}
-            className="aspect-square rounded-lg border border-dashed border-zinc-700 text-center text-[10px] leading-[4.5rem] text-zinc-600"
-          >
-            {i + 1}
-          </div>
-        ))}
-      </div>
-      <p className="mt-2 text-xs text-zinc-600 lg:hidden">
-        En desktop verás el historial completo a la izquierda ({freeSlots} libres).
-      </p>
+      <button
+        type="button"
+        onClick={onStudy}
+        className="mt-6 flex w-full items-center gap-3 rounded-xl border border-amber-900/50 bg-gradient-to-r from-amber-950/40 to-rose-950/30 p-4 text-left transition hover:border-amber-700/60 sm:max-w-md"
+      >
+        <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-amber-100 text-amber-950">
+          <BookOpen size={18} />
+        </span>
+        <span>
+          <span className="block text-sm font-medium text-amber-100">Estudiar el banco</span>
+          <span className="mt-0.5 block text-xs leading-5 text-amber-100/60">
+            Roadmap estilo pizarra · analogías simples · móvil y desktop
+          </span>
+        </span>
+      </button>
 
-      {/* Mobile slots */}
-      <div className="mt-8 grid grid-cols-5 gap-2 lg:hidden">
-        {Array.from({ length: MAX_ATTEMPT_SLOTS }, (_, i) => (
-          <div
-            key={i}
-            className="aspect-square rounded-lg border border-dashed border-zinc-700 text-center text-[10px] leading-[4.5rem] text-zinc-600"
-          >
-            {i + 1}
-          </div>
-        ))}
-      </div>
-      <p className="mt-2 text-xs text-zinc-600 lg:hidden">
-        En desktop verás el historial completo a la izquierda ({freeSlots} libres).
-      </p>
-
-      <div className="mt-10 grid gap-3 sm:grid-cols-3">
+      <div className="mt-8 grid grid-cols-3 gap-2 sm:mt-10 sm:gap-3">
         {[
-          ["180 min", "Tiempo total"],
-          ["70%", "Umbral de aprobación"],
-          [`${freeSlots}/${MAX_ATTEMPT_SLOTS}`, "Slots libres"],
+          ["180 min", "Tiempo"],
+          ["70%", "Aprobar"],
+          [`${freeSlots}/${MAX_ATTEMPT_SLOTS}`, "Libres"],
         ].map(([value, label]) => (
-          <div key={label} className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
-            <strong className="block text-2xl tracking-tight">{value}</strong>
-            <span className="mt-1 block text-xs text-zinc-500">{label}</span>
+          <div key={label} className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 sm:p-5">
+            <strong className="block text-xl tracking-tight sm:text-2xl">{value}</strong>
+            <span className="mt-1 block text-[11px] text-zinc-500 sm:text-xs">{label}</span>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="mt-6 hidden gap-3 sm:grid sm:grid-cols-3 lg:grid-cols-6">
         {[
           [`${bankStats.mcqFundamentos}`, "MCQ fundamentos"],
           [`${bankStats.mcqWeb}`, "MCQ web+SQL"],
@@ -601,29 +647,41 @@ function Home({
         ))}
       </div>
 
-      <ul className="mt-10 space-y-3 border-t border-zinc-800 pt-8">
-        {examMeta.rules.map((rule) => (
-          <li key={rule} className="flex gap-3 text-sm leading-6 text-zinc-400">
-            <CheckCircle2 size={16} className="mt-1 shrink-0 text-zinc-600" />
-            {rule}
-          </li>
-        ))}
-      </ul>
+      {!isMobile && (
+        <ul className="mt-10 space-y-3 border-t border-zinc-800 pt-8">
+          {examMeta.rules.map((rule) => (
+            <li key={rule} className="flex gap-3 text-sm leading-6 text-zinc-400">
+              <CheckCircle2 size={16} className="mt-1 shrink-0 text-zinc-600" />
+              {rule}
+            </li>
+          ))}
+        </ul>
+      )}
 
-      <div className="mt-10 flex flex-wrap gap-3">
+      <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap">
         <button
           onClick={onStart}
           disabled={freeSlots === 0}
-          className="flex items-center gap-2 rounded-lg bg-zinc-100 px-5 py-3 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-100 px-5 py-3.5 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
         >
           <Play size={16} fill="currentColor" />
-          {freeSlots === 0 ? "Sin slots libres" : "Nueva corrida"}
+          {freeSlots === 0 ? "Sin slots libres" : isMobile ? "Nueva corrida (teoría)" : "Nueva corrida"}
         </button>
         {hasProgress && (
-          <button onClick={onResume} className="rounded-lg border border-zinc-700 px-5 py-3 text-sm font-medium">
-            Continuar activa ({overall}%)
+          <button
+            onClick={onResume}
+            className="w-full rounded-lg border border-zinc-700 px-5 py-3.5 text-sm font-medium sm:w-auto"
+          >
+            Continuar ({overall}%)
           </button>
         )}
+        <button
+          onClick={onStudy}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-700 px-5 py-3.5 text-sm font-medium sm:hidden"
+        >
+          <BookOpen size={16} />
+          Estudiar
+        </button>
       </div>
     </section>
   );
@@ -633,36 +691,44 @@ function Roadmap({
   exam,
   progress,
   overall,
+  isMobile,
   onOpen,
   onResults,
 }: {
   exam: Exam;
   progress: ExamProgress;
   overall: number;
+  isMobile: boolean;
   onOpen: (id: string) => void;
   onResults: () => void;
 }) {
   const byId = new Map(progress.results.map((r) => [r.sessionId, r]));
+  const theorySessions = exam.sessions.filter(isMobileFriendlySession);
+  const theoryDone = theorySessions.filter((s) => byId.has(s.id)).length;
 
   if (!progress.selection) {
     return (
-      <section className="px-6 py-16 text-sm text-zinc-500 sm:px-10">
-        Selecciona un slot libre en el panel lateral para iniciar una corrida.
+      <section className="px-4 py-16 text-sm text-zinc-500 sm:px-10">
+        {isMobile
+          ? "Elige un slot libre arriba para iniciar una corrida."
+          : "Selecciona un slot libre en el panel lateral para iniciar una corrida."}
       </section>
     );
   }
 
   return (
-    <section className="mx-auto max-w-4xl px-5 py-10 sm:px-8">
+    <section className="mx-auto max-w-4xl px-4 py-8 sm:px-8 sm:py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm text-zinc-500">Roadmap de esta corrida</p>
-          <h2 className="mt-1 text-3xl font-semibold tracking-tight">Las 5 fases</h2>
+          <h2 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">Las 5 fases</h2>
           <p className="mt-2 text-sm text-zinc-500">
-            Contenido fijado al iniciar este slot. Un slot libre = otra mezcla del banco.
+            {isMobile
+              ? `En celular: ${theoryDone}/${theorySessions.length} sesiones de teoría. El código espera el PC.`
+              : "Contenido fijado al iniciar este slot. Un slot libre = otra mezcla del banco."}
           </p>
         </div>
-        <div className="text-right">
+        <div className="text-left sm:text-right">
           <p className="text-xs text-zinc-500">Puntaje ponderado</p>
           <p
             className={`text-2xl font-semibold ${
@@ -675,37 +741,64 @@ function Roadmap({
         </div>
       </div>
 
-      <ol className="mt-8 space-y-3">
+      <ol className="mt-6 space-y-2.5 sm:mt-8 sm:space-y-3">
         {exam.sessions.map((session) => {
           const result = byId.get(session.id);
           const done = Boolean(result);
+          const mobileOk = isMobileFriendlySession(session);
+          const lockedOnMobile = isMobile && !mobileOk;
+
           return (
             <li key={session.id}>
               <button
                 onClick={() => onOpen(session.id)}
-                className="flex w-full items-start gap-4 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 text-left transition hover:border-zinc-600 hover:bg-zinc-900"
+                className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition sm:gap-4 sm:p-5 ${
+                  lockedOnMobile
+                    ? "border-zinc-800/80 bg-zinc-950/40 opacity-90"
+                    : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-600 hover:bg-zinc-900"
+                }`}
               >
                 <span className="mt-0.5 text-zinc-500">
-                  {done ? <CheckCircle2 size={20} className="text-emerald-400" /> : <Circle size={20} />}
+                  {done ? (
+                    <CheckCircle2 size={20} className="text-emerald-400" />
+                  ) : lockedOnMobile ? (
+                    <Monitor size={20} className="text-zinc-600" />
+                  ) : (
+                    <Circle size={20} />
+                  )}
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-xs uppercase tracking-wider text-zinc-500">{session.phase}</span>
                     <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-400">{session.weight}%</span>
+                    {mobileOk ? (
+                      <span className="flex items-center gap-1 rounded bg-sky-950/50 px-2 py-0.5 text-xs text-sky-300 md:hidden">
+                        <Smartphone size={11} /> móvil
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500 md:hidden">
+                        <Monitor size={11} /> PC
+                      </span>
+                    )}
                     {session.kind !== "mcq" && (
-                      <span className="flex items-center gap-1 rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-400">
+                      <span className="hidden items-center gap-1 rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-400 sm:flex">
                         <Lock size={11} /> tests bloqueados
                       </span>
                     )}
                   </div>
-                  <h3 className="mt-2 font-medium">{session.title}</h3>
-                  <p className="mt-1 text-sm text-zinc-500">{session.subtitle}</p>
+                  <h3 className="mt-2 text-sm font-medium sm:text-base">{session.title}</h3>
+                  <p className="mt-1 text-xs text-zinc-500 sm:text-sm">{session.subtitle}</p>
+                  {lockedOnMobile && (
+                    <p className="mt-2 text-xs text-zinc-600">Disponible en escritorio / tablet ancha.</p>
+                  )}
                 </div>
                 <div className="shrink-0 text-right">
                   {result ? (
                     <strong className={result.score >= 70 ? "text-emerald-400" : "text-zinc-300"}>
                       {result.score}%
                     </strong>
+                  ) : lockedOnMobile ? (
+                    <Lock size={14} className="ml-auto text-zinc-600" />
                   ) : (
                     <span className="text-sm text-zinc-600">Abrir →</span>
                   )}
@@ -726,28 +819,79 @@ function Roadmap({
 function SessionView({
   session,
   progress,
+  isMobile,
   onBack,
   onComplete,
 }: {
   session: ExamSession;
   progress: ExamProgress;
+  isMobile: boolean;
   onBack: () => void;
   onComplete: (result: SessionResult, answers?: Record<string, string>, submissions?: Record<string, string>) => void;
 }) {
   if (session.kind === "mcq") {
-    return <McqSessionView session={session} progress={progress} onBack={onBack} onComplete={onComplete} />;
+    return (
+      <McqSessionView
+        session={session}
+        progress={progress}
+        isMobile={isMobile}
+        onBack={onBack}
+        onComplete={onComplete}
+      />
+    );
+  }
+  if (isMobile) {
+    return <DesktopRequiredGate session={session} onBack={onBack} />;
   }
   return <PracticalSessionView session={session} progress={progress} onBack={onBack} onComplete={onComplete} />;
+}
+
+function DesktopRequiredGate({
+  session,
+  onBack,
+}: {
+  session: ExamSession;
+  onBack: () => void;
+}) {
+  return (
+    <section className="mx-auto flex max-w-lg flex-col px-4 py-12">
+      <button onClick={onBack} className="mb-8 flex items-center gap-2 text-sm text-zinc-400">
+        <ArrowLeft size={15} /> Volver a fases
+      </button>
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 text-center">
+        <div className="mx-auto grid size-12 place-items-center rounded-full bg-zinc-800 text-zinc-300">
+          <Monitor size={22} />
+        </div>
+        <h1 className="mt-5 text-xl font-semibold tracking-tight">{session.title}</h1>
+        <p className="mt-2 text-sm text-zinc-500">{session.subtitle}</p>
+        <p className="mt-5 text-sm leading-6 text-zinc-400">
+          Esta fase incluye un editor de código y tests ocultos. En celular no es cómodo ni fiel al
+          entorno real: ábrela desde un computador o tablet en horizontal ancha.
+        </p>
+        <p className="mt-4 text-xs text-zinc-600">
+          Mientras tanto puedes completar las sesiones de selección múltiple desde este dispositivo.
+        </p>
+        <button
+          onClick={onBack}
+          className="mt-8 w-full rounded-lg bg-zinc-100 px-4 py-3 text-sm font-medium text-zinc-950"
+        >
+          Ir a fases de teoría
+        </button>
+      </div>
+    </section>
+  );
 }
 
 function McqSessionView({
   session,
   progress,
+  isMobile,
   onBack,
   onComplete,
 }: {
   session: Extract<ExamSession, { kind: "mcq" }>;
   progress: ExamProgress;
+  isMobile: boolean;
   onBack: () => void;
   onComplete: (result: SessionResult, answers?: Record<string, string>) => void;
 }) {
@@ -758,9 +902,14 @@ function McqSessionView({
       .map(([key, value]) => [key.slice(prefix.length), value]),
   );
   const [answers, setAnswers] = useState<Record<string, string>>(initial);
+  const [step, setStep] = useState(0);
   const [result, setResult] = useState<Evaluation | null>(
     progress.results.find((r) => r.sessionId === session.id) ?? null,
   );
+
+  const total = session.questions.length;
+  const answered = session.questions.filter((q) => answers[q.id]).length;
+  const question = session.questions[Math.min(step, total - 1)];
 
   function submit() {
     const evaluation = evaluateMcq(session.id, session.questions, answers);
@@ -768,6 +917,100 @@ function McqSessionView({
     setResult(evaluation);
     const namespaced = Object.fromEntries(Object.entries(answers).map(([k, v]) => [`${prefix}${k}`, v]));
     onComplete(stamped, namespaced);
+  }
+
+  function selectOption(questionId: string, optionId: string) {
+    setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
+    if (isMobile && step < total - 1) {
+      window.setTimeout(() => setStep((s) => Math.min(s + 1, total - 1)), 180);
+    }
+  }
+
+  if (isMobile) {
+    return (
+      <section className="mx-auto flex min-h-[calc(100vh-7.5rem)] max-w-lg flex-col px-4 pb-28 pt-6">
+        <button onClick={onBack} className="mb-5 flex items-center gap-2 text-sm text-zinc-400">
+          <ArrowLeft size={15} /> Fases
+        </button>
+        <p className="text-xs uppercase tracking-wider text-zinc-500">{session.phase}</p>
+        <h1 className="mt-1 text-lg font-semibold tracking-tight">{session.title}</h1>
+        <div className="mt-4 flex items-center justify-between text-xs text-zinc-500">
+          <span>
+            Pregunta {step + 1} / {total}
+          </span>
+          <span>
+            {answered}/{total} respondidas
+          </span>
+        </div>
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-800">
+          <div
+            className="h-full rounded-full bg-zinc-200 transition-all"
+            style={{ width: `${((step + 1) / total) * 100}%` }}
+          />
+        </div>
+
+        <fieldset className="mt-6 flex-1 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5">
+          <legend className="sr-only">Pregunta {step + 1}</legend>
+          <p className="text-base font-medium leading-7 text-zinc-100">{question.prompt}</p>
+          <div className="mt-5 space-y-2.5">
+            {question.options.map((option) => {
+              const selected = answers[question.id] === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => selectOption(question.id, option.id)}
+                  className={`flex w-full items-start gap-3 rounded-xl border px-4 py-3.5 text-left text-sm transition ${
+                    selected ? "border-zinc-400 bg-zinc-800" : "border-zinc-800 hover:border-zinc-700"
+                  }`}
+                >
+                  <span
+                    className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border text-[10px] ${
+                      selected ? "border-zinc-200 bg-zinc-100 text-zinc-900" : "border-zinc-600 text-zinc-500"
+                    }`}
+                  >
+                    {option.id.toUpperCase()}
+                  </span>
+                  <span>{option.label}</span>
+                </button>
+              );
+            })}
+          </div>
+          {result && <p className="mt-4 text-xs leading-5 text-zinc-500">{question.explanation}</p>}
+        </fieldset>
+
+        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-zinc-800 bg-[#09090b]/95 px-4 py-3 backdrop-blur">
+          <div className="mx-auto flex max-w-lg gap-2">
+            <button
+              type="button"
+              disabled={step === 0}
+              onClick={() => setStep((s) => Math.max(0, s - 1))}
+              className="rounded-lg border border-zinc-700 px-4 py-3 text-sm disabled:opacity-30"
+            >
+              Anterior
+            </button>
+            {step < total - 1 ? (
+              <button
+                type="button"
+                onClick={() => setStep((s) => Math.min(total - 1, s + 1))}
+                className="flex-1 rounded-lg bg-zinc-100 py-3 text-sm font-medium text-zinc-950"
+              >
+                Siguiente
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={submit}
+                disabled={answered < total && !result}
+                className="flex-1 rounded-lg bg-zinc-100 py-3 text-sm font-medium text-zinc-950 disabled:opacity-40"
+              >
+                {result ? `Enviado · ${result.score}%` : "Enviar sesión"}
+              </button>
+            )}
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -780,14 +1023,14 @@ function McqSessionView({
       <p className="mt-2 text-sm text-zinc-500">{session.subtitle}</p>
 
       <div className="mt-8 space-y-6">
-        {session.questions.map((question, index) => (
-          <fieldset key={question.id} className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
+        {session.questions.map((q, index) => (
+          <fieldset key={q.id} className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
             <legend className="px-1 text-sm font-medium text-zinc-200">
-              {index + 1}. {question.prompt}
+              {index + 1}. {q.prompt}
             </legend>
             <div className="mt-4 space-y-2">
-              {question.options.map((option) => {
-                const selected = answers[question.id] === option.id;
+              {q.options.map((option) => {
+                const selected = answers[q.id] === option.id;
                 return (
                   <label
                     key={option.id}
@@ -798,16 +1041,16 @@ function McqSessionView({
                     <input
                       type="radio"
                       className="mt-0.5"
-                      name={question.id}
+                      name={q.id}
                       checked={selected}
-                      onChange={() => setAnswers((prev) => ({ ...prev, [question.id]: option.id }))}
+                      onChange={() => selectOption(q.id, option.id)}
                     />
                     <span>{option.label}</span>
                   </label>
                 );
               })}
             </div>
-            {result && <p className="mt-3 text-xs text-zinc-500">{question.explanation}</p>}
+            {result && <p className="mt-3 text-xs text-zinc-500">{q.explanation}</p>}
           </fieldset>
         ))}
       </div>
@@ -962,19 +1205,23 @@ function Results({
   exam,
   progress,
   overall,
+  isMobile,
   onRoadmap,
 }: {
   exam: Exam;
   progress: ExamProgress;
   overall: number;
+  isMobile: boolean;
   onRoadmap: () => void;
 }) {
+  const theory = exam.sessions.filter(isMobileFriendlySession);
+  const theoryDone = theory.filter((s) => progress.results.some((r) => r.sessionId === s.id)).length;
   const passed = overall >= exam.passThreshold && progress.results.length === exam.sessions.length;
 
   return (
-    <section className="mx-auto max-w-3xl px-5 py-10 sm:px-8">
+    <section className="mx-auto max-w-3xl px-4 py-8 sm:px-8 sm:py-10">
       <p className="text-sm text-zinc-500">Resultado del simulacro</p>
-      <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+      <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
         {!progress.startedAt
           ? "Ninguna corrida activa"
           : progress.results.length === 0
@@ -985,11 +1232,17 @@ function Results({
                 ? "Simulación en curso"
                 : "No alcanza el umbral"}
       </h1>
+      {isMobile && (
+        <p className="mt-3 text-sm text-zinc-500">
+          Teoría en este dispositivo: {theoryDone}/{theory.length}. Completa código en PC para el
+          puntaje final completo.
+        </p>
+      )}
 
       <div className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
         <p className="text-xs text-zinc-500">Puntaje ponderado</p>
         <p
-          className={`mt-2 text-5xl font-semibold tracking-tight ${
+          className={`mt-2 text-4xl font-semibold tracking-tight sm:text-5xl ${
             overall >= exam.passThreshold ? "text-emerald-400" : ""
           }`}
         >
