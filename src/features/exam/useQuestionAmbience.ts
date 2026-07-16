@@ -22,120 +22,191 @@ function writeMutedPreference(muted: boolean) {
 }
 
 /**
- * Monument Valley–like ambience: soft synth drones + sparse crystalline tones.
- * No guitar, no piano — only sine/triangle pads and airy high notes.
+ * Quiz-show tension bed (Kahoot / Who Wants to Be a Millionaire energy):
+ * heartbeat bass, tense minor pad, clock ticks — urgent, not relaxing.
  */
-function startMonumentValleyAmbience(ctx: AudioContext, master: GainNode) {
+function startQuizShowTension(ctx: AudioContext, master: GainNode) {
   const now = ctx.currentTime;
+  const nodes: AudioNode[] = [];
+  const oscillators: OscillatorNode[] = [];
 
-  // Wide airy filter into master
-  const air = ctx.createBiquadFilter();
-  air.type = "lowpass";
-  air.frequency.value = 1400;
-  air.Q.value = 0.4;
-  air.connect(master);
+  const bus = ctx.createGain();
+  bus.gain.value = 1;
+  bus.connect(master);
+  nodes.push(bus);
 
-  // Soft drifting drone cluster (pure synth)
-  const droneFreqs = [110, 164.81, 220, 277.18]; // A2 E3 A3 C#4
-  const droneNodes: { osc: OscillatorNode; gain: GainNode }[] = [];
+  // Dark low shelf so the pulse reads as pressure, not chill pad.
+  const tone = ctx.createBiquadFilter();
+  tone.type = "lowshelf";
+  tone.frequency.value = 180;
+  tone.gain.value = 3.5;
+  tone.connect(bus);
+  nodes.push(tone);
 
-  droneFreqs.forEach((freq, index) => {
+  // --- Heartbeat / countdown bass pulse (~100 BPM feel) ---
+  const pulseLfo = ctx.createOscillator();
+  const pulseDepth = ctx.createGain();
+  const pulseOsc = ctx.createOscillator();
+  const pulseGain = ctx.createGain();
+  const pulseFilter = ctx.createBiquadFilter();
+
+  pulseOsc.type = "triangle";
+  pulseOsc.frequency.value = 55; // A1
+  pulseFilter.type = "lowpass";
+  pulseFilter.frequency.value = 220;
+  pulseFilter.Q.value = 0.7;
+
+  pulseLfo.type = "sine";
+  pulseLfo.frequency.value = 1.67; // ~100 BPM
+  // Keep pulseGain above silence so modulation never crosses into negative gain.
+  pulseDepth.gain.value = 0.03;
+  pulseGain.gain.value = 0.045;
+
+  pulseLfo.connect(pulseDepth);
+  pulseDepth.connect(pulseGain.gain);
+  pulseOsc.connect(pulseFilter);
+  pulseFilter.connect(pulseGain);
+  pulseGain.connect(tone);
+
+  pulseOsc.start(now);
+  pulseLfo.start(now);
+  oscillators.push(pulseOsc, pulseLfo);
+  nodes.push(pulseDepth, pulseGain, pulseFilter);
+
+  // --- Tense minor pad (A minor–ish cluster) ---
+  const padFreqs = [110, 130.81, 164.81, 196.0]; // A2 C3 E3 G3
+  padFreqs.forEach((freq, index) => {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     const lfo = ctx.createOscillator();
     const lfoGain = ctx.createGain();
-
-    osc.type = index % 2 === 0 ? "sine" : "triangle";
-    osc.frequency.value = freq;
-    // Tiny detune for shimmer
-    osc.detune.value = index * 3 - 4;
-
-    lfo.type = "sine";
-    lfo.frequency.value = 0.05 + index * 0.02;
-    lfoGain.gain.value = 0.008 + index * 0.002;
-    lfo.connect(lfoGain);
-    lfoGain.connect(gain.gain);
-
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.028 - index * 0.003, now + 2.4);
-
-    osc.connect(gain);
-    gain.connect(air);
-    osc.start(now);
-    lfo.start(now);
-    droneNodes.push({ osc, gain });
-  });
-
-  // Sparse crystalline motif (bell-soft sine, not piano)
-  const motif = [329.63, 392.0, 493.88, 587.33, 523.25, 392.0]; // E G B D C G
-  let motifIndex = 0;
-  let nextChime = now + 2.8;
-
-  function chime(time: number, freq: number) {
-    const osc = ctx.createOscillator();
-    const partial = ctx.createOscillator();
     const filt = ctx.createBiquadFilter();
-    const env = ctx.createGain();
 
-    osc.type = "sine";
-    partial.type = "sine";
-    osc.frequency.setValueAtTime(freq, time);
-    partial.frequency.setValueAtTime(freq * 2.01, time);
+    osc.type = index % 2 === 0 ? "sawtooth" : "triangle";
+    osc.frequency.value = freq;
+    osc.detune.value = index * 4 - 6;
 
     filt.type = "lowpass";
-    filt.frequency.setValueAtTime(2400, time);
-    filt.frequency.exponentialRampToValueAtTime(900, time + 2.2);
+    filt.frequency.value = 480 + index * 40;
+    filt.Q.value = 1.1;
 
-    env.gain.setValueAtTime(0.0001, time);
-    env.gain.exponentialRampToValueAtTime(0.03, time + 0.08);
-    env.gain.exponentialRampToValueAtTime(0.0001, time + 2.6);
+    lfo.type = "sine";
+    lfo.frequency.value = 0.12 + index * 0.03;
+    lfoGain.gain.value = 0.012;
 
-    const partialGain = ctx.createGain();
-    partialGain.gain.value = 0.35;
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.022 - index * 0.002, now + 0.9);
 
+    lfo.connect(lfoGain);
+    lfoGain.connect(gain.gain);
     osc.connect(filt);
-    partial.connect(partialGain);
-    partialGain.connect(filt);
-    filt.connect(env);
-    env.connect(air);
+    filt.connect(gain);
+    gain.connect(bus);
 
+    osc.start(now);
+    lfo.start(now);
+    oscillators.push(osc, lfo);
+    nodes.push(gain, filt, lfoGain);
+  });
+
+  // --- High tension shimmer (thin, slightly dissonant) ---
+  const shimmer = ctx.createOscillator();
+  const shimmerGain = ctx.createGain();
+  const shimmerLfo = ctx.createOscillator();
+  const shimmerLfoGain = ctx.createGain();
+  shimmer.type = "triangle";
+  shimmer.frequency.value = 880; // A5
+  shimmerLfo.type = "sine";
+  shimmerLfo.frequency.value = 4.5;
+  shimmerLfoGain.gain.value = 0.01;
+  shimmerGain.gain.value = 0.012;
+  shimmerLfo.connect(shimmerLfoGain);
+  shimmerLfoGain.connect(shimmerGain.gain);
+  shimmer.connect(shimmerGain);
+  shimmerGain.connect(bus);
+  shimmer.start(now);
+  shimmerLfo.start(now);
+  oscillators.push(shimmer, shimmerLfo);
+  nodes.push(shimmerGain, shimmerLfoGain);
+
+  // --- Clock / quiz tick ---
+  let nextTick = now + 0.15;
+
+  function tick(time: number, accent: boolean) {
+    const osc = ctx.createOscillator();
+    const env = ctx.createGain();
+    const filt = ctx.createBiquadFilter();
+    osc.type = "square";
+    osc.frequency.setValueAtTime(accent ? 920 : 740, time);
+    filt.type = "bandpass";
+    filt.frequency.setValueAtTime(accent ? 1400 : 1100, time);
+    filt.Q.value = 6;
+    env.gain.setValueAtTime(0.0001, time);
+    env.gain.exponentialRampToValueAtTime(accent ? 0.04 : 0.025, time + 0.01);
+    env.gain.exponentialRampToValueAtTime(0.0001, time + 0.09);
+    osc.connect(filt);
+    filt.connect(env);
+    env.connect(bus);
     osc.start(time);
-    partial.start(time);
-    osc.stop(time + 2.8);
-    partial.stop(time + 2.8);
+    osc.stop(time + 0.12);
   }
 
+  // Occasional rising "final answer?" sting
+  let nextSting = now + 6.5;
+
+  function sting(time: number) {
+    const freqs = [220, 277.18, 329.63, 440]; // rising A C# E A
+    freqs.forEach((freq, i) => {
+      const t = time + i * 0.14;
+      const osc = ctx.createOscillator();
+      const env = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, t);
+      env.gain.setValueAtTime(0.0001, t);
+      env.gain.exponentialRampToValueAtTime(0.035, t + 0.04);
+      env.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
+      osc.connect(env);
+      env.connect(bus);
+      osc.start(t);
+      osc.stop(t + 0.6);
+    });
+  }
+
+  let beat = 0;
   const timer = window.setInterval(() => {
     const t = ctx.currentTime;
-    while (nextChime < t + 0.2) {
-      chime(nextChime, motif[motifIndex % motif.length]);
-      motifIndex += 1;
-      // Irregular, contemplative spacing
-      nextChime += 2.4 + (motifIndex % 3) * 0.55;
+    while (nextTick < t + 0.25) {
+      tick(nextTick, beat % 4 === 0);
+      beat += 1;
+      nextTick += 0.6; // steady quiz clock
     }
-  }, 80);
+    while (nextSting < t + 0.25) {
+      sting(nextSting);
+      nextSting += 8.5 + (beat % 3) * 1.2;
+    }
+  }, 50);
 
   return () => {
     window.clearInterval(timer);
-    for (const node of droneNodes) {
+    const stopAt = ctx.currentTime;
+    for (const osc of oscillators) {
       try {
-        node.gain.gain.cancelScheduledValues(ctx.currentTime);
-        node.gain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.2);
-        node.osc.stop(ctx.currentTime + 0.5);
+        osc.stop(stopAt + 0.35);
       } catch {
         // ignore
       }
       try {
-        node.osc.disconnect();
-        node.gain.disconnect();
+        osc.disconnect();
       } catch {
         // ignore
       }
     }
-    try {
-      air.disconnect();
-    } catch {
-      // ignore
+    for (const node of nodes) {
+      try {
+        node.disconnect();
+      } catch {
+        // ignore
+      }
     }
   };
 }
@@ -156,7 +227,7 @@ export function useQuestionAmbience(active: boolean) {
     const ctx = ctxRef.current;
     const master = masterRef.current;
     if (master && ctx) {
-      master.gain.setTargetAtTime(isMuted ? 0 : 0.85, ctx.currentTime, 0.08);
+      master.gain.setTargetAtTime(isMuted ? 0 : 0.78, ctx.currentTime, 0.08);
     }
   }, []);
 
@@ -167,7 +238,7 @@ export function useQuestionAmbience(active: boolean) {
         (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       ctxRef.current = new Ctx();
       masterRef.current = ctxRef.current.createGain();
-      masterRef.current.gain.value = mutedRef.current ? 0 : 0.85;
+      masterRef.current.gain.value = mutedRef.current ? 0 : 0.78;
       masterRef.current.connect(ctxRef.current.destination);
     }
     if (ctxRef.current.state === "suspended") {
@@ -182,7 +253,7 @@ export function useQuestionAmbience(active: boolean) {
     if (!ctx || !masterRef.current) return;
 
     if (!stopLoopRef.current) {
-      stopLoopRef.current = startMonumentValleyAmbience(ctx, masterRef.current);
+      stopLoopRef.current = startQuizShowTension(ctx, masterRef.current);
     }
 
     applyVolume(false);

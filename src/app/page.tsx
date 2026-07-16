@@ -1459,11 +1459,11 @@ function McqSessionView({
           type="button"
           onClick={() => ambience.toggleMuted()}
           className="exam-btn inline-flex items-center gap-1.5 rounded-full border border-[var(--exam-border)] bg-[rgba(23,31,54,0.72)] px-3 py-1.5 text-[11px] font-medium text-[var(--exam-muted)] hover:border-[var(--exam-accent)] hover:text-[var(--exam-text)] sm:text-xs"
-          aria-label={ambience.muted ? "Unmute question music" : "Mute question music"}
-          title="Ambient music"
+          aria-label={ambience.muted ? "Unmute quiz music" : "Mute quiz music"}
+          title="Quiz tension music"
         >
           {ambience.muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
-          <span className="hidden sm:inline">{ambience.muted ? "Music off" : "Ambience"}</span>
+          <span className="hidden sm:inline">{ambience.muted ? "Music off" : "Quiz music"}</span>
           <span className="sm:hidden">{ambience.muted ? "Off" : "Music"}</span>
         </button>
       </div>
