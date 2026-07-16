@@ -5,6 +5,7 @@ import {
   putSyncRecord,
   SyncBackendError,
   syncBackendKind,
+  syncBackendStatus,
 } from "@/infrastructure/sync/sync-store";
 import { generateUserCode, isValidUserCode } from "@/infrastructure/sync/usercode";
 
@@ -16,13 +17,15 @@ const MAX_CLAIM_ATTEMPTS = 8;
 
 function errorResponse(error: unknown) {
   if (error instanceof SyncBackendError) {
-    return NextResponse.json(
-      { error: error.message, backend: syncBackendKind() },
-      { status: error.status },
-    );
+    return NextResponse.json({ error: error.message, ...syncBackendStatus() }, { status: error.status });
   }
   const message = error instanceof Error ? error.message : "Unexpected sync error";
-  return NextResponse.json({ error: message, backend: syncBackendKind() }, { status: 500 });
+  return NextResponse.json({ error: message, ...syncBackendStatus() }, { status: 500 });
+}
+
+/** Health/diagnostics (no secrets). */
+export async function GET() {
+  return NextResponse.json(syncBackendStatus());
 }
 
 export async function POST(request: Request) {

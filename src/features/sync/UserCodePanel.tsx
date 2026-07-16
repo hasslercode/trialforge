@@ -90,8 +90,8 @@ export function UserCodePanel({ onProgressLoaded, flushProgress }: Props) {
           <p className="text-sm font-medium text-[var(--exam-text)]">Progress code</p>
           <p className="mt-1 text-xs leading-5 text-[var(--exam-muted)]">
             Works mid-practice: saves all Practice slots (timer, answers, code drafts, scores) plus the study checklist.
-            Enter the same code on another device to continue exactly where you left off. On Vercel this requires Upstash
-            Redis env vars.
+            Enter the same code on another device to continue exactly where you left off. On Vercel this needs Upstash/KV
+            Redis connected to the project.
           </p>
         </div>
       </div>

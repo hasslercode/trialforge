@@ -5,6 +5,7 @@ import {
   putSyncRecord,
   SyncBackendError,
   syncBackendKind,
+  syncBackendStatus,
 } from "@/infrastructure/sync/sync-store";
 import { isValidUserCode, normalizeUserCode } from "@/infrastructure/sync/usercode";
 
@@ -19,13 +20,10 @@ type RouteContext = {
 
 function errorResponse(error: unknown) {
   if (error instanceof SyncBackendError) {
-    return NextResponse.json(
-      { error: error.message, backend: syncBackendKind() },
-      { status: error.status },
-    );
+    return NextResponse.json({ error: error.message, ...syncBackendStatus() }, { status: error.status });
   }
   const message = error instanceof Error ? error.message : "Unexpected sync error";
-  return NextResponse.json({ error: message, backend: syncBackendKind() }, { status: 500 });
+  return NextResponse.json({ error: message, ...syncBackendStatus() }, { status: 500 });
 }
 
 async function readCode(context: RouteContext): Promise<string | null> {

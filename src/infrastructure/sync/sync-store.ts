@@ -21,8 +21,35 @@ export class SyncBackendError extends Error {
 
 const DATA_DIR = process.env.SYNC_DATA_DIR || path.join(process.cwd(), ".data", "sync");
 
-function hasUpstash(): boolean {
-  return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+type RedisCredentials = {
+  url: string;
+  token: string;
+  source: "UPSTASH_REDIS_REST_*" | "KV_REST_API_*";
+};
+
+/**
+ * Vercel Marketplace / Upstash injects either:
+ * - UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN
+ * - KV_REST_API_URL + KV_REST_API_TOKEN  (what this project has)
+ */
+function resolveRedisCredentials(): RedisCredentials | null {
+  const upstashUrl = process.env.UPSTASH_REDIS_REST_URL?.trim();
+  const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
+  if (upstashUrl && upstashToken) {
+    return { url: upstashUrl, token: upstashToken, source: "UPSTASH_REDIS_REST_*" };
+  }
+
+  const kvUrl = process.env.KV_REST_API_URL?.trim();
+  const kvToken = process.env.KV_REST_API_TOKEN?.trim();
+  if (kvUrl && kvToken) {
+    return { url: kvUrl, token: kvToken, source: "KV_REST_API_*" };
+  }
+
+  return null;
+}
+
+function hasRedis(): boolean {
+  return Boolean(resolveRedisCredentials());
 }
 
 function isVercelRuntime(): boolean {
@@ -30,9 +57,9 @@ function isVercelRuntime(): boolean {
 }
 
 function assertDurableBackend(): void {
-  if (isVercelRuntime() && !hasUpstash()) {
+  if (isVercelRuntime() && !hasRedis()) {
     throw new SyncBackendError(
-      "Progress sync is not configured on this deployment. Add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Vercel (Marketplace → Upstash Redis), then redeploy.",
+      "Progress sync is not configured on this deployment. Connect Upstash/KV Redis in Vercel (KV_REST_API_URL + KV_REST_API_TOKEN, or UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN), then redeploy.",
       503,
     );
   }
@@ -43,16 +70,15 @@ function redisKey(code: string): string {
 }
 
 async function upstashCommand(command: unknown[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) {
-    throw new SyncBackendError("Upstash is not configured", 503);
+  const credentials = resolveRedisCredentials();
+  if (!credentials) {
+    throw new SyncBackendError("Upstash/KV Redis is not configured", 503);
   }
 
-  const response = await fetch(url, {
+  const response = await fetch(credentials.url, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${credentials.token}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(command),
@@ -111,12 +137,22 @@ async function writeFileRecord(record: SyncRecord): Promise<void> {
 
 async function readUpstashRecord(code: string): Promise<SyncRecord | null> {
   const result = await upstashCommand(["GET", redisKey(code)]);
-  if (typeof result !== "string" || !result) return null;
-  try {
-    return normalizeRecord(code, JSON.parse(result));
-  } catch {
-    return null;
+  if (result == null) return null;
+
+  if (typeof result === "string") {
+    if (!result) return null;
+    try {
+      return normalizeRecord(code, JSON.parse(result));
+    } catch {
+      return null;
+    }
   }
+
+  if (typeof result === "object") {
+    return normalizeRecord(code, result);
+  }
+
+  return null;
 }
 
 async function writeUpstashRecord(record: SyncRecord): Promise<void> {
@@ -125,7 +161,7 @@ async function writeUpstashRecord(record: SyncRecord): Promise<void> {
 
 export async function getSyncRecord(code: string): Promise<SyncRecord | null> {
   assertDurableBackend();
-  if (hasUpstash()) return readUpstashRecord(code);
+  if (hasRedis()) return readUpstashRecord(code);
   return readFileRecord(code);
 }
 
@@ -138,7 +174,7 @@ export async function putSyncRecord(code: string, state: PersistedState): Promis
     state: { ...state, updatedAt },
   };
 
-  if (hasUpstash()) {
+  if (hasRedis()) {
     await writeUpstashRecord(record);
   } else {
     await writeFileRecord(record);
@@ -148,7 +184,21 @@ export async function putSyncRecord(code: string, state: PersistedState): Promis
 }
 
 export function syncBackendKind(): "upstash" | "filesystem" | "unconfigured" {
-  if (hasUpstash()) return "upstash";
+  if (hasRedis()) return "upstash";
   if (isVercelRuntime()) return "unconfigured";
   return "filesystem";
+}
+
+/** Safe diagnostics (no secrets). */
+export function syncBackendStatus() {
+  const credentials = resolveRedisCredentials();
+  return {
+    backend: syncBackendKind(),
+    vercel: isVercelRuntime(),
+    redisEnv: credentials?.source ?? null,
+    hasUpstashNamedEnv: Boolean(
+      process.env.UPSTASH_REDIS_REST_URL?.trim() && process.env.UPSTASH_REDIS_REST_TOKEN?.trim(),
+    ),
+    hasKvNamedEnv: Boolean(process.env.KV_REST_API_URL?.trim() && process.env.KV_REST_API_TOKEN?.trim()),
+  };
 }
