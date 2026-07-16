@@ -1704,11 +1704,12 @@ function PracticalSessionView({
     return { ...base, ...saved };
   });
   const [activeFile, setActiveFile] = useState(session.starterFiles[session.starterFiles.length - 1]?.name ?? "");
-  const [result, setResult] = useState<Evaluation | null>(
+  const [preview, setPreview] = useState<Evaluation | null>(null);
+  const [submitted, setSubmitted] = useState<Evaluation | null>(
     progress.results.find((r) => r.sessionId === session.id) ?? null,
   );
   const skipDraftSave = useRef(true);
-  const continueTarget = getContinueTarget(sessions, progress.results, session.id, Boolean(result));
+  const continueTarget = getContinueTarget(sessions, progress.results, session.id, Boolean(submitted));
 
   const fileLocked =
     (session.kind === "css" && activeFile.endsWith(".html")) || (session.kind === "sql" && activeFile === "schema.sql");
@@ -1730,12 +1731,19 @@ function PracticalSessionView({
     return () => window.removeEventListener("pagehide", flush);
   }, [files, onDraftSubmission, session.id]);
 
-  function submit() {
+  function runTests() {
+    setPreview(evaluatePractical(session, files));
+  }
+
+  function submitPhase() {
     const evaluation = evaluatePractical(session, files);
     const stamped: SessionResult = { ...evaluation, completedAt: new Date().toISOString() };
-    setResult(evaluation);
+    setPreview(evaluation);
+    setSubmitted(evaluation);
     onComplete(stamped, undefined, files);
   }
+
+  const shown = preview ?? submitted;
 
   return (
     <section className="grid min-h-[calc(100vh-56px)] lg:grid-cols-[360px_1fr]">
@@ -1796,9 +1804,22 @@ function PracticalSessionView({
               <Lock size={11} /> *.spec.ts (locked)
             </span>
           </div>
-          <button onClick={submit} className="rounded-md bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950">
-            Run hidden tests
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={runTests}
+              className="exam-btn inline-flex items-center gap-1.5 rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm font-medium text-zinc-100 hover:border-zinc-500"
+            >
+              <Play size={14} /> Run hidden tests
+            </button>
+            <button
+              type="button"
+              onClick={submitPhase}
+              className="rounded-md bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950"
+            >
+              {submitted ? "Resubmit phase" : "Submit phase"}
+            </button>
+          </div>
         </div>
 
         <textarea
@@ -1809,17 +1830,31 @@ function PracticalSessionView({
           className="min-h-[420px] flex-1 resize-none bg-[#0d0d0f] p-5 font-mono text-sm leading-6 text-zinc-200 outline-none"
         />
 
-        {result && (
+        {shown ? (
           <div className="border-t border-zinc-800 bg-zinc-950 p-5">
             <div className="flex flex-wrap items-center gap-3">
               <Trophy size={18} className="text-zinc-300" />
-              <strong>{result.score}/100</strong>
+              <strong>{shown.score}/100</strong>
               <span className="text-sm text-zinc-500">
-                {result.passed}/{result.total} hidden tests
+                {shown.passed}/{shown.total} hidden tests
               </span>
+              {submitted && (!preview || preview === submitted) ? (
+                <span className="rounded-full border border-[rgba(134,239,172,0.35)] bg-[rgba(134,239,172,0.1)] px-2 py-0.5 text-[11px] font-medium text-[#bbf7d0]">
+                  Phase submitted
+                </span>
+              ) : (
+                <span className="rounded-full border border-[rgba(253,230,138,0.35)] bg-[rgba(253,230,138,0.1)] px-2 py-0.5 text-[11px] font-medium text-[#fde68a]">
+                  Practice run · not submitted
+                </span>
+              )}
             </div>
+            <p className="mt-2 text-xs text-zinc-500">
+              {submitted
+                ? "You can keep editing and run tests again, or resubmit to update the official score."
+                : "Running tests does not finish the phase. Submit when you are ready to lock in this score."}
+            </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              {result.feedback.map((item) => (
+              {shown.feedback.map((item) => (
                 <span
                   key={item}
                   className={`rounded px-2 py-1 text-xs ${
@@ -1830,18 +1865,20 @@ function PracticalSessionView({
                 </span>
               ))}
             </div>
-            <div className="mt-4">
-              <PhaseCompleteNav
-                scoreLabel={`${result.score}% · ${result.passed}/${result.total} tests`}
-                nextSession={continueTarget.next}
-                isLastPhase={continueTarget.isLast}
-                onBack={onBack}
-                onContinueNext={onContinueNext}
-                onViewResults={onViewResults}
-              />
-            </div>
+            {submitted ? (
+              <div className="mt-4">
+                <PhaseCompleteNav
+                  scoreLabel={`${submitted.score}% · ${submitted.passed}/${submitted.total} tests`}
+                  nextSession={continueTarget.next}
+                  isLastPhase={continueTarget.isLast}
+                  onBack={onBack}
+                  onContinueNext={onContinueNext}
+                  onViewResults={onViewResults}
+                />
+              </div>
+            ) : null}
           </div>
-        )}
+        ) : null}
       </div>
     </section>
   );
