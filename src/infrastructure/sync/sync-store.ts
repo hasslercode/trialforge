@@ -9,10 +9,33 @@ export type SyncRecord = {
   state: PersistedState;
 };
 
+export class SyncBackendError extends Error {
+  status: number;
+
+  constructor(message: string, status = 503) {
+    super(message);
+    this.name = "SyncBackendError";
+    this.status = status;
+  }
+}
+
 const DATA_DIR = process.env.SYNC_DATA_DIR || path.join(process.cwd(), ".data", "sync");
 
 function hasUpstash(): boolean {
   return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+}
+
+function isVercelRuntime(): boolean {
+  return process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV);
+}
+
+function assertDurableBackend(): void {
+  if (isVercelRuntime() && !hasUpstash()) {
+    throw new SyncBackendError(
+      "Progress sync is not configured on this deployment. Add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Vercel (Marketplace → Upstash Redis), then redeploy.",
+      503,
+    );
+  }
 }
 
 function redisKey(code: string): string {
@@ -22,7 +45,9 @@ function redisKey(code: string): string {
 async function upstashCommand(command: unknown[]): Promise<unknown> {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) throw new Error("Upstash is not configured");
+  if (!url || !token) {
+    throw new SyncBackendError("Upstash is not configured", 503);
+  }
 
   const response = await fetch(url, {
     method: "POST",
@@ -34,11 +59,11 @@ async function upstashCommand(command: unknown[]): Promise<unknown> {
   });
 
   if (!response.ok) {
-    throw new Error(`Upstash request failed (${response.status})`);
+    throw new SyncBackendError(`Upstash request failed (${response.status})`, 502);
   }
 
   const payload = (await response.json()) as { result?: unknown; error?: string };
-  if (payload.error) throw new Error(payload.error);
+  if (payload.error) throw new SyncBackendError(payload.error, 502);
   return payload.result;
 }
 
@@ -99,11 +124,13 @@ async function writeUpstashRecord(record: SyncRecord): Promise<void> {
 }
 
 export async function getSyncRecord(code: string): Promise<SyncRecord | null> {
+  assertDurableBackend();
   if (hasUpstash()) return readUpstashRecord(code);
   return readFileRecord(code);
 }
 
 export async function putSyncRecord(code: string, state: PersistedState): Promise<SyncRecord> {
+  assertDurableBackend();
   const updatedAt = state.updatedAt || new Date().toISOString();
   const record: SyncRecord = {
     code,
@@ -120,6 +147,8 @@ export async function putSyncRecord(code: string, state: PersistedState): Promis
   return record;
 }
 
-export function syncBackendKind(): "upstash" | "filesystem" {
-  return hasUpstash() ? "upstash" : "filesystem";
+export function syncBackendKind(): "upstash" | "filesystem" | "unconfigured" {
+  if (hasUpstash()) return "upstash";
+  if (isVercelRuntime()) return "unconfigured";
+  return "filesystem";
 }

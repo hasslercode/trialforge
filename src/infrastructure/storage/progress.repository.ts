@@ -219,6 +219,37 @@ function isRemoteNewer(local: PersistedState, remote: PersistedState): boolean {
   return remoteTs > localTs;
 }
 
+function countFilledSlots(state: PersistedState): number {
+  return state.app.slots.filter(Boolean).length;
+}
+
+function progressWeight(state: PersistedState): number {
+  let weight = countFilledSlots(state) * 1000;
+  for (const slot of state.app.slots) {
+    if (!slot) continue;
+    weight += slot.results.length * 20;
+    weight += Object.keys(slot.answers).length;
+    weight += Object.keys(slot.submissions).length * 5;
+  }
+  weight += Object.keys(state.study).length;
+  return weight;
+}
+
+/** Prefer richer progress so an empty/stale remote snapshot cannot wipe a filled local slot. */
+function chooseHydratedState(local: PersistedState, remote: PersistedState): PersistedState {
+  const localWeight = progressWeight(local);
+  const remoteWeight = progressWeight(remote);
+
+  if (remoteWeight === 0 && localWeight > 0) return local;
+  if (localWeight === 0 && remoteWeight > 0) return remote;
+
+  if (isRemoteNewer(local, remote) && remoteWeight >= localWeight) return remote;
+  if (isRemoteNewer(remote, local) && localWeight >= remoteWeight) return local;
+
+  // Same age or ambiguous timestamps: keep the denser snapshot.
+  return remoteWeight > localWeight ? remote : local;
+}
+
 async function queueSyncPush(state: PersistedState): Promise<void> {
   if (typeof window === "undefined") return;
   const { scheduleSyncPush } = await import("@/infrastructure/sync/sync.client");
@@ -231,7 +262,7 @@ export async function loadPersistedState(): Promise<PersistedState> {
 
 /**
  * Load local state, then pull the linked usercode snapshot if any.
- * Newer `updatedAt` wins; if local is newer, it is pushed back.
+ * Newer `updatedAt` wins only when it is at least as complete as local.
  */
 export async function hydrateProgress(): Promise<PersistedState> {
   const local = await readPersistedState();
@@ -247,12 +278,13 @@ export async function hydrateProgress(): Promise<PersistedState> {
     const remote = await pullRemoteState(code);
     if (!remote) return local;
 
-    if (isRemoteNewer(local, remote)) {
-      await writePersistedState(remote);
-      return remote;
+    const chosen = chooseHydratedState(local, remote);
+    if (chosen !== local) {
+      await writePersistedState(chosen);
+      return chosen;
     }
 
-    if (local.updatedAt && isRemoteNewer(remote, local)) {
+    if (local.updatedAt && (isRemoteNewer(remote, local) || progressWeight(local) > progressWeight(remote))) {
       void pushRemoteState(code, local);
     }
     return local;

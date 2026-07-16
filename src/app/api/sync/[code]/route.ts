@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { coercePersistedState } from "@/infrastructure/storage/progress.repository";
-import { getSyncRecord, putSyncRecord, syncBackendKind } from "@/infrastructure/sync/sync-store";
+import {
+  getSyncRecord,
+  putSyncRecord,
+  SyncBackendError,
+  syncBackendKind,
+} from "@/infrastructure/sync/sync-store";
 import { isValidUserCode, normalizeUserCode } from "@/infrastructure/sync/usercode";
 
 export const runtime = "nodejs";
@@ -11,6 +16,17 @@ const MAX_BODY_BYTES = 1_500_000;
 type RouteContext = {
   params: Promise<{ code: string }>;
 };
+
+function errorResponse(error: unknown) {
+  if (error instanceof SyncBackendError) {
+    return NextResponse.json(
+      { error: error.message, backend: syncBackendKind() },
+      { status: error.status },
+    );
+  }
+  const message = error instanceof Error ? error.message : "Unexpected sync error";
+  return NextResponse.json({ error: message, backend: syncBackendKind() }, { status: 500 });
+}
 
 async function readCode(context: RouteContext): Promise<string | null> {
   const { code: raw } = await context.params;
@@ -37,8 +53,7 @@ export async function GET(_request: Request, context: RouteContext) {
       backend: syncBackendKind(),
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unexpected sync error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return errorResponse(error);
   }
 }
 
@@ -80,7 +95,6 @@ export async function PUT(request: Request, context: RouteContext) {
       backend: syncBackendKind(),
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unexpected sync error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return errorResponse(error);
   }
 }

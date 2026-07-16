@@ -26,9 +26,10 @@ On Home, create a **progress code** (`TF-XXXX-XXXX`). The same code entered on a
 
 - Local cache: IndexedDB  
 - Sync API: `POST /api/sync`, `GET|PUT /api/sync/:code`  
-- Default store: `.data/sync` on disk  
-- Production (serverless): set `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`  
-- Optional: `SYNC_DATA_DIR` to override the filesystem path  
+- Local/dev store: `.data/sync` on disk  
+- **Vercel/production (required):** Upstash Redis via Marketplace → set `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`, then redeploy  
+  Without those vars the API returns `503` (Vercel’s filesystem is read-only under `/var/task`, so codes cannot persist there).  
+- Optional: `SYNC_DATA_DIR` to override the filesystem path in local/dev  
 
 ## Cliente actual
 

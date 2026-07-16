@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { coercePersistedState } from "@/infrastructure/storage/progress.repository";
-import { getSyncRecord, putSyncRecord, syncBackendKind } from "@/infrastructure/sync/sync-store";
+import {
+  getSyncRecord,
+  putSyncRecord,
+  SyncBackendError,
+  syncBackendKind,
+} from "@/infrastructure/sync/sync-store";
 import { generateUserCode, isValidUserCode } from "@/infrastructure/sync/usercode";
 
 export const runtime = "nodejs";
@@ -8,6 +13,17 @@ export const dynamic = "force-dynamic";
 
 const MAX_BODY_BYTES = 1_500_000;
 const MAX_CLAIM_ATTEMPTS = 8;
+
+function errorResponse(error: unknown) {
+  if (error instanceof SyncBackendError) {
+    return NextResponse.json(
+      { error: error.message, backend: syncBackendKind() },
+      { status: error.status },
+    );
+  }
+  const message = error instanceof Error ? error.message : "Unexpected sync error";
+  return NextResponse.json({ error: message, backend: syncBackendKind() }, { status: 500 });
+}
 
 export async function POST(request: Request) {
   try {
@@ -46,7 +62,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ error: "Could not allocate a progress code" }, { status: 500 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unexpected sync error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return errorResponse(error);
   }
 }
