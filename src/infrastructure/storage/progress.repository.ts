@@ -240,6 +240,27 @@ function pickRicherAttempt(a: ExamAttempt | null, b: ExamAttempt | null): ExamAt
   return a.overallScore >= b.overallScore ? a : b;
 }
 
+const PHASES_PER_PRACTICE = 5;
+
+/** Prefer the practice still in progress; otherwise the latest filled slot. */
+export function resolveActiveSlot(slots: (ExamAttempt | null)[]): number | null {
+  const filled = slots
+    .map((slot, index) => (slot ? index : -1))
+    .filter((index) => index >= 0);
+  if (!filled.length) return null;
+
+  const incomplete = filled.filter(
+    (index) => (slots[index]?.results.length ?? 0) < PHASES_PER_PRACTICE,
+  );
+  if (incomplete.length) return Math.max(...incomplete);
+
+  return Math.max(...filled);
+}
+
+function pickActiveSlot(slots: (ExamAttempt | null)[]): number | null {
+  return resolveActiveSlot(slots);
+}
+
 /**
  * Merge two snapshots without downgrading completed phases.
  * Timer ticks must never wipe a richer remote (or local) practice.
@@ -252,24 +273,10 @@ export function mergePersistedStates(a: PersistedState, b: PersistedState): Pers
     slots[i] = pickRicherAttempt(left.app.slots[i] ?? null, right.app.slots[i] ?? null);
   }
 
-  const activeSlot =
-    typeof left.app.activeSlot === "number"
-      ? left.app.activeSlot
-      : typeof right.app.activeSlot === "number"
-        ? right.app.activeSlot
-        : null;
-
   const study = { ...right.study, ...left.study };
-  // Prefer an activeSlot that still points at a filled practice.
-  const resolvedActive =
-    activeSlot !== null && slots[activeSlot]
-      ? activeSlot
-      : slots.findIndex(Boolean) === -1
-        ? null
-        : slots.findIndex(Boolean);
 
   return {
-    app: { slots, activeSlot: resolvedActive },
+    app: { slots, activeSlot: pickActiveSlot(slots) },
     study,
     updatedAt: newerUpdatedAt(left.updatedAt, right.updatedAt) || new Date().toISOString(),
   };
@@ -376,7 +383,12 @@ export async function adoptProgressCode(rawCode: string): Promise<PersistedState
   if (!remote) throw new Error("Progress code not found");
   setStoredUserCode(code);
   // Force a fresh timestamp so restore is not treated as stale vs an open timer tab.
-  const stamped = touchUpdatedAt(coercePersistedState(remote));
+  // Also point Continue at the incomplete / latest practice (stale activeSlot:0 is common).
+  const coerced = coercePersistedState(remote);
+  const stamped = touchUpdatedAt({
+    ...coerced,
+    app: { ...coerced.app, activeSlot: resolveActiveSlot(coerced.app.slots) },
+  });
   await writePersistedState(stamped);
   return stamped;
 }

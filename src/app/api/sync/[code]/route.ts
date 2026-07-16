@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   coercePersistedState,
   mergePersistedStates,
+  resolveActiveSlot,
 } from "@/infrastructure/storage/progress.repository";
 import {
   getSyncRecord,
@@ -47,10 +48,14 @@ export async function GET(_request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Progress code not found" }, { status: 404 });
     }
 
+    const state = coercePersistedState(record.state);
+    // Stale tabs often leave activeSlot on Practice #1 after Practice #2 finished.
+    state.app.activeSlot = resolveActiveSlot(state.app.slots);
+
     return NextResponse.json({
       code: record.code,
       updatedAt: record.updatedAt,
-      state: coercePersistedState(record.state),
+      state,
       backend: syncBackendKind(),
     });
   } catch (error) {
