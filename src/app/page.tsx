@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
+  ArrowRight,
   CheckCircle2,
   Circle,
   Clock3,
@@ -111,6 +112,46 @@ function canOpenPhase(sessions: ExamSession[], results: SessionResult[], session
     if (!results.some((result) => result.sessionId === sessions[i].id)) return false;
   }
   return true;
+}
+
+function withLocalPhaseComplete(
+  results: SessionResult[],
+  sessionId: string,
+  locallyCompleted: boolean,
+): SessionResult[] {
+  if (!locallyCompleted || results.some((result) => result.sessionId === sessionId)) return results;
+  return [
+    ...results,
+    {
+      sessionId,
+      score: 0,
+      passed: 0,
+      total: 0,
+      feedback: [],
+      completedAt: new Date().toISOString(),
+    },
+  ];
+}
+
+function getContinueTarget(
+  sessions: ExamSession[],
+  results: SessionResult[],
+  currentId: string,
+  locallyCompleted: boolean,
+): { next: ExamSession | null; isLast: boolean } {
+  const index = sessions.findIndex((session) => session.id === currentId);
+  if (index < 0) return { next: null, isLast: false };
+  const isLast = index === sessions.length - 1;
+  const next = sessions[index + 1] ?? null;
+  if (!next) return { next: null, isLast };
+  const effective = withLocalPhaseComplete(results, currentId, locallyCompleted);
+  if (!canOpenPhase(sessions, effective, next.id)) return { next: null, isLast: false };
+  return { next, isLast: false };
+}
+
+function phaseContinueLabel(session: ExamSession) {
+  if (session.kind === "mcq") return `Continue to ${session.phase}`;
+  return `Continue to ${session.phase}`;
 }
 
 export default function App() {
@@ -494,9 +535,12 @@ export default function App() {
             <SessionView
               key={`${app.activeSlot}-${activeSession.variantId ?? activeSession.id}`}
               session={activeSession}
+              sessions={exam.sessions}
               progress={progress}
               isMobile={isMobile}
               onBack={() => setScreen("roadmap")}
+              onContinueNext={(sessionId) => openSession(sessionId)}
+              onViewResults={() => setScreen("results")}
               onComplete={saveSessionResult}
               onDraftAnswers={saveDraftAnswers}
               onDraftSubmission={saveDraftSubmission}
@@ -1159,17 +1203,23 @@ function Roadmap({
 
 function SessionView({
   session,
+  sessions,
   progress,
   isMobile,
   onBack,
+  onContinueNext,
+  onViewResults,
   onComplete,
   onDraftAnswers,
   onDraftSubmission,
 }: {
   session: ExamSession;
+  sessions: ExamSession[];
   progress: ExamProgress;
   isMobile: boolean;
   onBack: () => void;
+  onContinueNext: (sessionId: string) => void;
+  onViewResults: () => void;
   onComplete: (result: SessionResult, answers?: Record<string, string>, submissions?: Record<string, string>) => void;
   onDraftAnswers: (answers: Record<string, string>) => void;
   onDraftSubmission: (sessionId: string, files: Record<string, string>) => void;
@@ -1178,9 +1228,12 @@ function SessionView({
     return (
       <McqSessionView
         session={session}
+        sessions={sessions}
         progress={progress}
         isMobile={isMobile}
         onBack={onBack}
+        onContinueNext={onContinueNext}
+        onViewResults={onViewResults}
         onComplete={onComplete}
         onDraftAnswers={onDraftAnswers}
       />
@@ -1192,11 +1245,81 @@ function SessionView({
   return (
     <PracticalSessionView
       session={session}
+      sessions={sessions}
       progress={progress}
       onBack={onBack}
+      onContinueNext={onContinueNext}
+      onViewResults={onViewResults}
       onComplete={onComplete}
       onDraftSubmission={onDraftSubmission}
     />
+  );
+}
+
+function PhaseCompleteNav({
+  scoreLabel,
+  nextSession,
+  isLastPhase,
+  compact = false,
+  onBack,
+  onContinueNext,
+  onViewResults,
+}: {
+  scoreLabel: string;
+  nextSession: ExamSession | null;
+  isLastPhase: boolean;
+  compact?: boolean;
+  onBack: () => void;
+  onContinueNext: (sessionId: string) => void;
+  onViewResults: () => void;
+}) {
+  return (
+    <div
+      className={`exam-glass-card border border-[var(--exam-border)] bg-[rgba(17,24,43,0.92)] shadow-[0_18px_50px_rgba(2,6,23,0.35)] ${
+        compact ? "rounded-2xl p-3.5" : "rounded-[1.35rem] p-4 sm:p-5"
+      }`}
+    >
+      <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--exam-muted)]">
+        <CheckCircle2 size={16} className="text-[var(--exam-pass)]" />
+        <span className="font-medium text-[var(--exam-text)]">Phase submitted</span>
+        <span aria-hidden>·</span>
+        <span>{scoreLabel}</span>
+      </div>
+      <div className={`mt-3 flex flex-col gap-2 ${compact ? "" : "sm:flex-row sm:items-center"}`}>
+        <button
+          type="button"
+          onClick={onBack}
+          className="exam-btn inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--exam-border)] px-4 py-3 text-sm text-[var(--exam-muted)] hover:border-[var(--exam-accent)] hover:text-[var(--exam-text)] sm:w-auto"
+        >
+          <ArrowLeft size={15} /> Back to phases
+        </button>
+        {nextSession ? (
+          <button
+            type="button"
+            onClick={() => onContinueNext(nextSession.id)}
+            className="exam-btn exam-glow-button inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold sm:w-auto sm:min-w-[12rem]"
+          >
+            {phaseContinueLabel(nextSession)}
+            <ArrowRight size={15} />
+          </button>
+        ) : isLastPhase ? (
+          <button
+            type="button"
+            onClick={onViewResults}
+            className="exam-btn exam-glow-button inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold sm:w-auto sm:min-w-[12rem]"
+          >
+            View final results
+            <ArrowRight size={15} />
+          </button>
+        ) : null}
+      </div>
+      {nextSession ? (
+        <p className="mt-2 text-xs leading-5 text-[var(--exam-faint)]">
+          Next: {nextSession.title}
+          {nextSession.kind !== "mcq" ? ` — ${nextSession.subtitle}` : ""}
+        </p>
+      ) : null}
+    </div>
   );
 }
 
@@ -1232,16 +1355,22 @@ function DesktopRequiredGate({ session, onBack }: { session: ExamSession; onBack
 
 function McqSessionView({
   session,
+  sessions,
   progress,
   isMobile,
   onBack,
+  onContinueNext,
+  onViewResults,
   onComplete,
   onDraftAnswers,
 }: {
   session: Extract<ExamSession, { kind: "mcq" }>;
+  sessions: ExamSession[];
   progress: ExamProgress;
   isMobile: boolean;
   onBack: () => void;
+  onContinueNext: (sessionId: string) => void;
+  onViewResults: () => void;
   onComplete: (result: SessionResult, answers?: Record<string, string>) => void;
   onDraftAnswers: (answers: Record<string, string>) => void;
 }) {
@@ -1265,6 +1394,7 @@ function McqSessionView({
   const isLast = safeStep >= total - 1;
   const currentAnswered = Boolean(question && answers[question.id]);
   const progressPct = total > 0 ? ((safeStep + 1) / total) * 100 : 0;
+  const continueTarget = getContinueTarget(sessions, progress.results, session.id, Boolean(result));
 
   function persistAnswers(next: Record<string, string>) {
     const namespaced = Object.fromEntries(Object.entries(next).map(([key, value]) => [`${prefix}${key}`, value]));
@@ -1293,7 +1423,7 @@ function McqSessionView({
   return (
     <section
       className={`exam-session-scene exam-fade-up mx-auto flex max-w-3xl flex-col px-4 pt-6 sm:px-5 sm:pt-8 ${
-        isMobile ? "min-h-[calc(100vh-7.5rem)] pb-28" : "pb-10"
+        isMobile ? (result ? "min-h-[calc(100vh-7.5rem)] pb-52" : "min-h-[calc(100vh-7.5rem)] pb-28") : "pb-10"
       }`}
     >
       <div className="mb-5 flex items-center justify-between gap-3">
@@ -1406,50 +1536,72 @@ function McqSessionView({
       <div
         className={
           isMobile
-            ? "fixed inset-x-0 bottom-0 z-20 border-t border-[var(--exam-border)] bg-[rgba(11,16,32,0.82)] px-4 py-3 backdrop-blur-xl"
+            ? "fixed inset-x-0 bottom-0 z-20 border-t border-[var(--exam-border)] bg-[rgba(11,16,32,0.9)] px-4 py-3 backdrop-blur-xl"
             : "mt-8"
         }
       >
-        <div className={`flex gap-2 ${isMobile ? "mx-auto max-w-3xl" : "flex-wrap items-center"}`}>
-          <button
-            type="button"
-            disabled={safeStep === 0}
-            onClick={() => setStep((s) => Math.max(0, s - 1))}
-            className="exam-btn rounded-xl border border-[var(--exam-border)] px-4 py-3 text-sm text-[var(--exam-muted)] disabled:opacity-30"
-          >
-            Previous
-          </button>
-          {!isLast ? (
+        {result ? (
+          <div className={isMobile ? "mx-auto max-w-3xl" : ""}>
+            <PhaseCompleteNav
+              scoreLabel={`${result.score}% · ${result.passed}/${result.total} correct`}
+              nextSession={continueTarget.next}
+              isLastPhase={continueTarget.isLast}
+              compact={isMobile}
+              onBack={onBack}
+              onContinueNext={onContinueNext}
+              onViewResults={onViewResults}
+            />
+            <div className="mt-2 flex gap-2">
+              <button
+                type="button"
+                disabled={safeStep === 0}
+                onClick={() => setStep((s) => Math.max(0, s - 1))}
+                className="exam-btn flex-1 rounded-xl border border-[var(--exam-border)] px-3 py-2.5 text-xs text-[var(--exam-muted)] disabled:opacity-30 sm:flex-none sm:px-4 sm:text-sm"
+              >
+                Previous
+              </button>
+              {!isLast ? (
+                <button
+                  type="button"
+                  onClick={() => setStep((s) => Math.min(total - 1, s + 1))}
+                  className="exam-btn flex-1 rounded-xl border border-[var(--exam-border)] px-3 py-2.5 text-xs text-[var(--exam-muted)] sm:flex-none sm:px-4 sm:text-sm"
+                >
+                  Next question
+                </button>
+              ) : null}
+            </div>
+          </div>
+        ) : (
+          <div className={`flex gap-2 ${isMobile ? "mx-auto max-w-3xl" : "flex-wrap items-center"}`}>
             <button
               type="button"
-              disabled={!result && !currentAnswered}
-              onClick={() => setStep((s) => Math.min(total - 1, s + 1))}
-              className="exam-btn exam-glow-button flex-1 rounded-xl py-3 text-sm font-semibold disabled:opacity-40 sm:flex-none sm:min-w-[9rem]"
+              disabled={safeStep === 0}
+              onClick={() => setStep((s) => Math.max(0, s - 1))}
+              className="exam-btn rounded-xl border border-[var(--exam-border)] px-4 py-3 text-sm text-[var(--exam-muted)] disabled:opacity-30"
             >
-              Next
+              Previous
             </button>
-          ) : (
-            <button
-              type="button"
-              onClick={submit}
-              disabled={(answered < total && !result) || Boolean(result)}
-              className="exam-btn exam-glow-button flex-1 rounded-xl py-3 text-sm font-semibold disabled:opacity-40 sm:flex-none sm:min-w-[11rem]"
-            >
-              {result ? `Submitted · ${result.score}%` : "Submit session"}
-            </button>
-          )}
-          {result && !isMobile ? (
-            <span className="text-sm text-[var(--exam-muted)]">
-              Result: <strong className="text-[var(--exam-text)]">{result.score}%</strong> ({result.passed}/
-              {result.total})
-            </span>
-          ) : null}
-        </div>
-        {result && isMobile ? (
-          <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-[var(--exam-muted)]">
-            Result: {result.score}% ({result.passed}/{result.total}) · use Previous/Next to review
-          </p>
-        ) : null}
+            {!isLast ? (
+              <button
+                type="button"
+                disabled={!currentAnswered}
+                onClick={() => setStep((s) => Math.min(total - 1, s + 1))}
+                className="exam-btn exam-glow-button flex-1 rounded-xl py-3 text-sm font-semibold disabled:opacity-40 sm:flex-none sm:min-w-[9rem]"
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={submit}
+                disabled={answered < total}
+                className="exam-btn exam-glow-button flex-1 rounded-xl py-3 text-sm font-semibold disabled:opacity-40 sm:flex-none sm:min-w-[11rem]"
+              >
+                Submit session
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -1457,14 +1609,20 @@ function McqSessionView({
 
 function PracticalSessionView({
   session,
+  sessions,
   progress,
   onBack,
+  onContinueNext,
+  onViewResults,
   onComplete,
   onDraftSubmission,
 }: {
   session: Extract<ExamSession, { kind: "javascript" | "css" | "angular" | "sql" }>;
+  sessions: ExamSession[];
   progress: ExamProgress;
   onBack: () => void;
+  onContinueNext: (sessionId: string) => void;
+  onViewResults: () => void;
   onComplete: (result: SessionResult, _answers?: Record<string, string>, submissions?: Record<string, string>) => void;
   onDraftSubmission: (sessionId: string, files: Record<string, string>) => void;
 }) {
@@ -1478,6 +1636,7 @@ function PracticalSessionView({
     progress.results.find((r) => r.sessionId === session.id) ?? null,
   );
   const skipDraftSave = useRef(true);
+  const continueTarget = getContinueTarget(sessions, progress.results, session.id, Boolean(result));
 
   const fileLocked =
     (session.kind === "css" && activeFile.endsWith(".html")) || (session.kind === "sql" && activeFile === "schema.sql");
@@ -1598,6 +1757,16 @@ function PracticalSessionView({
                   {item}
                 </span>
               ))}
+            </div>
+            <div className="mt-4">
+              <PhaseCompleteNav
+                scoreLabel={`${result.score}% · ${result.passed}/${result.total} tests`}
+                nextSession={continueTarget.next}
+                isLastPhase={continueTarget.isLast}
+                onBack={onBack}
+                onContinueNext={onContinueNext}
+                onViewResults={onViewResults}
+              />
             </div>
           </div>
         )}
