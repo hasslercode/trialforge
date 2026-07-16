@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
+  Check,
   CheckCircle2,
   Circle,
   Clock3,
@@ -20,6 +21,7 @@ import {
   Trophy,
   Volume2,
   VolumeX,
+  X,
 } from "lucide-react";
 import { bankStats, buildExam, collectUsedContent, examMeta, pickVariantSelection } from "@/content/bancolombia/exam";
 import { StudyScreen } from "@/features/study/StudyScreen";
@@ -1485,9 +1487,22 @@ function McqSessionView({
           className="exam-glass-card mt-6 flex flex-1 flex-col overflow-hidden rounded-[1.75rem] border border-[var(--exam-border)] shadow-[0_24px_70px_rgba(2,6,23,0.28)] sm:mt-8"
         >
           <div className="border-b border-[var(--exam-border-soft)] px-5 py-5 sm:px-6 sm:py-6">
-            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[var(--exam-faint)]">
-              Step {safeStep + 1}
-            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[var(--exam-faint)]">
+                Step {safeStep + 1}
+              </p>
+              {result ? (
+                answers[question.id] === question.answerId ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[rgba(134,239,172,0.35)] bg-[rgba(134,239,172,0.12)] px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-[#bbf7d0]">
+                    <Check size={12} /> Correct
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[rgba(253,164,175,0.4)] bg-[rgba(253,164,175,0.12)] px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-[#fecdd3]">
+                    <X size={12} /> Incorrect
+                  </span>
+                )
+              ) : null}
+            </div>
             <h2 className="mt-2 text-pretty text-base font-semibold leading-7 text-[var(--exam-text)] sm:text-lg sm:leading-8">
               {question.prompt}
             </h2>
@@ -1498,36 +1513,93 @@ function McqSessionView({
             <div className="space-y-2.5 p-4 sm:space-y-3 sm:p-6">
               {question.options.map((option) => {
                 const selected = answers[question.id] === option.id;
+                const isCorrect = option.id === question.answerId;
+                const reveal = Boolean(result);
+                const optionState = !reveal
+                  ? selected
+                    ? "selected"
+                    : "idle"
+                  : isCorrect
+                    ? "correct"
+                    : selected
+                      ? "wrong"
+                      : "idle";
+
+                const optionClass =
+                  optionState === "correct"
+                    ? "border-[rgba(134,239,172,0.55)] bg-[rgba(134,239,172,0.14)] shadow-[0_0_24px_rgba(134,239,172,0.12)]"
+                    : optionState === "wrong"
+                      ? "border-[rgba(253,164,175,0.55)] bg-[rgba(253,164,175,0.12)] shadow-[0_0_24px_rgba(253,164,175,0.1)]"
+                      : optionState === "selected"
+                        ? "border-[var(--exam-accent)] bg-[var(--exam-accent-soft)] shadow-[0_0_24px_rgba(139,124,246,0.18)]"
+                        : "border-[var(--exam-border-soft)] bg-[rgba(17,24,43,0.55)] hover:border-[var(--exam-border)]";
+
+                const badgeClass =
+                  optionState === "correct"
+                    ? "border-[#86efac] bg-[#86efac] text-[#070b16]"
+                    : optionState === "wrong"
+                      ? "border-[#fda4af] bg-[#fda4af] text-[#070b16]"
+                      : optionState === "selected"
+                        ? "border-[var(--exam-accent-2)] bg-[var(--exam-accent-2)] text-[#070b16]"
+                        : "border-[var(--exam-faint)] text-[var(--exam-muted)]";
+
                 return (
                   <button
                     key={option.id}
                     type="button"
                     onClick={() => selectOption(question.id, option.id)}
                     disabled={Boolean(result)}
-                    className={`exam-btn flex w-full items-start gap-3 rounded-2xl border px-4 py-3.5 text-left text-sm transition disabled:cursor-default ${
-                      selected
-                        ? "border-[var(--exam-accent)] bg-[var(--exam-accent-soft)] shadow-[0_0_24px_rgba(139,124,246,0.18)]"
-                        : "border-[var(--exam-border-soft)] bg-[rgba(17,24,43,0.55)] hover:border-[var(--exam-border)]"
+                    className={`exam-btn flex w-full items-start gap-3 rounded-2xl border px-4 py-3.5 text-left text-sm transition disabled:cursor-default ${optionClass} ${
+                      reveal && !isCorrect && !selected ? "opacity-55" : ""
                     }`}
                   >
                     <span
-                      className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border text-[10px] ${
-                        selected
-                          ? "border-[var(--exam-accent-2)] bg-[var(--exam-accent-2)] text-[#070b16]"
-                          : "border-[var(--exam-faint)] text-[var(--exam-muted)]"
-                      }`}
+                      className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border text-[10px] ${badgeClass}`}
                     >
-                      {option.id.toUpperCase()}
+                      {reveal && isCorrect ? (
+                        <Check size={12} strokeWidth={3} />
+                      ) : reveal && selected && !isCorrect ? (
+                        <X size={12} strokeWidth={3} />
+                      ) : (
+                        option.id.toUpperCase()
+                      )}
                     </span>
-                    <span className="leading-6 text-[var(--exam-text)]">{option.label}</span>
+                    <span className="min-w-0 flex-1 leading-6 text-[var(--exam-text)]">
+                      {option.label}
+                      {reveal && isCorrect ? (
+                        <span className="mt-1 block text-[0.7rem] font-semibold uppercase tracking-wide text-[#bbf7d0]">
+                          Correct answer
+                        </span>
+                      ) : null}
+                      {reveal && selected && !isCorrect ? (
+                        <span className="mt-1 block text-[0.7rem] font-semibold uppercase tracking-wide text-[#fecdd3]">
+                          Your answer
+                        </span>
+                      ) : null}
+                    </span>
                   </button>
                 );
               })}
             </div>
             {result ? (
-              <p className="border-t border-[var(--exam-border-soft)] px-5 py-4 text-xs leading-5 text-[var(--exam-muted)] sm:px-6">
-                {question.explanation}
-              </p>
+              <div
+                className={`border-t px-5 py-4 sm:px-6 ${
+                  answers[question.id] === question.answerId
+                    ? "border-[rgba(134,239,172,0.28)] bg-[rgba(134,239,172,0.08)]"
+                    : "border-[rgba(253,164,175,0.28)] bg-[rgba(253,164,175,0.08)]"
+                }`}
+              >
+                <p
+                  className={`text-sm font-semibold ${
+                    answers[question.id] === question.answerId ? "text-[#bbf7d0]" : "text-[#fecdd3]"
+                  }`}
+                >
+                  {answers[question.id] === question.answerId
+                    ? "You chose the correct option."
+                    : `Incorrect — the right answer is ${question.answerId.toUpperCase()}.`}
+                </p>
+                <p className="mt-1.5 text-xs leading-5 text-[var(--exam-muted)]">{question.explanation}</p>
+              </div>
             ) : null}
           </fieldset>
         </article>
