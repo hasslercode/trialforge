@@ -24,9 +24,10 @@ import {
   X,
 } from "lucide-react";
 import { bankStats, buildExam, collectUsedContent, examMeta, pickVariantSelection } from "@/content/bancolombia/exam";
-import { StudyScreen } from "@/features/study/StudyScreen";
 import { useQuestionAmbience } from "@/features/exam/useQuestionAmbience";
+import { StudyScreen } from "@/features/study/StudyScreen";
 import { useStudyAmbience } from "@/features/study/useStudyAmbience";
+import { UserCodePanel } from "@/features/sync/UserCodePanel";
 import type { AppState, Exam, ExamAttempt, ExamProgress, ExamSession, SessionResult } from "@/domain/exam";
 import { MAX_ATTEMPT_SLOTS } from "@/domain/exam";
 import { evaluateMcq, evaluatePractical, weightedExamScore, type Evaluation } from "@/application/evaluation-engine";
@@ -34,9 +35,10 @@ import {
   attemptToProgress,
   emptyAppState,
   emptyProgress,
-  loadAppState,
+  hydrateProgress,
   progressToAttempt,
   saveAppState,
+  type PersistedState,
 } from "@/infrastructure/storage/progress.repository";
 
 type Screen = "home" | "roadmap" | "session" | "results" | "study";
@@ -184,13 +186,20 @@ export default function App() {
   const sidebarCollapsed = (sessionMode && !sidebarPinnedOpen) || studyMode;
   const studyAmbience = useStudyAmbience(studyMode);
 
+  function applyPersisted(state: PersistedState) {
+    setApp(state.app);
+    if (state.app.activeSlot !== null) {
+      const current = state.app.slots[state.app.activeSlot];
+      if (current && current.remainingSeconds > 0) setExamRunning(true);
+      else setExamRunning(false);
+    } else {
+      setExamRunning(false);
+    }
+  }
+
   useEffect(() => {
-    void loadAppState().then((stored) => {
-      setApp(stored);
-      if (stored.activeSlot !== null) {
-        const current = stored.slots[stored.activeSlot];
-        if (current && current.remainingSeconds > 0) setExamRunning(true);
-      }
+    void hydrateProgress().then((stored) => {
+      applyPersisted(stored);
     });
   }, []);
 
@@ -516,6 +525,7 @@ export default function App() {
               onResume={resumeExam}
               onStudy={() => setScreen("study")}
               onResetAll={resetAllAttempts}
+              onProgressLoaded={applyPersisted}
             />
           )}
           {screen === "study" && <StudyScreen onBack={() => setScreen("home")} />}
@@ -850,6 +860,7 @@ function Home({
   onResume,
   onStudy,
   onResetAll,
+  onProgressLoaded,
 }: {
   overall: number;
   hasProgress: boolean;
@@ -861,6 +872,7 @@ function Home({
   onResume: () => void;
   onStudy: () => void;
   onResetAll: () => void;
+  onProgressLoaded: (state: PersistedState) => void;
 }) {
   return (
     <section className="px-4 pb-24 pt-6 sm:px-8 sm:pt-12 lg:px-10">
@@ -974,6 +986,8 @@ function Home({
           </p>
         </div>
       </div>
+
+      <UserCodePanel onProgressLoaded={onProgressLoaded} />
 
       <div className="exam-fade-up-delayed mt-6 grid grid-cols-3 gap-2 sm:gap-3">
         {[

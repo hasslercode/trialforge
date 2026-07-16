@@ -12,6 +12,7 @@ export type StudyProgress = Record<string, boolean>;
 export type PersistedState = {
   app: AppState;
   study: StudyProgress;
+  updatedAt?: string;
 };
 
 export const emptyProgress = (): ExamProgress => ({
@@ -34,6 +35,7 @@ export const emptyAppState = (): AppState => ({
 export const emptyPersistedState = (): PersistedState => ({
   app: emptyAppState(),
   study: {},
+  updatedAt: undefined,
 });
 
 export function attemptToProgress(attempt: ExamAttempt | null): ExamProgress {
@@ -75,7 +77,7 @@ function openDatabase(): Promise<IDBDatabase> {
   });
 }
 
-function normalizeAppState(value: Partial<AppState> | undefined): AppState {
+export function normalizeAppState(value: Partial<AppState> | undefined): AppState {
   const slots = emptySlots();
   if (!value) return { slots, activeSlot: null };
   const incoming = Array.isArray(value.slots) ? value.slots : [];
@@ -89,7 +91,7 @@ function normalizeAppState(value: Partial<AppState> | undefined): AppState {
   return { slots, activeSlot };
 }
 
-function normalizeStudyProgress(value: unknown): StudyProgress {
+export function normalizeStudyProgress(value: unknown): StudyProgress {
   if (!value || typeof value !== "object") return {};
   const out: StudyProgress = {};
   for (const [key, done] of Object.entries(value as Record<string, unknown>)) {
@@ -112,15 +114,38 @@ function isLegacyAppPayload(value: unknown): value is Partial<AppState> {
   return Boolean(value && typeof value === "object" && "slots" in value && !("app" in value));
 }
 
+/** Safe for client and API routes (no IndexedDB / localStorage side effects). */
+export function coercePersistedState(value: unknown): PersistedState {
+  if (!value || typeof value !== "object") {
+    return emptyPersistedState();
+  }
+
+  if (isLegacyAppPayload(value)) {
+    return {
+      app: normalizeAppState(value),
+      study: {},
+      updatedAt: undefined,
+    };
+  }
+
+  const wrapped = value as Partial<PersistedState>;
+  return {
+    app: normalizeAppState(wrapped.app),
+    study: normalizeStudyProgress(wrapped.study),
+    updatedAt: typeof wrapped.updatedAt === "string" ? wrapped.updatedAt : undefined,
+  };
+}
+
 function normalizePersisted(value: unknown): PersistedState {
   if (!value || typeof value !== "object") {
-    return { app: emptyAppState(), study: readLegacyStudyFromLocalStorage() };
+    return { app: emptyAppState(), study: readLegacyStudyFromLocalStorage(), updatedAt: undefined };
   }
 
   if (isLegacyAppPayload(value)) {
     return {
       app: normalizeAppState(value),
       study: readLegacyStudyFromLocalStorage(),
+      updatedAt: undefined,
     };
   }
 
@@ -131,12 +156,13 @@ function normalizePersisted(value: unknown): PersistedState {
   return {
     app: normalizeAppState(wrapped.app),
     study: legacyStudy,
+    updatedAt: typeof wrapped.updatedAt === "string" ? wrapped.updatedAt : undefined,
   };
 }
 
 async function readPersistedState(): Promise<PersistedState> {
   if (typeof window === "undefined" || !window.indexedDB) {
-    return { app: emptyAppState(), study: readLegacyStudyFromLocalStorage() };
+    return { app: emptyAppState(), study: readLegacyStudyFromLocalStorage(), updatedAt: undefined };
   }
 
   try {
@@ -147,7 +173,7 @@ async function readPersistedState(): Promise<PersistedState> {
       request.onerror = () => reject(request.error);
     });
   } catch {
-    return { app: emptyAppState(), study: readLegacyStudyFromLocalStorage() };
+    return { app: emptyAppState(), study: readLegacyStudyFromLocalStorage(), updatedAt: undefined };
   }
 }
 
@@ -164,6 +190,7 @@ async function writePersistedState(state: PersistedState): Promise<void> {
           {
             app: normalizeAppState(state.app),
             study: normalizeStudyProgress(state.study),
+            updatedAt: state.updatedAt,
           },
           KEY,
         );
@@ -182,8 +209,63 @@ async function writePersistedState(state: PersistedState): Promise<void> {
   }
 }
 
+function touchUpdatedAt(state: PersistedState): PersistedState {
+  return { ...state, updatedAt: new Date().toISOString() };
+}
+
+function isRemoteNewer(local: PersistedState, remote: PersistedState): boolean {
+  const localTs = Date.parse(local.updatedAt ?? "") || 0;
+  const remoteTs = Date.parse(remote.updatedAt ?? "") || 0;
+  return remoteTs > localTs;
+}
+
+async function queueSyncPush(state: PersistedState): Promise<void> {
+  if (typeof window === "undefined") return;
+  const { scheduleSyncPush } = await import("@/infrastructure/sync/sync.client");
+  scheduleSyncPush(state);
+}
+
 export async function loadPersistedState(): Promise<PersistedState> {
   return readPersistedState();
+}
+
+/**
+ * Load local state, then pull the linked usercode snapshot if any.
+ * Newer `updatedAt` wins; if local is newer, it is pushed back.
+ */
+export async function hydrateProgress(): Promise<PersistedState> {
+  const local = await readPersistedState();
+  if (typeof window === "undefined") return local;
+
+  const { getStoredUserCode, pullRemoteState, pushRemoteState } = await import(
+    "@/infrastructure/sync/sync.client"
+  );
+  const code = getStoredUserCode();
+  if (!code) return local;
+
+  try {
+    const remote = await pullRemoteState(code);
+    if (!remote) return local;
+
+    if (isRemoteNewer(local, remote)) {
+      await writePersistedState(remote);
+      return remote;
+    }
+
+    if (local.updatedAt && isRemoteNewer(remote, local)) {
+      void pushRemoteState(code, local);
+    }
+    return local;
+  } catch {
+    return local;
+  }
+}
+
+export async function replacePersistedState(state: PersistedState): Promise<PersistedState> {
+  const next = coercePersistedState(state);
+  const stamped = next.updatedAt ? next : touchUpdatedAt(next);
+  await writePersistedState(stamped);
+  return stamped;
 }
 
 export async function loadAppState(): Promise<AppState> {
@@ -193,7 +275,9 @@ export async function loadAppState(): Promise<AppState> {
 
 export async function saveAppState(state: AppState): Promise<void> {
   const persisted = await readPersistedState();
-  await writePersistedState({ ...persisted, app: normalizeAppState(state) });
+  const next = touchUpdatedAt({ ...persisted, app: normalizeAppState(state) });
+  await writePersistedState(next);
+  void queueSyncPush(next);
 }
 
 export async function loadStudyProgress(): Promise<StudyProgress> {
@@ -203,5 +287,41 @@ export async function loadStudyProgress(): Promise<StudyProgress> {
 
 export async function saveStudyProgress(study: StudyProgress): Promise<void> {
   const persisted = await readPersistedState();
-  await writePersistedState({ ...persisted, study: normalizeStudyProgress(study) });
+  const next = touchUpdatedAt({ ...persisted, study: normalizeStudyProgress(study) });
+  await writePersistedState(next);
+  void queueSyncPush(next);
+}
+
+export async function createProgressCode(): Promise<{ code: string; state: PersistedState }> {
+  const local = touchUpdatedAt(await readPersistedState());
+  await writePersistedState(local);
+  const { claimRemoteState, setStoredUserCode } = await import("@/infrastructure/sync/sync.client");
+  const code = await claimRemoteState(local);
+  setStoredUserCode(code);
+  return { code, state: local };
+}
+
+export async function adoptProgressCode(rawCode: string): Promise<PersistedState> {
+  const [{ pullRemoteState, setStoredUserCode }, { normalizeUserCode }] = await Promise.all([
+    import("@/infrastructure/sync/sync.client"),
+    import("@/infrastructure/sync/usercode"),
+  ]);
+
+  const code = normalizeUserCode(rawCode);
+  const remote = await pullRemoteState(code);
+  if (!remote) throw new Error("Progress code not found");
+  setStoredUserCode(code);
+  const stamped = remote.updatedAt ? remote : touchUpdatedAt(remote);
+  await writePersistedState(stamped);
+  return stamped;
+}
+
+if (typeof window !== "undefined") {
+  const flush = () => {
+    void import("@/infrastructure/sync/sync.client").then((mod) => mod.flushSyncPush());
+  };
+  window.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") flush();
+  });
+  window.addEventListener("pagehide", flush);
 }

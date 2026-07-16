@@ -11,7 +11,7 @@ Plataforma local-first para **simular pruebas técnicas** reales. Hoy corre el t
 
 ## Stack
 
-Next.js · React · TypeScript · Tailwind · IndexedDB
+Next.js · React · TypeScript · Tailwind · IndexedDB · sync API (usercode)
 
 ## Inicio
 
@@ -19,6 +19,16 @@ Next.js · React · TypeScript · Tailwind · IndexedDB
 npm install
 npm run dev
 ```
+
+## Progress code (cross-device)
+
+On Home, create a **progress code** (`TF-XXXX-XXXX`). The same code entered on another device restores practices + study checklist.
+
+- Local cache: IndexedDB  
+- Sync API: `POST /api/sync`, `GET|PUT /api/sync/:code`  
+- Default store: `.data/sync` on disk  
+- Production (serverless): set `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`  
+- Optional: `SYNC_DATA_DIR` to override the filesystem path  
 
 ## Cliente actual
 
