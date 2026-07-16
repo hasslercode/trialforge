@@ -39,7 +39,7 @@ export class TodoBoardComponent {
   todos: Todo[] = [];
   activeTab: Tab = 'all';
   private seq = 1;
-  // TODO: filteredTodos, setTab, addTodo, toggle
+  // TODO: filter by tab, add items, toggle done
 }
 `,
       },
@@ -49,16 +49,16 @@ export class TodoBoardComponent {
         code: `<section class="todo">
   <nav class="todo__tabs"><!-- all / pending / done --></nav>
   <div class="todo__form">
-    <input #taskInput type="text" placeholder="New task" />
+    <input type="text" placeholder="New task" />
     <button type="button">Add</button>
   </div>
-  <ul class="todo__list"><!-- *ngFor --></ul>
+  <ul class="todo__list"><!-- render list here --></ul>
 </section>
 `,
       },
     ],
     hiddenTests: [
-      { id: "t1", name: "filtering by tab", patterns: [/activeTab|filteredTodos|pending|done/] },
+      { id: "t1", name: "filtering by tab", patterns: [/filteredTodos|activeTab\s*===\s*['"]pending['"]|filter\s*\(.*done/] },
       { id: "t2", name: "addTodo", patterns: [/addTodo\s*\(/] },
       { id: "t3", name: "toggle", patterns: [/toggle\s*\(/] },
       { id: "t4", name: "template ref or $event", patterns: [/#taskInput|\$event|taskInput\.value/] },
@@ -104,8 +104,7 @@ export class TxFilterComponent {
   @Input() transactions: Tx[] = [];
   @Output() filtered = new EventEmitter<Tx[]>();
   query = '';
-  // TODO: get visible(): Tx[]
-  // TODO: onQuery(value: string)
+  // TODO: filter transactions as the user types
 }
 `,
       },
@@ -113,9 +112,9 @@ export class TxFilterComponent {
         name: "tx-filter.component.html",
         language: "html",
         code: `<section>
-  <input #queryInput type="search" placeholder="Search transaction" />
+  <input type="search" placeholder="Search transaction" />
   <ul>
-    <!-- *ngFor for visible -->
+    <!-- render filtered results -->
   </ul>
 </section>
 `,
@@ -123,7 +122,7 @@ export class TxFilterComponent {
     ],
     hiddenTests: [
       { id: "t1", name: "@Input transactions", patterns: [/@Input\(\)\s*transactions/] },
-      { id: "t2", name: "filters description", patterns: [/description|includes|toLowerCase|filter/] },
+      { id: "t2", name: "filters description", patterns: [/toLowerCase\s*\(|\.includes\s*\(|\.filter\s*\(/] },
       { id: "t3", name: "template ref or input event", patterns: [/#queryInput|\$event|\(input\)|\(keyup\)/] },
       { id: "t4", name: "*ngFor", patterns: [/\*ngFor/] },
       { id: "t5", name: "no Reactive Forms", patterns: [/./], forbidden: [/ReactiveFormsModule|FormControl|formControlName/] },
@@ -174,7 +173,7 @@ export class ProductsBoardComponent {
     { id: 2, name: 'Visa Gold', kind: 'cards', favorite: true },
     { id: 3, name: 'Personal loan', kind: 'loans', favorite: false },
   ];
-  // TODO: filtered, setTab, toggleFavorite
+  // TODO: filter by product kind and favorite mutation
 }
 `,
       },
@@ -182,14 +181,14 @@ export class ProductsBoardComponent {
         name: "products-board.component.html",
         language: "html",
         code: `<nav><!-- tabs --></nav>
-<ul><!-- *ngFor filtered --></ul>
+<ul><!-- render products for active tab --></ul>
 `,
       },
     ],
     hiddenTests: [
-      { id: "t1", name: "activeTab / filtered", patterns: [/activeTab|filtered/] },
-      { id: "t2", name: "setTab or tab change", patterns: [/setTab|activeTab\s*=/] },
-      { id: "t3", name: "toggleFavorite", patterns: [/toggleFavorite/] },
+      { id: "t1", name: "activeTab / filtered", patterns: [/get\s+filtered|filtered\s*\(|filter\s*\(.*kind/] },
+      { id: "t2", name: "setTab or tab change", patterns: [/setTab\s*\(|activeTab\s*=\s*tab|activeTab\s*=\s*kind/] },
+      { id: "t3", name: "toggleFavorite", patterns: [/toggleFavorite\s*\(/] },
       { id: "t4", name: "*ngFor", patterns: [/\*ngFor/] },
       { id: "t5", name: "no Reactive Forms", patterns: [/./], forbidden: [/ReactiveFormsModule|FormBuilder|FormControl/] },
     ],
@@ -229,14 +228,14 @@ toggleFavorite(id: number) {
 export class OtpComponent {
   @Output() completed = new EventEmitter<string>();
   error = '';
-  // TODO: submitOtp(value: string)
+  // TODO: validate and emit the OTP code
 }
 `,
       },
       {
         name: "otp.component.html",
         language: "html",
-        code: `<input #otpInput maxlength="6" inputmode="numeric" placeholder="Code" />
+        code: `<input maxlength="6" inputmode="numeric" placeholder="Code" />
 <button type="button">Confirm</button>
 <p *ngIf="error">{{ error }}</p>
 `,
@@ -245,7 +244,7 @@ export class OtpComponent {
     hiddenTests: [
       { id: "t1", name: "submitOtp", patterns: [/submitOtp\s*\(/] },
       { id: "t2", name: "validates 6 digits", patterns: [/\\d\{6\}|length\s*===\s*6|test\s*\(/] },
-      { id: "t3", name: "EventEmitter completed", patterns: [/completed\.emit|EventEmitter/] },
+      { id: "t3", name: "EventEmitter completed", patterns: [/completed\.emit\s*\(/] },
       { id: "t4", name: "template ref or $event", patterns: [/#otpInput|\$event|otpInput\.value/] },
       { id: "t5", name: "no Reactive Forms", patterns: [/./], forbidden: [/ReactiveFormsModule|FormControl|formControlName/] },
     ],
@@ -293,7 +292,7 @@ export class ChecklistComponent {
     { id: 3, tab: 'data', label: 'Address', done: false },
     { id: 4, tab: 'confirm', label: 'Accept terms', done: false },
   ];
-  // TODO: visible, progress, setTab, toggleItem
+  // TODO: filter by tab and mark checklist items
 }
 `,
       },
@@ -302,14 +301,14 @@ export class ChecklistComponent {
         language: "html",
         code: `<nav><!-- tabs --></nav>
 <p><!-- progress.done / progress.total --></p>
-<ul><!-- *ngFor visible --></ul>
+<ul><!-- render checklist items --></ul>
 `,
       },
     ],
     hiddenTests: [
-      { id: "t1", name: "activeTab + visible", patterns: [/activeTab|visible/] },
-      { id: "t2", name: "progress", patterns: [/progress/] },
-      { id: "t3", name: "toggleItem", patterns: [/toggleItem/] },
+      { id: "t1", name: "activeTab + visible", patterns: [/get\s+visible|visible\s*\(|filter\s*\(.*tab/] },
+      { id: "t2", name: "progress", patterns: [/get\s+progress|progress\s*[:=]/] },
+      { id: "t3", name: "toggleItem", patterns: [/toggleItem\s*\(/] },
       { id: "t4", name: "*ngFor", patterns: [/\*ngFor/] },
       { id: "t5", name: "no Reactive Forms", patterns: [/./], forbidden: [/ReactiveFormsModule|FormBuilder|FormControl/] },
     ],

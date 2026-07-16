@@ -45,7 +45,7 @@ CREATE TABLE movements (
       {
         name: "query.sql",
         language: "sql",
-        code: `-- TODO: list movements for :accountId between :from and :to
+        code: `-- TODO: list movements for account in date range
 `,
       },
     ],
@@ -103,7 +103,7 @@ ORDER BY created_at DESC;`,
       {
         name: "query.sql",
         language: "sql",
-        code: `-- TODO: totals by category (debits)
+        code: `-- TODO: spending totals by category
 `,
       },
     ],
@@ -161,7 +161,7 @@ CREATE TABLE accounts (
       {
         name: "query.sql",
         language: "sql",
-        code: `-- TODO: customers + balance (LEFT JOIN)
+        code: `-- TODO: customers with account balance
 `,
       },
     ],
@@ -213,7 +213,7 @@ ORDER BY a.balance DESC NULLS LAST;`,
       {
         name: "query.sql",
         language: "sql",
-        code: `-- TODO: duplicate groups with HAVING
+        code: `-- TODO: find duplicate transfer groups
 `,
       },
     ],

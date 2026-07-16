@@ -49,7 +49,7 @@ export function normalizeMovements(movements) {
       { id: "t2", name: "uses map/filter", patterns: [/\.map\s*\(/, /\.filter\s*\(/] },
       { id: "t3", name: "converts amount and date", patterns: [/Number\s*\(|parseFloat\s*\(/, /toISOString|Date\s*\(/] },
       { id: "t4", name: "sorts by date", patterns: [/\.sort\s*\(/] },
-      { id: "t5", name: "calculates runningBalance", patterns: [/runningBalance/] },
+      { id: "t5", name: "calculates runningBalance", patterns: [/runningBalance\s*:\s*balance|runningBalance\s*=|balance\s*\+=/] },
       { id: "t6", name: "no external libraries", patterns: [/./], forbidden: [/require\s*\(|from\s+['"]lodash/] },
     ],
     hints: [
@@ -108,8 +108,8 @@ export function groupByCategory(transactions) {
     ],
     hiddenTests: [
       { id: "t1", name: "exports groupByCategory", patterns: [/function\s+groupByCategory/] },
-      { id: "t2", name: "accumulates totals", patterns: [/total|reduce|Map/] },
-      { id: "t3", name: "includes count", patterns: [/count/] },
+      { id: "t2", name: "accumulates totals", patterns: [/\.total\s*\+=|total\s*:\s*0|reduce\s*\(/] },
+      { id: "t3", name: "includes count", patterns: [/\.count\s*\+=|count\s*:\s*0/] },
       { id: "t4", name: "sorts descending", patterns: [/\.sort\s*\(/] },
       { id: "t5", name: "filters invalid values or validates amount", patterns: [/isFinite|Number\.isFinite|filter/] },
       { id: "t6", name: "no libraries", patterns: [/./], forbidden: [/lodash|underscore/] },
@@ -164,7 +164,7 @@ export async function retryPayment(request, { retries = 3 } = {}) {
     ],
     hiddenTests: [
       { id: "t1", name: "exports async retryPayment", patterns: [/async\s+function\s+retryPayment|function\s+retryPayment/] },
-      { id: "t2", name: "uses a loop or retries", patterns: [/for\s*\(|while\s*\(|retries/] },
+      { id: "t2", name: "uses a loop or retries", patterns: [/for\s*\(|while\s*\(/] },
       { id: "t3", name: "try/catch", patterns: [/try\s*\{/, /catch/] },
       { id: "t4", name: "considers 4xx/5xx status", patterns: [/status|4\d\d|5\d\d/] },
       { id: "t5", name: "no setInterval", patterns: [/./], forbidden: [/setInterval/] },

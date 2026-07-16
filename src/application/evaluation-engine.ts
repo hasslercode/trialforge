@@ -38,12 +38,27 @@ export function evaluateMcq(sessionId: string, questions: McqQuestion[], answers
   };
 }
 
+/** Files the candidate is expected to edit — exclude locked reference files from grading. */
+export function solutionCodeBlob(
+  kind: Exclude<ExamSession["kind"], "mcq">,
+  files: Record<string, string>,
+): string {
+  return Object.entries(files)
+    .filter(([name]) => {
+      if (kind === "sql" && name === "schema.sql") return false;
+      if (kind === "css" && name.endsWith(".html")) return false;
+      return true;
+    })
+    .map(([, code]) => code)
+    .join("\n\n");
+}
+
 export function evaluatePractical(session: ExamSession, files: Record<string, string>): Evaluation {
   if (session.kind === "mcq") {
     throw new Error("Use evaluateMcq for MCQ sessions");
   }
 
-  const blob = Object.values(files).join("\n\n");
+  const blob = solutionCodeBlob(session.kind, files);
   const result = runHiddenTests(blob, session.hiddenTests);
   return { ...result, sessionId: session.id };
 }
