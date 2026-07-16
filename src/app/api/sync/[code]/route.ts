@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { coercePersistedState } from "@/infrastructure/storage/progress.repository";
+import {
+  coercePersistedState,
+  mergePersistedStates,
+} from "@/infrastructure/storage/progress.repository";
 import {
   getSyncRecord,
   putSyncRecord,
@@ -80,10 +83,12 @@ export async function PUT(request: Request, context: RouteContext) {
     }
 
     const body = (parsed && typeof parsed === "object" ? parsed : {}) as { state?: unknown };
-    const state = coercePersistedState(body.state);
+    const incoming = coercePersistedState(body.state);
+    // Server-side merge: stale browser tabs must not downgrade richer progress.
+    const merged = mergePersistedStates(existing.state, incoming);
     const stamped = {
-      ...state,
-      updatedAt: state.updatedAt || new Date().toISOString(),
+      ...merged,
+      updatedAt: new Date().toISOString(),
     };
 
     const record = await putSyncRecord(code, stamped);
@@ -91,6 +96,7 @@ export async function PUT(request: Request, context: RouteContext) {
       code: record.code,
       updatedAt: record.updatedAt,
       backend: syncBackendKind(),
+      merged: true,
     });
   } catch (error) {
     return errorResponse(error);
