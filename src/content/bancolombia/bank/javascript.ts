@@ -272,8 +272,8 @@ export function uniqueSortedIds(ids) {
       { id: "t2", name: "uses Set or unique filtering", patterns: [/Set|filter/] },
       { id: "t3", name: "sorts", patterns: [/\.sort\s*\(/] },
       { id: "t4", name: "filters valid strings", patterns: [/typeof|filter|trim/] },
-      { id: "t5", name: "does not sort the direct input without a copy", patterns: [/\[|\.\.\.|slice|filter|map|Array\.from/] },
-      { id: "t6", name: "no lodash", patterns: [/./], forbidden: [/lodash|uniq/] },
+      { id: "t5", name: "does not sort the direct input without a copy", patterns: [/\[\.\.\.|Array\.from|\.slice\s*\(|\.map\s*\(|\.filter\s*\(/] },
+      { id: "t6", name: "no lodash", patterns: [/./], forbidden: [/from\s+['\"]lodash['\"]|require\s*\(\s*['\"]lodash|[_]\.(uniq|uniqBy)\b/] },
     ],
     hints: ["Filter with typeof === 'string' && trim.", "[...new Set(clean)].sort()"],
     solution: `export function uniqueSortedIds(ids) {

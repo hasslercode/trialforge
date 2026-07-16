@@ -1302,7 +1302,7 @@ function McqSessionView({
           onClick={onBack}
           className="flex items-center gap-2 text-sm text-[var(--exam-muted)] hover:text-[var(--exam-text)]"
         >
-          <ArrowLeft size={15} /> {isMobile ? "Phases" : "Back to phases"}
+          <ArrowLeft size={15} /> Back to phases
         </button>
         <button
           type="button"
