@@ -12,9 +12,11 @@ import { isValidUserCode, normalizeUserCode } from "@/infrastructure/sync/userco
 
 type Props = {
   onProgressLoaded: (state: PersistedState) => void;
+  /** Flush in-memory practice state (timer, drafts) before snapshotting a code. */
+  flushProgress?: () => Promise<void>;
 };
 
-export function UserCodePanel({ onProgressLoaded }: Props) {
+export function UserCodePanel({ onProgressLoaded, flushProgress }: Props) {
   const [code, setCode] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState<"create" | "adopt" | null>(null);
@@ -31,10 +33,11 @@ export function UserCodePanel({ onProgressLoaded }: Props) {
     setError(null);
     setMessage(null);
     try {
+      if (flushProgress) await flushProgress();
       const result = await createProgressCode();
       setCode(result.code);
       onProgressLoaded(result.state);
-      setMessage("Progress code ready. Use it on another device to continue.");
+      setMessage("Progress code ready — includes in-progress practices. Use it on another device to continue.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not create progress code");
     } finally {
@@ -86,8 +89,8 @@ export function UserCodePanel({ onProgressLoaded }: Props) {
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-[var(--exam-text)]">Progress code</p>
           <p className="mt-1 text-xs leading-5 text-[var(--exam-muted)]">
-            Save practices and study checklist to a code, then enter it on another device to continue exactly where you
-            left off.
+            Works mid-practice: saves all Practice slots (timer, answers, code drafts, scores) plus the study checklist.
+            Enter the same code on another device to continue exactly where you left off.
           </p>
         </div>
       </div>

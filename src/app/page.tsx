@@ -526,6 +526,9 @@ export default function App() {
               onStudy={() => setScreen("study")}
               onResetAll={resetAllAttempts}
               onProgressLoaded={applyPersisted}
+              flushProgress={async () => {
+                await saveAppState(app);
+              }}
             />
           )}
           {screen === "study" && <StudyScreen onBack={() => setScreen("home")} />}
@@ -861,6 +864,7 @@ function Home({
   onStudy,
   onResetAll,
   onProgressLoaded,
+  flushProgress,
 }: {
   overall: number;
   hasProgress: boolean;
@@ -873,6 +877,7 @@ function Home({
   onStudy: () => void;
   onResetAll: () => void;
   onProgressLoaded: (state: PersistedState) => void;
+  flushProgress: () => Promise<void>;
 }) {
   return (
     <section className="px-4 pb-24 pt-6 sm:px-8 sm:pt-12 lg:px-10">
@@ -987,7 +992,7 @@ function Home({
         </div>
       </div>
 
-      <UserCodePanel onProgressLoaded={onProgressLoaded} />
+      <UserCodePanel onProgressLoaded={onProgressLoaded} flushProgress={flushProgress} />
 
       <div className="exam-fade-up-delayed mt-6 grid grid-cols-3 gap-2 sm:gap-3">
         {[
@@ -1742,7 +1747,11 @@ function PracticalSessionView({
   useEffect(() => {
     const flush = () => onDraftSubmission(session.id, files);
     window.addEventListener("pagehide", flush);
-    return () => window.removeEventListener("pagehide", flush);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      // Persist latest editor draft when leaving the phase (e.g. Home → create progress code).
+      flush();
+    };
   }, [files, onDraftSubmission, session.id]);
 
   function runTests() {
