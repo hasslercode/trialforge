@@ -47,7 +47,7 @@ export function UserCodePanel({ onProgressLoaded, flushProgress }: Props) {
 
   async function handleAdopt(event: FormEvent) {
     event.preventDefault();
-    const normalized = normalizeUserCode(input);
+    const normalized = normalizeUserCode(input || code || "");
     if (!isValidUserCode(normalized)) {
       setError("Use a code like TF-7K2M-9HQR");
       return;
@@ -149,7 +149,7 @@ export function UserCodePanel({ onProgressLoaded, flushProgress }: Props) {
         />
         <button
           type="submit"
-          disabled={busy !== null || !input.trim()}
+          disabled={busy !== null || !(input.trim() || code)}
           className="exam-btn inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--exam-border)] bg-[rgba(23,31,54,0.7)] px-4 py-2.5 text-sm font-medium text-[var(--exam-text)] hover:border-[var(--exam-accent)] hover:bg-[var(--exam-accent-soft)] disabled:cursor-not-allowed disabled:opacity-40"
         >
           {busy === "adopt" ? <LoaderCircle size={16} className="animate-spin" /> : null}

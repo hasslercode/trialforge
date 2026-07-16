@@ -1,5 +1,8 @@
 import type { PersistedState } from "@/infrastructure/storage/progress.repository";
-import { coercePersistedState } from "@/infrastructure/storage/progress.repository";
+import {
+  coercePersistedState,
+  mergePersistedStates,
+} from "@/infrastructure/storage/progress.repository";
 import { isValidUserCode, normalizeUserCode } from "@/infrastructure/sync/usercode";
 
 const USERCODE_KEY = "trialforge-usercode-v1";
@@ -121,7 +124,16 @@ export async function claimRemoteState(state: PersistedState): Promise<string> {
 async function runPush(state: PersistedState): Promise<void> {
   const code = getStoredUserCode();
   if (!code) return;
-  await pushRemoteState(code, state);
+
+  // Merge with remote first so a mid-progress tab cannot downgrade a richer snapshot.
+  let next = coercePersistedState(state);
+  try {
+    const remote = await pullRemoteState(code);
+    if (remote) next = mergePersistedStates(next, remote);
+  } catch {
+    /* push local best-effort if remote read fails */
+  }
+  await pushRemoteState(code, next);
 }
 
 export function scheduleSyncPush(state: PersistedState): void {

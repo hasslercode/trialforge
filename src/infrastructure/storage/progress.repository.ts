@@ -213,41 +213,75 @@ function touchUpdatedAt(state: PersistedState): PersistedState {
   return { ...state, updatedAt: new Date().toISOString() };
 }
 
-function isRemoteNewer(local: PersistedState, remote: PersistedState): boolean {
-  const localTs = Date.parse(local.updatedAt ?? "") || 0;
-  const remoteTs = Date.parse(remote.updatedAt ?? "") || 0;
-  return remoteTs > localTs;
+function newerUpdatedAt(a?: string, b?: string): string | undefined {
+  const aTs = Date.parse(a ?? "") || 0;
+  const bTs = Date.parse(b ?? "") || 0;
+  if (!aTs && !bTs) return a || b;
+  return aTs >= bTs ? a : b;
 }
 
-function countFilledSlots(state: PersistedState): number {
-  return state.app.slots.filter(Boolean).length;
+function attemptRichness(attempt: ExamAttempt | null): number {
+  if (!attempt) return 0;
+  return (
+    attempt.results.length * 100 +
+    Object.keys(attempt.submissions).length * 10 +
+    Object.keys(attempt.answers).length +
+    attempt.overallScore
+  );
+}
+
+function pickRicherAttempt(a: ExamAttempt | null, b: ExamAttempt | null): ExamAttempt | null {
+  if (!a) return b;
+  if (!b) return a;
+  const ra = attemptRichness(a);
+  const rb = attemptRichness(b);
+  if (ra !== rb) return ra > rb ? a : b;
+  // Same completeness: keep the one with more remaining work saved / higher score already preferred above.
+  return a.overallScore >= b.overallScore ? a : b;
+}
+
+/**
+ * Merge two snapshots without downgrading completed phases.
+ * Timer ticks must never wipe a richer remote (or local) practice.
+ */
+export function mergePersistedStates(a: PersistedState, b: PersistedState): PersistedState {
+  const left = coercePersistedState(a);
+  const right = coercePersistedState(b);
+  const slots = emptySlots();
+  for (let i = 0; i < MAX_ATTEMPT_SLOTS; i += 1) {
+    slots[i] = pickRicherAttempt(left.app.slots[i] ?? null, right.app.slots[i] ?? null);
+  }
+
+  const activeSlot =
+    typeof left.app.activeSlot === "number"
+      ? left.app.activeSlot
+      : typeof right.app.activeSlot === "number"
+        ? right.app.activeSlot
+        : null;
+
+  const study = { ...right.study, ...left.study };
+  // Prefer an activeSlot that still points at a filled practice.
+  const resolvedActive =
+    activeSlot !== null && slots[activeSlot]
+      ? activeSlot
+      : slots.findIndex(Boolean) === -1
+        ? null
+        : slots.findIndex(Boolean);
+
+  return {
+    app: { slots, activeSlot: resolvedActive },
+    study,
+    updatedAt: newerUpdatedAt(left.updatedAt, right.updatedAt) || new Date().toISOString(),
+  };
 }
 
 function progressWeight(state: PersistedState): number {
-  let weight = countFilledSlots(state) * 1000;
+  let weight = 0;
   for (const slot of state.app.slots) {
-    if (!slot) continue;
-    weight += slot.results.length * 20;
-    weight += Object.keys(slot.answers).length;
-    weight += Object.keys(slot.submissions).length * 5;
+    weight += attemptRichness(slot);
   }
   weight += Object.keys(state.study).length;
   return weight;
-}
-
-/** Prefer richer progress so an empty/stale remote snapshot cannot wipe a filled local slot. */
-function chooseHydratedState(local: PersistedState, remote: PersistedState): PersistedState {
-  const localWeight = progressWeight(local);
-  const remoteWeight = progressWeight(remote);
-
-  if (remoteWeight === 0 && localWeight > 0) return local;
-  if (localWeight === 0 && remoteWeight > 0) return remote;
-
-  if (isRemoteNewer(local, remote) && remoteWeight >= localWeight) return remote;
-  if (isRemoteNewer(remote, local) && localWeight >= remoteWeight) return local;
-
-  // Same age or ambiguous timestamps: keep the denser snapshot.
-  return remoteWeight > localWeight ? remote : local;
 }
 
 async function queueSyncPush(state: PersistedState): Promise<void> {
@@ -261,8 +295,8 @@ export async function loadPersistedState(): Promise<PersistedState> {
 }
 
 /**
- * Load local state, then pull the linked usercode snapshot if any.
- * Newer `updatedAt` wins only when it is at least as complete as local.
+ * Load local state, then merge with the linked usercode snapshot.
+ * Completeness wins over newer `updatedAt` (timer ticks are not truth).
  */
 export async function hydrateProgress(): Promise<PersistedState> {
   const local = await readPersistedState();
@@ -278,16 +312,14 @@ export async function hydrateProgress(): Promise<PersistedState> {
     const remote = await pullRemoteState(code);
     if (!remote) return local;
 
-    const chosen = chooseHydratedState(local, remote);
-    if (chosen !== local) {
-      await writePersistedState(chosen);
-      return chosen;
-    }
+    const merged = mergePersistedStates(local, remote);
+    await writePersistedState(merged);
 
-    if (local.updatedAt && (isRemoteNewer(remote, local) || progressWeight(local) > progressWeight(remote))) {
-      void pushRemoteState(code, local);
+    // Only push when local actually adds progress beyond remote.
+    if (progressWeight(merged) > progressWeight(remote)) {
+      void pushRemoteState(code, merged);
     }
-    return local;
+    return merged;
   } catch {
     return local;
   }
@@ -343,7 +375,8 @@ export async function adoptProgressCode(rawCode: string): Promise<PersistedState
   const remote = await pullRemoteState(code);
   if (!remote) throw new Error("Progress code not found");
   setStoredUserCode(code);
-  const stamped = remote.updatedAt ? remote : touchUpdatedAt(remote);
+  // Force a fresh timestamp so restore is not treated as stale vs an open timer tab.
+  const stamped = touchUpdatedAt(coercePersistedState(remote));
   await writePersistedState(stamped);
   return stamped;
 }
