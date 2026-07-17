@@ -1,13 +1,40 @@
 export type SessionKind = "mcq" | "javascript" | "css" | "angular" | "sql";
 
+/** Mini layout preview for Flex/Grid UI questions */
+export type McqLayoutItem = {
+  label: string;
+  /** Optional inline styles for the item box (e.g. alignSelf, gridColumn) */
+  style?: Record<string, string>;
+};
+
+export type McqLayoutPreview = {
+  display: "flex" | "grid";
+  justifyContent?: string;
+  alignItems?: string;
+  flexDirection?: string;
+  flexWrap?: string;
+  gap?: string;
+  gridTemplateColumns?: string;
+  gridTemplateRows?: string;
+  items: McqLayoutItem[];
+};
+
 export type McqOption = {
   id: string;
   label: string;
+  /** Optional code snippet (HTML/TS/CSS) shown under the label */
+  code?: string;
+  /** Optional visual layout mock for CSS questions */
+  layout?: McqLayoutPreview;
 };
 
 export type McqQuestion = {
   id: string;
   prompt: string;
+  /** Optional code block shown under the prompt (component, snippet, etc.) */
+  code?: string;
+  /** Language hint for accessibility / styling */
+  codeLang?: "ts" | "html" | "css" | "js" | "sql";
   options: McqOption[];
   answerId: string;
   explanation: string;

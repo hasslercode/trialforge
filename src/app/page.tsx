@@ -24,6 +24,7 @@ import {
   X,
 } from "lucide-react";
 import { bankStats, buildExam, collectUsedContent, examMeta, pickVariantSelection } from "@/content/bancolombia/exam";
+import { McqCodeBlock, McqOptionBody } from "@/features/exam/McqRichContent";
 import { useQuestionAmbience } from "@/features/exam/useQuestionAmbience";
 import { StudyScreen } from "@/features/study/StudyScreen";
 import { useStudyAmbience } from "@/features/study/useStudyAmbience";
@@ -1012,9 +1013,10 @@ function Home({
 
       <div className="exam-fade-up-delayed mt-6 hidden gap-3 sm:grid sm:grid-cols-3 lg:grid-cols-6">
         {[
-          [`${bankStats.mcqFundamentos}`, "MCQ fundamentals"],
-          [`${bankStats.mcqWeb}`, "Web+SQL+Eng MCQ"],
-          [`${bankStats.mcqEngineering}`, "Engineering"],
+          [`${bankStats.mcqFundamentos}`, "MCQ JS + TypeScript"],
+          [`${bankStats.mcqWeb}`, "Angular/CSS/AWS/SQL"],
+          [`${bankStats.mcqAws}`, "AWS scenarios"],
+          [`${bankStats.mcqAngularCode}`, "Angular code"],
           [`${bankStats.logic}`, "JS/SQL practice"],
           [`${bankStats.css}`, "CSS variants"],
           [`${bankStats.angular}`, "Angular variants"],
@@ -1525,6 +1527,7 @@ function McqSessionView({
             <h2 className="mt-2 text-pretty text-base font-semibold leading-7 text-[var(--exam-text)] sm:text-lg sm:leading-8">
               {question.prompt}
             </h2>
+            {question.code ? <McqCodeBlock code={question.code} lang={question.codeLang} /> : null}
           </div>
 
           <fieldset className="m-0 flex flex-1 flex-col border-0 p-0">
@@ -1583,8 +1586,8 @@ function McqSessionView({
                         option.id.toUpperCase()
                       )}
                     </span>
-                    <span className="min-w-0 flex-1 leading-6 text-[var(--exam-text)]">
-                      {option.label}
+                    <span className="min-w-0 flex-1">
+                      <McqOptionBody option={option} />
                       {reveal && isCorrect ? (
                         <span className="mt-1 block text-[0.7rem] font-semibold uppercase tracking-wide text-[#bbf7d0]">
                           Correct answer

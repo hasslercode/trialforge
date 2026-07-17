@@ -8,7 +8,12 @@ import type {
 } from "@/domain/exam";
 import { mcqFundamentosBank } from "./mcq-fundamentos";
 import { mcqFundamentosExtra } from "./mcq-fundamentos-extra";
+import { mcqTypescriptBank } from "./mcq-typescript";
 import { mcqWebBank } from "./mcq-web";
+import { mcqAngularCodeBank } from "./mcq-angular-code";
+import { mcqCssLayoutsBank } from "./mcq-css-layouts";
+import { mcqHtmlCssTheoryBank } from "./mcq-html-css-theory";
+import { mcqAwsBank } from "./mcq-aws";
 import { mcqSqlBank } from "./mcq-sql";
 import { mcqEngineeringBank } from "./mcq-engineering";
 import { javascriptBank } from "./javascript";
@@ -18,9 +23,23 @@ import { sqlBank } from "./sql";
 
 export const MCQ_PER_SESSION = 10;
 
-const mcqSession1Bank = [...mcqFundamentosBank, ...mcqFundamentosExtra];
-/** Session 2 mixes web/Angular + SQL + engineering quality */
-const mcqSession2Bank = [...mcqWebBank, ...mcqSqlBank, ...mcqEngineeringBank];
+/** Session 1: JS fundamentals + TypeScript interview exercises */
+const mcqSession1Bank = [...mcqFundamentosBank, ...mcqFundamentosExtra, ...mcqTypescriptBank];
+
+/**
+ * Session 2: Angular (code/UI/guards), CSS layouts, HTML/CSS theory, AWS scenarios,
+ * plus existing web/SQL/engineering banks.
+ */
+const mcqSession2Bank = [
+  ...mcqAngularCodeBank,
+  ...mcqCssLayoutsBank,
+  ...mcqHtmlCssTheoryBank,
+  ...mcqAwsBank,
+  ...mcqWebBank,
+  ...mcqSqlBank,
+  ...mcqEngineeringBank,
+];
+
 /** Session 3: JS algorithms or SQL */
 const logicBank: PracticalVariant[] = [...javascriptBank, ...sqlBank];
 
@@ -43,6 +62,7 @@ export const examMeta = {
     "Total time limit: exactly 3 hours for the entire challenge.",
     "Passing goal: minimum score of 70%.",
     "Format: 5 sessions — 2 multiple choice and 3 hands-on practicals.",
+    "MCQs prioritize code analysis, UI reasoning, TypeScript exercises, and AWS architecture scenarios over pure memorization.",
     "Each new run prioritizes questions/practicals you have not seen in previous slots.",
     "Practical session 3 may be JavaScript or SQL depending on the draw.",
     "In practical sessions, unit test files are locked.",
@@ -52,7 +72,12 @@ export const examMeta = {
 
 export const bankStats = {
   mcqFundamentos: mcqSession1Bank.length,
+  mcqTypescript: mcqTypescriptBank.length,
   mcqWeb: mcqSession2Bank.length,
+  mcqAngularCode: mcqAngularCodeBank.length,
+  mcqCssLayouts: mcqCssLayoutsBank.length,
+  mcqHtmlCssTheory: mcqHtmlCssTheoryBank.length,
+  mcqAws: mcqAwsBank.length,
   mcqSql: mcqSqlBank.length,
   mcqEngineering: mcqEngineeringBank.length,
   javascript: javascriptBank.length,
@@ -179,8 +204,8 @@ export function buildExam(selection: VariantSelection | null): Exam {
       weight: 15,
       phase: "Session 1 · Theory",
       kind: "mcq",
-      title: "Multiple-choice questions — Fundamentals",
-      subtitle: "JavaScript, browser, security, and best practices",
+      title: "Multiple-choice questions — Fundamentals & TypeScript",
+      subtitle: "JavaScript, browser, security, and TypeScript (generics, utilities, HOFs)",
       estimatedMinutes: 25,
       questions: mcq1Questions,
       variantId: sel.mcq1.join(","),
@@ -191,8 +216,8 @@ export function buildExam(selection: VariantSelection | null): Exam {
       weight: 15,
       phase: "Session 2 · Theory",
       kind: "mcq",
-      title: "Multiple-choice questions — Web, Angular, SQL & Engineering",
-      subtitle: "CSS, Angular, SQL concepts, Clean Code, SOLID, architecture & quality",
+      title: "Multiple-choice questions — Angular, CSS, HTML & AWS",
+      subtitle: "Code/UI Angular, Flex/Grid, HTML theory, AWS architecture scenarios, SQL & engineering",
       estimatedMinutes: 25,
       questions: mcq2Questions,
       variantId: sel.mcq2.join(","),

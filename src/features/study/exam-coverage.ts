@@ -82,6 +82,18 @@ export const TOPIC_EXAM_COVERAGE: Record<string, ExamCoverage> = {
     session: "s1-mcq",
     label: "MCQ · Sesión 1",
   },
+  "ts-generics-utilities": {
+    kind: "mcq",
+    primaryId: "ts-partial-pick",
+    session: "s1-mcq",
+    label: "MCQ · TypeScript",
+  },
+  "ts-hof-curry-closures": {
+    kind: "mcq",
+    primaryId: "ts-curry-complete",
+    session: "s1-mcq",
+    label: "MCQ · TypeScript",
+  },
   "css-box-model": {
     kind: "mcq",
     primaryId: "w-box-sizing",
@@ -196,6 +208,18 @@ export const TOPIC_EXAM_COVERAGE: Record<string, ExamCoverage> = {
     session: "s2-mcq",
     label: "MCQ + Práctica Angular",
   },
+  "ng-guards-routing": {
+    kind: "mcq",
+    primaryId: "ng-guard-canactivate-scenario",
+    session: "s2-mcq",
+    label: "MCQ · Angular Guards",
+  },
+  "ng-code-templates": {
+    kind: "mcq",
+    primaryId: "ng-html-match-login",
+    session: "s2-mcq",
+    label: "MCQ · Angular código/UI",
+  },
   "sql-select-where": {
     kind: "mcq",
     primaryId: "sql-select-basic",
@@ -255,6 +279,24 @@ export const TOPIC_EXAM_COVERAGE: Record<string, ExamCoverage> = {
     primaryId: "sql-account-movements",
     session: "s3-logic",
     label: "Práctica · Sesión 3",
+  },
+  "aws-compute-apis": {
+    kind: "mcq",
+    primaryId: "aws-lambda-apigw",
+    session: "s2-mcq",
+    label: "MCQ · AWS",
+  },
+  "aws-data-storage": {
+    kind: "mcq",
+    primaryId: "aws-rds-managed-db",
+    session: "s2-mcq",
+    label: "MCQ · AWS",
+  },
+  "aws-network-ops": {
+    kind: "mcq",
+    primaryId: "aws-elb-autoscaling",
+    session: "s2-mcq",
+    label: "MCQ · AWS",
   },
   "eng-clean-code": {
     kind: "mcq",
