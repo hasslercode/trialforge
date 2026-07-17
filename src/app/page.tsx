@@ -1023,11 +1023,11 @@ function Home({
 
       <div className="exam-fade-up-delayed mt-6 hidden gap-3 sm:grid sm:grid-cols-3 lg:grid-cols-6">
         {[
-          [`${bankStats.angular}`, "Angular practicals"],
-          [`${bankStats.mcqAws}`, "AWS MCQ"],
-          [`${bankStats.mcqHtmlCss}`, "HTML/CSS MCQ"],
-          [`${bankStats.typescript}`, "TS curry practical"],
-          [`${bankStats.mcqAngularSimple}`, "Angular MCQ"],
+          [`${bankStats.angular}`, "Angular API+list"],
+          [`${bankStats.mcqAws}`, "AWS scenarios"],
+          [`${bankStats.mcqHtmlCss}`, "HTML/CSS (Grid)"],
+          [`${bankStats.typescript}`, "TS curry-likes"],
+          [`${bankStats.mcqAngular}`, "Angular MCQ"],
           [`5`, "Phases per run"],
         ].map(([value, label]) => (
           <div
