@@ -39,15 +39,13 @@ export const examMeta = {
   totalMinutes: 180,
   passThreshold: 70,
   environmentNote:
-    "Panel flow: Angular API+list → 5 AWS → 5 HTML/CSS (Grid-heavy) → TypeScript (curry/similar) → 5 Angular MCQ.",
+    "Mobile-first theory, then desktop practicals: 5 AWS → 5 HTML/CSS → 5 Angular MCQ → Angular API+list → TypeScript (curry/similar).",
   rules: [
     "Total time limit: exactly 3 hours for the entire challenge.",
     "Passing goal: minimum score of 70%.",
-    "Session 1: Angular practical — consume an API and list/filter results (sports, movies, employees, …).",
-    "Session 2: 5 AWS architecture scenario MCQs.",
-    "Session 3: 5 HTML/CSS MCQs with Grid emphasis.",
-    "Session 4: TypeScript/JS practical — curry, compose, partial, debounce, flatten, groupBy, …",
-    "Session 5: 5 straightforward Angular MCQs.",
+    "Sessions 1–3 (mobile): AWS, HTML/CSS (Grid), Angular MCQ — 5 questions each.",
+    "Sessions 4–5 (desktop): Angular API+list practical, then TypeScript curry-like practical.",
+    "On phone you can complete the three MCQ phases; code phases unlock on desktop / wide tablet.",
     "Each new run prioritizes content you have not seen in previous slots.",
     "In practicals, unit test files are locked. Angular: no ReactiveFormsModule.",
   ],
@@ -203,24 +201,13 @@ export function buildExam(selection: VariantSelection | null): Exam {
   const angularPractical = findVariant(angularBank, sel.angular);
   const typescriptPractical = findVariant(typescriptBank, sel.typescript);
 
+  /** Mobile MCQs first, then desktop practicals. */
   const sessions: ExamSession[] = [
-    toPracticalSession(
-      {
-        id: "s1-angular",
-        order: 1,
-        weight: 25,
-        phase: "Session 1 · Angular practical",
-      },
-      {
-        ...angularPractical,
-        title: "Angular — Consume API & list results",
-      },
-    ),
     {
-      id: "s2-aws",
-      order: 2,
+      id: "s1-aws",
+      order: 1,
       weight: 15,
-      phase: "Session 2 · AWS",
+      phase: "Session 1 · AWS",
       kind: "mcq",
       title: "AWS — Architecture scenarios",
       subtitle: "5 questions: choose the right service for the situation",
@@ -229,10 +216,10 @@ export function buildExam(selection: VariantSelection | null): Exam {
       variantId: sel.aws.join(","),
     },
     {
-      id: "s3-html-css",
-      order: 3,
+      id: "s2-html-css",
+      order: 2,
       weight: 15,
-      phase: "Session 3 · HTML / CSS",
+      phase: "Session 2 · HTML / CSS",
       kind: "mcq",
       title: "HTML & CSS — Grid focus",
       subtitle: "5 questions: Grid-heavy, plus Flex and core theory",
@@ -240,23 +227,11 @@ export function buildExam(selection: VariantSelection | null): Exam {
       questions: htmlCssQuestions,
       variantId: sel.htmlCss.join(","),
     },
-    toPracticalSession(
-      {
-        id: "s4-typescript",
-        order: 4,
-        weight: 30,
-        phase: "Session 4 · TypeScript practical",
-      },
-      {
-        ...typescriptPractical,
-        title: typescriptPractical.title,
-      },
-    ),
     {
-      id: "s5-angular-mcq",
-      order: 5,
+      id: "s3-angular-mcq",
+      order: 3,
       weight: 15,
-      phase: "Session 5 · Angular MCQ",
+      phase: "Session 3 · Angular MCQ",
       kind: "mcq",
       title: "Angular — Quick questions",
       subtitle: "5 straightforward questions (bindings, lists, HttpClient…)",
@@ -264,6 +239,30 @@ export function buildExam(selection: VariantSelection | null): Exam {
       questions: angularMcqQuestions,
       variantId: sel.angularMcq.join(","),
     },
+    toPracticalSession(
+      {
+        id: "s4-angular",
+        order: 4,
+        weight: 25,
+        phase: "Session 4 · Angular practical",
+      },
+      {
+        ...angularPractical,
+        title: "Angular — Consume API & list results",
+      },
+    ),
+    toPracticalSession(
+      {
+        id: "s5-typescript",
+        order: 5,
+        weight: 30,
+        phase: "Session 5 · TypeScript practical",
+      },
+      {
+        ...typescriptPractical,
+        title: typescriptPractical.title,
+      },
+    ),
   ];
 
   return {

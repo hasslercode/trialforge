@@ -38,8 +38,11 @@ On Home, create a **progress code** (`TF-XXXX-XXXX`). The same code entered on a
 
 **Bancolombia Frontend** — 5 fases · 3 horas · ≥ 70%:
 
-1. Angular práctica (API + lista/filtro: deportes, películas, empleados, …)  
-2. 5 AWS (escenarios de arquitectura)  
-3. 5 HTML/CSS (énfasis Grid)  
-4. TypeScript práctica (curry, compose, partial, debounce, flatten, groupBy, …)  
-5. 5 Angular MCQ sencillas
+**Mobile (teoría primero)**  
+1. 5 AWS (escenarios)  
+2. 5 HTML/CSS (énfasis Grid)  
+3. 5 Angular MCQ  
+
+**Desktop (prácticas)**  
+4. Angular (API + lista/filtro)  
+5. TypeScript (curry, compose, partial, debounce, flatten, groupBy, …)

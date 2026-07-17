@@ -169,7 +169,7 @@ function phaseContinueLabel(session: ExamSession) {
 export default function App() {
   const [screen, setScreen] = useState<Screen>("home");
   const [app, setApp] = useState<AppState>(emptyAppState);
-  const [activeId, setActiveId] = useState("s1-angular");
+  const [activeId, setActiveId] = useState("s1-aws");
   const [examRunning, setExamRunning] = useState(false);
   const [sidebarPinnedOpen, setSidebarPinnedOpen] = useState(false);
   const isMobile = useIsMobile();
@@ -315,7 +315,7 @@ export default function App() {
     const slots = [...app.slots] as (ExamAttempt | null)[];
     slots[slotIndex] = attempt;
     persist({ slots, activeSlot: slotIndex });
-    setActiveId("s1-angular");
+    setActiveId("s1-aws");
     setExamRunning(true);
     setScreen("roadmap");
   }
@@ -896,10 +896,10 @@ function Home({
         <div className="exam-soft-in mb-6 flex gap-3 rounded-2xl border border-[rgba(103,232,249,0.24)] bg-[linear-gradient(135deg,rgba(103,232,249,0.12),rgba(139,124,246,0.14))] p-4 shadow-[0_18px_50px_rgba(103,232,249,0.08)]">
           <Smartphone size={18} className="mt-0.5 shrink-0 text-[var(--exam-accent-2)]" />
           <div>
-            <p className="text-sm font-medium text-[var(--exam-text)]">Mobile mode · theory only</p>
+            <p className="text-sm font-medium text-[var(--exam-text)]">Mobile first · 3 MCQ phases</p>
             <p className="mt-1 text-xs leading-5 text-[var(--exam-muted)]">
-              On a phone, you can complete the multiple-choice sessions. Code practice (JS, SQL, CSS, Angular) unlocks
-              on desktop or a wide tablet.
+              On a phone: AWS → HTML/CSS → Angular MCQ. Angular and TypeScript practicals unlock on desktop or a wide
+              tablet.
             </p>
           </div>
         </div>
@@ -1110,8 +1110,8 @@ function Roadmap({
                 </h2>
                 <p className="mt-2 max-w-xl text-sm text-[var(--exam-muted)]">
                   {isMobile
-                    ? `On mobile: ${theoryDone}/${theorySessions.length} theory sessions. Code waits for PC. Phases unlock in order.`
-                    : "Phases unlock in order — finish one before opening the next. An available Practice slot unlocks only after this run is complete."}
+                    ? `Mobile first: ${theoryDone}/${theorySessions.length} MCQ phases (AWS → HTML/CSS → Angular). Desktop practicals come after.`
+                    : "Order: 3 mobile MCQs, then 2 desktop practicals. Finish each phase before the next. A new Practice slot unlocks when this run is complete."}
                 </p>
               </div>
               <div className="rounded-2xl border border-[var(--exam-border)] bg-[rgba(11,16,32,0.72)] px-4 py-3 text-left backdrop-blur-md sm:text-right">
