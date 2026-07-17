@@ -1,7 +1,7 @@
 import type { McqQuestion } from "@/domain/exam";
 
-/** MCQ bank Session 1 — JS / browser fundamentals */
-export const mcqFundamentosBank: McqQuestion[] = [
+/** Lean JS: code-result + map/filter/reduce (Bancolombia MCQ). */
+export const mcqJsEssentialsBank: McqQuestion[] = [
   {
     id: "f-spread-length",
     prompt: "What is the result of `[...'abc'].length` in JavaScript?",
@@ -39,54 +39,6 @@ export const mcqFundamentosBank: McqQuestion[] = [
     explanation: "allSettled does not stop at the first error.",
   },
   {
-    id: "f-virtualization",
-    prompt: "To list millions of rows in the DOM, the most appropriate practice is:",
-    options: [
-      { id: "a", label: "Render everything at once" },
-      { id: "b", label: "Virtualization / render windows" },
-      { id: "c", label: "Use alert() for each row" },
-      { id: "d", label: "Block the main thread with a while" },
-    ],
-    answerId: "b",
-    explanation: "Virtualization keeps the DOM lightweight.",
-  },
-  {
-    id: "f-const-let",
-    prompt: "What is one advantage of `const` vs `let` when declaring a reference to an array?",
-    options: [
-      { id: "a", label: "Freezes the array contents (Object.freeze)" },
-      { id: "b", label: "Prevents reassigning the variable to another reference" },
-      { id: "c", label: "Makes the array immutable automatically" },
-      { id: "d", label: "Only works in ESM modules" },
-    ],
-    answerId: "b",
-    explanation: "const blocks reassignment, not mutation of the contents.",
-  },
-  {
-    id: "f-http-401",
-    prompt: "In HTTP error handling, a 401 typically indicates:",
-    options: [
-      { id: "a", label: "Resource not found" },
-      { id: "b", label: "Not authenticated / invalid token" },
-      { id: "c", label: "Internal server error" },
-      { id: "d", label: "Version conflict" },
-    ],
-    answerId: "b",
-    explanation: "401 = Unauthorized.",
-  },
-  {
-    id: "f-xss-textcontent",
-    prompt: "Which method prevents XSS when inserting text into the DOM?",
-    options: [
-      { id: "a", label: "element.innerHTML = userInput" },
-      { id: "b", label: "element.textContent = userInput" },
-      { id: "c", label: "document.write(userInput)" },
-      { id: "d", label: "eval(userInput)" },
-    ],
-    answerId: "b",
-    explanation: "textContent treats the value as text, not HTML.",
-  },
-  {
     id: "f-event-loop",
     prompt: "Which best describes the JavaScript event loop?",
     options: [
@@ -97,18 +49,6 @@ export const mcqFundamentosBank: McqQuestion[] = [
     ],
     answerId: "b",
     explanation: "JS in the browser is single-threaded with an event loop.",
-  },
-  {
-    id: "f-debounce",
-    prompt: "Debounce in a product search field is used to:",
-    options: [
-      { id: "a", label: "Trigger the search on every keystroke without waiting" },
-      { id: "b", label: "Wait until the user stops typing before querying" },
-      { id: "c", label: "Cache HTTP responses forever" },
-      { id: "d", label: "Cancel CSS animations" },
-    ],
-    answerId: "b",
-    explanation: "Debounce groups rapid events and runs at the end of the pause.",
   },
   {
     id: "f-closure",
@@ -183,30 +123,6 @@ export const mcqFundamentosBank: McqQuestion[] = [
     explanation: "== performs coercion; === does not.",
   },
   {
-    id: "f-fetch-abort",
-    prompt: "To cancel an in-progress fetch, you typically use:",
-    options: [
-      { id: "a", label: "AbortController + signal" },
-      { id: "b", label: "fetch.cancel()" },
-      { id: "c", label: "window.stopFetch()" },
-      { id: "d", label: "JSON.parse(null)" },
-    ],
-    answerId: "a",
-    explanation: "AbortController lets you abort the associated request.",
-  },
-  {
-    id: "f-map-vs-object",
-    prompt: "One advantage of `Map` over a plain Object as a dictionary is:",
-    options: [
-      { id: "a", label: "Keys can be of any type and .size is reliable" },
-      { id: "b", label: "It cannot be iterated" },
-      { id: "c", label: "It only accepts number keys" },
-      { id: "d", label: "It is always slower by definition" },
-    ],
-    answerId: "a",
-    explanation: "Map preserves insertion order and does not inherit keys from the prototype.",
-  },
-  {
     id: "f-pure-function",
     prompt: "A pure function:",
     options: [
@@ -217,18 +133,6 @@ export const mcqFundamentosBank: McqQuestion[] = [
     ],
     answerId: "a",
     explanation: "Same input -> same output, with no side effects.",
-  },
-  {
-    id: "f-json-clone",
-    prompt: "What is one risk of cloning with `JSON.parse(JSON.stringify(obj))`?",
-    options: [
-      { id: "a", label: "It loses Date, undefined, functions, and Map/Set" },
-      { id: "b", label: "It is the only way to clone in JS" },
-      { id: "c", label: "It freezes the resulting object" },
-      { id: "d", label: "It only works in Node.js" },
-    ],
-    answerId: "a",
-    explanation: "JSON serialization does not preserve complex types.",
   },
   {
     id: "f-nullish",
@@ -255,39 +159,111 @@ export const mcqFundamentosBank: McqQuestion[] = [
     explanation: "reduce accumulates a value from the collection.",
   },
   {
-    id: "f-tdz",
-    prompt: "Accessing a `let` before its declaration produces:",
+    id: "f-spread-object",
+    prompt: "`const next = { ...user, role: 'admin' }` produces:",
     options: [
-      { id: "a", label: "undefined silently" },
-      { id: "b", label: "ReferenceError (temporal dead zone)" },
-      { id: "c", label: "null" },
-      { id: "d", label: "0" },
-    ],
-    answerId: "b",
-    explanation: "let/const are in the TDZ until initialization.",
-  },
-  {
-    id: "f-module-export",
-    prompt: "In ESM, `export default` allows:",
-    options: [
-      { id: "a", label: "One main value per module, importable with any name" },
-      { id: "b", label: "Only exporting strings" },
-      { id: "c", label: "Always avoiding tree-shaking" },
-      { id: "d", label: "Replacing dynamic import" },
+      { id: "a", label: "A shallow copy with role updated" },
+      { id: "b", label: "In-place mutation of user" },
+      { id: "c", label: "A mandatory Proxy" },
+      { id: "d", label: "An error if user is nullish (always)" },
     ],
     answerId: "a",
-    explanation: "Default export is the module's main export.",
+    explanation: "Object spread creates a shallow clone and overwrites keys.",
   },
   {
-    id: "f-cors",
-    prompt: "A CORS error in the browser mainly indicates that:",
+    id: "f-promise-race",
+    prompt: "`Promise.race` resolves/rejects with:",
     options: [
-      { id: "a", label: "The server did not authorize the page's origin" },
-      { id: "b", label: "JSON is malformed" },
-      { id: "c", label: "CSS did not load" },
-      { id: "d", label: "TypeScript did not compile" },
+      { id: "a", label: "The result of the first promise that settles" },
+      { id: "b", label: "All promises in parallel waiting for the last one" },
+      { id: "c", label: "Only fulfilled values" },
+      { id: "d", label: "Always an array" },
     ],
     answerId: "a",
-    explanation: "CORS is a browser policy based on server headers.",
+    explanation: "Race takes the first settled promise.",
   },
+  {
+    id: "f-array-flatmap",
+    prompt: "`flatMap` is useful when:",
+    options: [
+      { id: "a", label: "You map to arrays and want to flatten one level" },
+      { id: "b", label: "You only sort numbers" },
+      { id: "c", label: "You freeze the array" },
+      { id: "d", label: "You replace JSON.parse" },
+    ],
+    answerId: "a",
+    explanation: "map + flat(1) in a single step.",
+  },
+  {
+    id: "f-typeof-null",
+    prompt: "`typeof null` in JavaScript is:",
+    options: [
+      { id: "a", label: "'object' (historical quirk)" },
+      { id: "b", label: "'null'" },
+      { id: "c", label: "'undefined'" },
+      { id: "d", label: "'nil'" },
+    ],
+    answerId: "a",
+    explanation: "Legacy language bug: typeof null === 'object'.",
+  },
+  {
+    id: "f-map-filter-diff",
+    prompt: "Which returns an array of the same size by transforming each element?",
+    options: [
+      { id: "a", label: "map" },
+      { id: "b", label: "filter" },
+      { id: "c", label: "reduce" },
+      { id: "d", label: "find" },
+    ],
+    answerId: "a",
+    explanation: "map transforms 1:1; filter can reduce size.",
+  },
+  {
+    id: "f-find-some-every",
+    prompt: "`movs.some(m => m.amount < 0)` returns:",
+    options: [
+      { id: "a", label: "true if at least one element meets the condition" },
+      { id: "b", label: "The first element that matches" },
+      { id: "c", label: "A new filtered array" },
+      { id: "d", label: "Always a number" },
+    ],
+    answerId: "a",
+    explanation: "some/every return boolean; find returns the element.",
+  },
+  {
+    id: "f-sort-slice-copy",
+    prompt: "To sort without mutating the original array:",
+    options: [
+      { id: "a", label: "Clone ([...arr] or slice) and then sort the copy" },
+      { id: "b", label: "sort() directly on the original" },
+      { id: "c", label: "splice() on the original" },
+      { id: "d", label: "delete on indexes" },
+    ],
+    answerId: "a",
+    explanation: "Array.sort mutates in-place.",
+  },
+  {
+    id: "f-async-await",
+    prompt: "A function declared `async` always:",
+    options: [
+      { id: "a", label: "Returns a Promise" },
+      { id: "b", label: "Blocks the browser's main thread" },
+      { id: "c", label: "Cannot use try/catch" },
+      { id: "d", label: "Cancels fetch automatically" },
+    ],
+    answerId: "a",
+    explanation: "async wraps the return value in a Promise.",
+  },
+  {
+    id: "f-destructuring",
+    prompt: "`const { amount, date } = movement` is:",
+    options: [
+      { id: "a", label: "Object destructuring" },
+      { id: "b", label: "Spread operator" },
+      { id: "c", label: "Guaranteed deep cloning" },
+      { id: "d", label: "Optional chaining" },
+    ],
+    answerId: "a",
+    explanation: "It extracts properties by name.",
+  }
 ];

@@ -223,4 +223,40 @@ export const mcqHtmlCssTheoryBank: McqQuestion[] = [
     answerId: "a",
     explanation: "Sticky needs a threshold (top/etc.) and a scrolling ancestor that doesn’t clip oddly.",
   },
+  {
+    id: "css-em-vs-rem",
+    prompt: "`rem` is calculated relative to:",
+    options: [
+      { id: "a", label: "The parent element's font-size" },
+      { id: "b", label: "The root font-size (html)" },
+      { id: "c", label: "The viewport width" },
+      { id: "d", label: "The body's line-height" },
+    ],
+    answerId: "b",
+    explanation: "rem = root em. em resolves against the parent font-size.",
+  },
+  {
+    id: "css-specificity-rank",
+    prompt: "Of `#id`, `.class`, and `element`, the highest specificity belongs to:",
+    options: [
+      { id: "a", label: "element" },
+      { id: "b", label: ".class" },
+      { id: "c", label: "#id" },
+      { id: "d", label: "All are equal" },
+    ],
+    answerId: "c",
+    explanation: "IDs outrank classes and type selectors (ignoring !important / inline).",
+  },
+  {
+    id: "css-overflow-list",
+    prompt: "Internal scrolling in a long list without breaking the outer layout:",
+    options: [
+      { id: "a", label: "max-height + overflow-y: auto" },
+      { id: "b", label: "display: none on the parent" },
+      { id: "c", label: "position: fixed on each item" },
+      { id: "d", label: "float: left on all children" },
+    ],
+    answerId: "a",
+    explanation: "Bound the container height and allow overflow scrolling.",
+  },
 ];

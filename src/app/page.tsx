@@ -1013,13 +1013,12 @@ function Home({
 
       <div className="exam-fade-up-delayed mt-6 hidden gap-3 sm:grid sm:grid-cols-3 lg:grid-cols-6">
         {[
-          [`${bankStats.mcqFundamentos}`, "MCQ JS + TypeScript"],
-          [`${bankStats.mcqWeb}`, "Angular/CSS/AWS/SQL"],
-          [`${bankStats.mcqAws}`, "AWS scenarios"],
+          [`${bankStats.mcqTypescript}`, "TypeScript MCQ"],
+          [`${bankStats.mcqJsEssentials}`, "JS essentials"],
           [`${bankStats.mcqAngularCode}`, "Angular code"],
+          [`${bankStats.mcqAws}`, "AWS scenarios"],
+          [`${bankStats.mcqCssLayouts + bankStats.mcqHtmlCssTheory}`, "HTML/CSS MCQ"],
           [`${bankStats.logic}`, "JS/SQL practice"],
-          [`${bankStats.css}`, "CSS variants"],
-          [`${bankStats.angular}`, "Angular variants"],
         ].map(([value, label]) => (
           <div
             key={label}

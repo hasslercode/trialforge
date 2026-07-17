@@ -1189,7 +1189,7 @@ const rawStudyTracks: RawStudyTrack[] = [
           "Hasta 15 slots de práctica; cubren el banco expandido antes de reciclar preguntas.",
           "En celular: solo teoría; código en PC.",
         ],
-        bankLinks: ["w-pass-70", "w-exam-hours", "w-sessions-count"],
+        bankLinks: ["ts-curry-complete", "aws-rds-managed-db", "ng-html-match-login"],
       },
     ],
   },
@@ -1206,7 +1206,7 @@ function attachExamples(tracks: RawStudyTrack[]): Array<Omit<StudyTrack, "topics
 }
 
 const SECONDARY_BANK_LINKS: Record<string, string[]> = {
-  "ng-lifecycle-hooks": ["w-ngondestroy"],
+  "ng-lifecycle-hooks": ["ng-code-subscribe-leak-guard"],
   "js-map-filter-reduce": ["js-normalize-movements"],
   "js-find-some-every": ["js-unique-sorted-ids"],
   "js-sort-slice-spread": ["js-normalize-movements"],
@@ -1214,9 +1214,9 @@ const SECONDARY_BANK_LINKS: Record<string, string[]> = {
   "css-flexbox": ["css-transfer-form"],
   "css-grid": ["css-product-cards"],
   "css-overflow-scroll": ["css-movements-list"],
-  "ng-onchanges-afterview": ["w-ngonchanges"],
+  "ng-onchanges-afterview": ["ng-code-input-mutation"],
   "ng-inputs-outputs": ["ng-otp-input"],
-  "ng-directives-pipes": ["w-ngfor-async"],
+  "ng-directives-pipes": ["ng-code-ngfor-trackby"],
   "sql-window-functions": ["sql-running-balance"],
 };
 

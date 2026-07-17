@@ -6,16 +6,12 @@ import type {
   PracticalVariant,
   VariantSelection,
 } from "@/domain/exam";
-import { mcqFundamentosBank } from "./mcq-fundamentos";
-import { mcqFundamentosExtra } from "./mcq-fundamentos-extra";
+import { mcqJsEssentialsBank } from "./mcq-js-essentials";
 import { mcqTypescriptBank } from "./mcq-typescript";
-import { mcqWebBank } from "./mcq-web";
 import { mcqAngularCodeBank } from "./mcq-angular-code";
 import { mcqCssLayoutsBank } from "./mcq-css-layouts";
 import { mcqHtmlCssTheoryBank } from "./mcq-html-css-theory";
 import { mcqAwsBank } from "./mcq-aws";
-import { mcqSqlBank } from "./mcq-sql";
-import { mcqEngineeringBank } from "./mcq-engineering";
 import { javascriptBank } from "./javascript";
 import { cssBank } from "./css";
 import { angularBank } from "./angular";
@@ -23,22 +19,16 @@ import { sqlBank } from "./sql";
 
 export const MCQ_PER_SESSION = 10;
 
-/** Session 1: JS fundamentals + TypeScript interview exercises */
-const mcqSession1Bank = [...mcqFundamentosBank, ...mcqFundamentosExtra, ...mcqTypescriptBank];
-
 /**
- * Session 2: Angular (code/UI/guards), CSS layouts, HTML/CSS theory, AWS scenarios,
- * plus existing web/SQL/engineering banks.
+ * Bancolombia-style MCQ structure (aligned to real interview feedback):
+ * - Session 1: TypeScript + lean JS (map/filter/reduce, code results)
+ * - Session 2: Angular code/UI · HTML/CSS · AWS scenarios (stratified)
+ *
+ * Removed from the exam pool: old web theory, exam-meta trivia, SQL MCQ, engineering MCQ.
  */
-const mcqSession2Bank = [
-  ...mcqAngularCodeBank,
-  ...mcqCssLayoutsBank,
-  ...mcqHtmlCssTheoryBank,
-  ...mcqAwsBank,
-  ...mcqWebBank,
-  ...mcqSqlBank,
-  ...mcqEngineeringBank,
-];
+const mcqHtmlCssBank = [...mcqCssLayoutsBank, ...mcqHtmlCssTheoryBank];
+const mcqSession1Bank = [...mcqTypescriptBank, ...mcqJsEssentialsBank];
+const mcqSession2Bank = [...mcqAngularCodeBank, ...mcqHtmlCssBank, ...mcqAwsBank];
 
 /** Session 3: JS algorithms or SQL */
 const logicBank: PracticalVariant[] = [...javascriptBank, ...sqlBank];
@@ -62,7 +52,7 @@ export const examMeta = {
     "Total time limit: exactly 3 hours for the entire challenge.",
     "Passing goal: minimum score of 70%.",
     "Format: 5 sessions — 2 multiple choice and 3 hands-on practicals.",
-    "MCQs prioritize code analysis, UI reasoning, TypeScript exercises, and AWS architecture scenarios over pure memorization.",
+    "MCQ mirrors a real Bancolombia-style panel: TypeScript/JS code, Angular analysis, HTML/CSS (Grid-heavy), AWS architecture scenarios.",
     "Each new run prioritizes questions/practicals you have not seen in previous slots.",
     "Practical session 3 may be JavaScript or SQL depending on the draw.",
     "In practical sessions, unit test files are locked.",
@@ -71,15 +61,14 @@ export const examMeta = {
 };
 
 export const bankStats = {
-  mcqFundamentos: mcqSession1Bank.length,
+  mcqSession1: mcqSession1Bank.length,
+  mcqSession2: mcqSession2Bank.length,
   mcqTypescript: mcqTypescriptBank.length,
-  mcqWeb: mcqSession2Bank.length,
+  mcqJsEssentials: mcqJsEssentialsBank.length,
   mcqAngularCode: mcqAngularCodeBank.length,
   mcqCssLayouts: mcqCssLayoutsBank.length,
   mcqHtmlCssTheory: mcqHtmlCssTheoryBank.length,
   mcqAws: mcqAwsBank.length,
-  mcqSql: mcqSqlBank.length,
-  mcqEngineering: mcqEngineeringBank.length,
   javascript: javascriptBank.length,
   css: cssBank.length,
   angular: angularBank.length,
@@ -144,6 +133,7 @@ export function collectUsedContent(attempts: (ExamAttempt | null)[]): UsedConten
 
 /** Prefer unused items; if not enough, fill from the rest of the bank. */
 function pickMcqIds(bank: McqQuestion[], used: Set<string>, count: number): string[] {
+  if (count <= 0 || bank.length === 0) return [];
   const fresh = shuffle(bank.filter((q) => !used.has(q.id)));
   if (fresh.length >= count) return fresh.slice(0, count).map((q) => q.id);
 
@@ -153,6 +143,21 @@ function pickMcqIds(bank: McqQuestion[], used: Set<string>, count: number): stri
   return [...picked, ...refill.slice(0, count - picked.length).map((q) => q.id)];
 }
 
+/** Balanced draw so one topic cannot dominate a session. */
+function pickStratifiedMcqIds(
+  groups: { bank: McqQuestion[]; count: number }[],
+  used: Set<string>,
+): string[] {
+  const ids: string[] = [];
+  const localUsed = new Set(used);
+  for (const group of groups) {
+    const picked = pickMcqIds(group.bank, localUsed, group.count);
+    for (const id of picked) localUsed.add(id);
+    ids.push(...picked);
+  }
+  return shuffle(ids);
+}
+
 function pickVariantId(bank: PracticalVariant[], used: Set<string>): string {
   const fresh = bank.filter((item) => !used.has(item.variantId));
   return pickOne(fresh.length > 0 ? fresh : bank).variantId;
@@ -160,8 +165,21 @@ function pickVariantId(bank: PracticalVariant[], used: Set<string>): string {
 
 export function defaultPreviewSelection(): VariantSelection {
   return {
-    mcq1: mcqSession1Bank.slice(0, MCQ_PER_SESSION).map((q) => q.id),
-    mcq2: mcqSession2Bank.slice(0, MCQ_PER_SESSION).map((q) => q.id),
+    mcq1: pickStratifiedMcqIds(
+      [
+        { bank: mcqTypescriptBank, count: 7 },
+        { bank: mcqJsEssentialsBank, count: 3 },
+      ],
+      new Set(),
+    ),
+    mcq2: pickStratifiedMcqIds(
+      [
+        { bank: mcqAngularCodeBank, count: 3 },
+        { bank: mcqHtmlCssBank, count: 4 },
+        { bank: mcqAwsBank, count: 3 },
+      ],
+      new Set(),
+    ),
     javascript: logicBank[0].variantId,
     css: cssBank[0].variantId,
     angular: angularBank[0].variantId,
@@ -182,8 +200,21 @@ export function pickVariantSelection(used?: UsedContent): VariantSelection {
   };
 
   return {
-    mcq1: pickMcqIds(mcqSession1Bank, u.mcq1, MCQ_PER_SESSION),
-    mcq2: pickMcqIds(mcqSession2Bank, u.mcq2, MCQ_PER_SESSION),
+    mcq1: pickStratifiedMcqIds(
+      [
+        { bank: mcqTypescriptBank, count: 7 },
+        { bank: mcqJsEssentialsBank, count: 3 },
+      ],
+      u.mcq1,
+    ),
+    mcq2: pickStratifiedMcqIds(
+      [
+        { bank: mcqAngularCodeBank, count: 3 },
+        { bank: mcqHtmlCssBank, count: 4 },
+        { bank: mcqAwsBank, count: 3 },
+      ],
+      u.mcq2,
+    ),
     javascript: pickVariantId(logicBank, u.logic),
     css: pickVariantId(cssBank, u.css),
     angular: pickVariantId(angularBank, u.angular),
@@ -193,8 +224,8 @@ export function pickVariantSelection(used?: UsedContent): VariantSelection {
 export function buildExam(selection: VariantSelection | null): Exam {
   const sel = selection ?? defaultPreviewSelection();
 
-  const mcq1Questions = sel.mcq1.map((id) => findMcq(mcqSession1Bank, id, "MCQ1")) as typeof mcqSession1Bank;
-  const mcq2Questions = sel.mcq2.map((id) => findMcq(mcqSession2Bank, id, "MCQ2")) as typeof mcqSession2Bank;
+  const mcq1Questions = sel.mcq1.map((id) => findMcq(mcqSession1Bank, id, "MCQ1"));
+  const mcq2Questions = sel.mcq2.map((id) => findMcq(mcqSession2Bank, id, "MCQ2"));
   const logicVariant = findVariant(logicBank, sel.javascript);
 
   const sessions: ExamSession[] = [
@@ -204,8 +235,8 @@ export function buildExam(selection: VariantSelection | null): Exam {
       weight: 15,
       phase: "Session 1 · Theory",
       kind: "mcq",
-      title: "Multiple-choice questions — Fundamentals & TypeScript",
-      subtitle: "JavaScript, browser, security, and TypeScript (generics, utilities, HOFs)",
+      title: "Multiple-choice questions — TypeScript & JS",
+      subtitle: "TypeScript exercises + map/filter/reduce and code-result JS",
       estimatedMinutes: 25,
       questions: mcq1Questions,
       variantId: sel.mcq1.join(","),
@@ -216,8 +247,8 @@ export function buildExam(selection: VariantSelection | null): Exam {
       weight: 15,
       phase: "Session 2 · Theory",
       kind: "mcq",
-      title: "Multiple-choice questions — Angular, CSS, HTML & AWS",
-      subtitle: "Code/UI Angular, Flex/Grid, HTML theory, AWS architecture scenarios, SQL & engineering",
+      title: "Multiple-choice questions — Angular, HTML/CSS & AWS",
+      subtitle: "Angular code/UI · Flex/Grid · HTML theory · AWS architecture scenarios",
       estimatedMinutes: 25,
       questions: mcq2Questions,
       variantId: sel.mcq2.join(","),
