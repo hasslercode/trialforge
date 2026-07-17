@@ -82,13 +82,21 @@ export type ExamSession = {
   variantId?: string;
 } & (McqSession | PracticalSession);
 
-/** Bank IDs chosen for this exam run */
+/**
+ * Bank IDs chosen for this exam run.
+ * Mirrors the real Bancolombia-style panel order.
+ */
 export type VariantSelection = {
-  mcq1: string[];
-  mcq2: string[];
-  javascript: string;
-  css: string;
+  /** S1 — Angular practical (API + list) */
   angular: string;
+  /** S2 — 5 AWS architecture MCQs */
+  aws: string[];
+  /** S3 — 5 HTML/CSS MCQs (Grid-heavy) */
+  htmlCss: string[];
+  /** S4 — TypeScript/JS curry practical */
+  typescript: string;
+  /** S5 — 5 simple Angular MCQs */
+  angularMcq: string[];
 };
 
 export type Exam = {

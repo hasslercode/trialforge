@@ -8,6 +8,70 @@ const baseRestrictions = [
 
 export const javascriptBank: PracticalVariant[] = [
   {
+    variantId: "js-curry",
+    kind: "javascript",
+    title: "TypeScript / JavaScript — Currying",
+    subtitle: "Implement curry (the interview killer)",
+    estimatedMinutes: 40,
+    story:
+      "In the Bancolombia-style panel this is the TypeScript exercise that usually hurts: implement a generic curry so a multi-arg function can be called one argument at a time.",
+    requirements: [
+      "Implement `curry(fn)` that returns a curried function.",
+      "`curry((a, b, c) => a + b + c)(1)(2)(3)` → `6`.",
+      "Also allow partial batches: `curry(add3)(1, 2)(3)` → `6`.",
+      "When enough arguments are collected (`>= fn.length`), call `fn` and return the result.",
+      "Until then, return another function that accepts more args.",
+    ],
+    acceptanceCriteria: [
+      "Works for arity 2 and 3.",
+      "Supports both `f(1)(2)` and `f(1, 2)` styles while currying.",
+      "Does not hardcode a single fixed arity beyond `fn.length`.",
+      "Hidden tests pass.",
+    ],
+    restrictions: baseRestrictions,
+    starterFiles: [
+      {
+        name: "curry.js",
+        language: "javascript",
+        code: `/**
+ * @template {(...args: any[]) => any} F
+ * @param {F} fn
+ * @returns {(...args: any[]) => any}
+ */
+export function curry(fn) {
+  // TODO: accumulate args until fn.length is reached
+  return function curried(...args) {
+    return undefined;
+  };
+}
+
+// Smoke helpers (optional while you code)
+export const add2 = curry((a, b) => a + b);
+export const add3 = curry((a, b, c) => a + b + c);
+`,
+      },
+    ],
+    hiddenTests: [
+      { id: "t1", name: "exports curry", patterns: [/function\s+curry|export\s+function\s+curry|const\s+curry\s*=/] },
+      { id: "t2", name: "checks fn.length / arity", patterns: [/fn\.length|\.length\s*[>=]/] },
+      { id: "t3", name: "returns nested function while incomplete", patterns: [/return\s+function|return\s*\(.*\)\s*=>|return\s+curried/] },
+      { id: "t4", name: "calls fn when args complete", patterns: [/fn\s*\(|\.apply\s*\(|\.call\s*\(/] },
+      { id: "t5", name: "spreads / concatenates args", patterns: [/\.\.\.|concat|\[\s*\.\.\./] },
+      { id: "t6", name: "no lodash curry", patterns: [/./], forbidden: [/from\s+['\"]lodash['\"]|_\.curry|require\s*\(\s*['\"]lodash/] },
+    ],
+    hints: [
+      "if (args.length >= fn.length) return fn(...args);",
+      "return (...rest) => curried(...args, ...rest);",
+    ],
+    solution: `export function curry(fn) {
+  return function curried(...args) {
+    if (args.length >= fn.length) return fn(...args);
+    return (...rest) => curried(...args, ...rest);
+  };
+}`,
+    explanation: "Accumulate arguments until arity is met, then invoke.",
+  },
+  {
     variantId: "js-normalize-movements",
     kind: "javascript",
     title: "Plain JavaScript — Algorithms",

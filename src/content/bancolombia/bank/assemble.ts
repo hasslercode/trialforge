@@ -6,39 +6,39 @@ import type {
   PracticalVariant,
   VariantSelection,
 } from "@/domain/exam";
-import { mcqJsEssentialsBank } from "./mcq-js-essentials";
-import { mcqTypescriptBank } from "./mcq-typescript";
-import { mcqAngularCodeBank } from "./mcq-angular-code";
+import { mcqAngularSimpleBank } from "./mcq-angular-simple";
 import { mcqCssLayoutsBank } from "./mcq-css-layouts";
 import { mcqHtmlCssTheoryBank } from "./mcq-html-css-theory";
 import { mcqAwsBank } from "./mcq-aws";
 import { javascriptBank } from "./javascript";
-import { cssBank } from "./css";
 import { angularBank } from "./angular";
-import { sqlBank } from "./sql";
 
-export const MCQ_PER_SESSION = 10;
+/** Questions per MCQ phase (matches real panel: 5 + 5 + 5). */
+export const MCQ_PER_BLOCK = 5;
 
-/**
- * Bancolombia-style MCQ structure (aligned to real interview feedback):
- * - Session 1: TypeScript + lean JS (map/filter/reduce, code results)
- * - Session 2: Angular code/UI · HTML/CSS · AWS scenarios (stratified)
- *
- * Removed from the exam pool: old web theory, exam-meta trivia, SQL MCQ, engineering MCQ.
- */
-const mcqHtmlCssBank = [...mcqCssLayoutsBank, ...mcqHtmlCssTheoryBank];
-const mcqSession1Bank = [...mcqTypescriptBank, ...mcqJsEssentialsBank];
-const mcqSession2Bank = [...mcqAngularCodeBank, ...mcqHtmlCssBank, ...mcqAwsBank];
+const htmlCssGridBank = mcqCssLayoutsBank.filter((q) => q.id.includes("grid"));
+const htmlCssFlexBank = mcqCssLayoutsBank.filter((q) => q.id.includes("flex"));
+const htmlCssTheoryBank = mcqHtmlCssTheoryBank;
 
-/** Session 3: JS algorithms or SQL */
-const logicBank: PracticalVariant[] = [...javascriptBank, ...sqlBank];
+/** All MCQs that can appear (for lookup). */
+const allMcqBank: McqQuestion[] = [
+  ...mcqAwsBank,
+  ...mcqCssLayoutsBank,
+  ...mcqHtmlCssTheoryBank,
+  ...mcqAngularSimpleBank,
+];
+
+/** TypeScript practical bank — curry first (interview killer). */
+const typescriptBank: PracticalVariant[] = javascriptBank.filter((v) => v.variantId === "js-curry");
+const typescriptFallbackBank: PracticalVariant[] =
+  typescriptBank.length > 0 ? typescriptBank : javascriptBank;
 
 export type UsedContent = {
-  mcq1: Set<string>;
-  mcq2: Set<string>;
-  logic: Set<string>;
-  css: Set<string>;
   angular: Set<string>;
+  aws: Set<string>;
+  htmlCss: Set<string>;
+  typescript: Set<string>;
+  angularMcq: Set<string>;
 };
 
 export const examMeta = {
@@ -47,33 +47,26 @@ export const examMeta = {
   totalMinutes: 180,
   passThreshold: 70,
   environmentNote:
-    "Embedded IDE similar to a real assessment platform. No CSS frameworks or client design systems. Content comes from the Bancolombia track; TrialForge can host other clients.",
+    "Flow aligned to a real Bancolombia-style panel: Angular API exercise → AWS → HTML/CSS → TypeScript curry → Angular MCQ.",
   rules: [
     "Total time limit: exactly 3 hours for the entire challenge.",
     "Passing goal: minimum score of 70%.",
-    "Format: 5 sessions — 2 multiple choice and 3 hands-on practicals.",
-    "MCQ mirrors a real Bancolombia-style panel: TypeScript/JS code, Angular analysis, HTML/CSS (Grid-heavy), AWS architecture scenarios.",
+    "Format mirrors the real panel: 1 Angular practical, 5 AWS MCQs, 5 HTML/CSS MCQs, 1 TypeScript curry practical, 5 Angular MCQs.",
+    "HTML/CSS block emphasizes CSS Grid (plus Flex/theory).",
     "Each new run prioritizes questions/practicals you have not seen in previous slots.",
-    "Practical session 3 may be JavaScript or SQL depending on the draw.",
     "In practical sessions, unit test files are locked.",
     "In Angular, ReactiveFormsModule is forbidden: capture input manually with $event or #templateRef.",
   ],
 };
 
 export const bankStats = {
-  mcqSession1: mcqSession1Bank.length,
-  mcqSession2: mcqSession2Bank.length,
-  mcqTypescript: mcqTypescriptBank.length,
-  mcqJsEssentials: mcqJsEssentialsBank.length,
-  mcqAngularCode: mcqAngularCodeBank.length,
+  angular: angularBank.length,
+  mcqAws: mcqAwsBank.length,
+  mcqHtmlCss: mcqCssLayoutsBank.length + mcqHtmlCssTheoryBank.length,
+  typescript: typescriptFallbackBank.length,
+  mcqAngularSimple: mcqAngularSimpleBank.length,
   mcqCssLayouts: mcqCssLayoutsBank.length,
   mcqHtmlCssTheory: mcqHtmlCssTheoryBank.length,
-  mcqAws: mcqAwsBank.length,
-  javascript: javascriptBank.length,
-  css: cssBank.length,
-  angular: angularBank.length,
-  sql: sqlBank.length,
-  logic: logicBank.length,
 };
 
 function shuffle<T>(items: T[]): T[] {
@@ -109,29 +102,43 @@ function toPracticalSession(
   return { ...slot, ...rest, variantId };
 }
 
+export function isValidSelection(sel: unknown): sel is VariantSelection {
+  if (!sel || typeof sel !== "object") return false;
+  const s = sel as VariantSelection;
+  return (
+    typeof s.angular === "string" &&
+    typeof s.typescript === "string" &&
+    Array.isArray(s.aws) &&
+    Array.isArray(s.htmlCss) &&
+    Array.isArray(s.angularMcq) &&
+    s.aws.length === MCQ_PER_BLOCK &&
+    s.htmlCss.length === MCQ_PER_BLOCK &&
+    s.angularMcq.length === MCQ_PER_BLOCK
+  );
+}
+
 /** Collects IDs already used in previous runs (occupied slots). */
 export function collectUsedContent(attempts: (ExamAttempt | null)[]): UsedContent {
   const used: UsedContent = {
-    mcq1: new Set(),
-    mcq2: new Set(),
-    logic: new Set(),
-    css: new Set(),
     angular: new Set(),
+    aws: new Set(),
+    htmlCss: new Set(),
+    typescript: new Set(),
+    angularMcq: new Set(),
   };
 
   for (const attempt of attempts) {
-    if (!attempt?.selection) continue;
-    for (const id of attempt.selection.mcq1) used.mcq1.add(id);
-    for (const id of attempt.selection.mcq2) used.mcq2.add(id);
-    used.logic.add(attempt.selection.javascript);
-    used.css.add(attempt.selection.css);
+    if (!attempt?.selection || !isValidSelection(attempt.selection)) continue;
     used.angular.add(attempt.selection.angular);
+    used.typescript.add(attempt.selection.typescript);
+    for (const id of attempt.selection.aws) used.aws.add(id);
+    for (const id of attempt.selection.htmlCss) used.htmlCss.add(id);
+    for (const id of attempt.selection.angularMcq) used.angularMcq.add(id);
   }
 
   return used;
 }
 
-/** Prefer unused items; if not enough, fill from the rest of the bank. */
 function pickMcqIds(bank: McqQuestion[], used: Set<string>, count: number): string[] {
   if (count <= 0 || bank.length === 0) return [];
   const fresh = shuffle(bank.filter((q) => !used.has(q.id)));
@@ -143,7 +150,6 @@ function pickMcqIds(bank: McqQuestion[], used: Set<string>, count: number): stri
   return [...picked, ...refill.slice(0, count - picked.length).map((q) => q.id)];
 }
 
-/** Balanced draw so one topic cannot dominate a session. */
 function pickStratifiedMcqIds(
   groups: { bank: McqQuestion[]; count: number }[],
   used: Set<string>,
@@ -163,27 +169,37 @@ function pickVariantId(bank: PracticalVariant[], used: Set<string>): string {
   return pickOne(fresh.length > 0 ? fresh : bank).variantId;
 }
 
+/** Prefer sports-results when unused; otherwise any unused Angular variant. */
+function pickAngularPractical(used: Set<string>): string {
+  const preferred = "ng-sports-results";
+  if (!used.has(preferred) && angularBank.some((v) => v.variantId === preferred)) {
+    return preferred;
+  }
+  return pickVariantId(angularBank, used);
+}
+
+function pickTypescriptPractical(used: Set<string>): string {
+  const preferred = "js-curry";
+  if (!used.has(preferred) && typescriptFallbackBank.some((v) => v.variantId === preferred)) {
+    return preferred;
+  }
+  return pickVariantId(typescriptFallbackBank, used);
+}
+
+/** HTML/CSS: 3 Grid + 1 Flex + 1 theory (Grid emphasis from feedback). */
+function pickHtmlCssIds(used: Set<string>): string[] {
+  return pickStratifiedMcqIds(
+    [
+      { bank: htmlCssGridBank, count: 3 },
+      { bank: htmlCssFlexBank, count: 1 },
+      { bank: htmlCssTheoryBank, count: 1 },
+    ],
+    used,
+  );
+}
+
 export function defaultPreviewSelection(): VariantSelection {
-  return {
-    mcq1: pickStratifiedMcqIds(
-      [
-        { bank: mcqTypescriptBank, count: 7 },
-        { bank: mcqJsEssentialsBank, count: 3 },
-      ],
-      new Set(),
-    ),
-    mcq2: pickStratifiedMcqIds(
-      [
-        { bank: mcqAngularCodeBank, count: 3 },
-        { bank: mcqHtmlCssBank, count: 4 },
-        { bank: mcqAwsBank, count: 3 },
-      ],
-      new Set(),
-    ),
-    javascript: logicBank[0].variantId,
-    css: cssBank[0].variantId,
-    angular: angularBank[0].variantId,
-  };
+  return pickVariantSelection();
 }
 
 /**
@@ -192,90 +208,93 @@ export function defaultPreviewSelection(): VariantSelection {
  */
 export function pickVariantSelection(used?: UsedContent): VariantSelection {
   const u = used ?? {
-    mcq1: new Set<string>(),
-    mcq2: new Set<string>(),
-    logic: new Set<string>(),
-    css: new Set<string>(),
     angular: new Set<string>(),
+    aws: new Set<string>(),
+    htmlCss: new Set<string>(),
+    typescript: new Set<string>(),
+    angularMcq: new Set<string>(),
   };
 
   return {
-    mcq1: pickStratifiedMcqIds(
-      [
-        { bank: mcqTypescriptBank, count: 7 },
-        { bank: mcqJsEssentialsBank, count: 3 },
-      ],
-      u.mcq1,
-    ),
-    mcq2: pickStratifiedMcqIds(
-      [
-        { bank: mcqAngularCodeBank, count: 3 },
-        { bank: mcqHtmlCssBank, count: 4 },
-        { bank: mcqAwsBank, count: 3 },
-      ],
-      u.mcq2,
-    ),
-    javascript: pickVariantId(logicBank, u.logic),
-    css: pickVariantId(cssBank, u.css),
-    angular: pickVariantId(angularBank, u.angular),
+    angular: pickAngularPractical(u.angular),
+    aws: pickMcqIds(mcqAwsBank, u.aws, MCQ_PER_BLOCK),
+    htmlCss: pickHtmlCssIds(u.htmlCss),
+    typescript: pickTypescriptPractical(u.typescript),
+    angularMcq: pickMcqIds(mcqAngularSimpleBank, u.angularMcq, MCQ_PER_BLOCK),
   };
 }
 
 export function buildExam(selection: VariantSelection | null): Exam {
-  const sel = selection ?? defaultPreviewSelection();
+  const sel = isValidSelection(selection) ? selection : defaultPreviewSelection();
 
-  const mcq1Questions = sel.mcq1.map((id) => findMcq(mcqSession1Bank, id, "MCQ1"));
-  const mcq2Questions = sel.mcq2.map((id) => findMcq(mcqSession2Bank, id, "MCQ2"));
-  const logicVariant = findVariant(logicBank, sel.javascript);
+  const awsQuestions = sel.aws.map((id) => findMcq(allMcqBank, id, "AWS"));
+  const htmlCssQuestions = sel.htmlCss.map((id) => findMcq(allMcqBank, id, "HTML/CSS"));
+  const angularMcqQuestions = sel.angularMcq.map((id) => findMcq(allMcqBank, id, "Angular MCQ"));
+  const angularPractical = findVariant(angularBank, sel.angular);
+  const typescriptPractical = findVariant(typescriptFallbackBank, sel.typescript);
 
   const sessions: ExamSession[] = [
+    toPracticalSession(
+      {
+        id: "s1-angular",
+        order: 1,
+        weight: 25,
+        phase: "Session 1 · Angular practical",
+      },
+      {
+        ...angularPractical,
+        title: "Angular — Consume API & list results",
+      },
+    ),
     {
-      id: "s1-mcq",
-      order: 1,
-      weight: 15,
-      phase: "Session 1 · Theory",
-      kind: "mcq",
-      title: "Multiple-choice questions — TypeScript & JS",
-      subtitle: "TypeScript exercises + map/filter/reduce and code-result JS",
-      estimatedMinutes: 25,
-      questions: mcq1Questions,
-      variantId: sel.mcq1.join(","),
-    },
-    {
-      id: "s2-mcq",
+      id: "s2-aws",
       order: 2,
       weight: 15,
-      phase: "Session 2 · Theory",
+      phase: "Session 2 · AWS",
       kind: "mcq",
-      title: "Multiple-choice questions — Angular, HTML/CSS & AWS",
-      subtitle: "Angular code/UI · Flex/Grid · HTML theory · AWS architecture scenarios",
-      estimatedMinutes: 25,
-      questions: mcq2Questions,
-      variantId: sel.mcq2.join(","),
+      title: "AWS — Architecture scenarios",
+      subtitle: "5 questions: pick the right service for the situation",
+      estimatedMinutes: 15,
+      questions: awsQuestions,
+      variantId: sel.aws.join(","),
+    },
+    {
+      id: "s3-html-css",
+      order: 3,
+      weight: 15,
+      phase: "Session 3 · HTML / CSS",
+      kind: "mcq",
+      title: "HTML & CSS — Grid focus",
+      subtitle: "5 questions: Grid-heavy layouts, Flex, and HTML/CSS theory",
+      estimatedMinutes: 15,
+      questions: htmlCssQuestions,
+      variantId: sel.htmlCss.join(","),
     },
     toPracticalSession(
       {
-        id: "s3-logic",
-        order: 3,
-        weight: 25,
-        phase: "Session 3 · Practical",
+        id: "s4-typescript",
+        order: 4,
+        weight: 30,
+        phase: "Session 4 · TypeScript practical",
       },
       {
-        ...logicVariant,
-        title:
-          logicVariant.kind === "sql"
-            ? "SQL — Queries"
-            : "Vanilla JavaScript — Algorithms",
+        ...typescriptPractical,
+        title: "TypeScript — Currying",
+        subtitle: typescriptPractical.subtitle,
       },
     ),
-    toPracticalSession(
-      { id: "s4-css", order: 4, weight: 20, phase: "Session 4 · Practical" },
-      findVariant(cssBank, sel.css),
-    ),
-    toPracticalSession(
-      { id: "s5-angular", order: 5, weight: 25, phase: "Session 5 · Practical" },
-      findVariant(angularBank, sel.angular),
-    ),
+    {
+      id: "s5-angular-mcq",
+      order: 5,
+      weight: 15,
+      phase: "Session 5 · Angular MCQ",
+      kind: "mcq",
+      title: "Angular — Quick questions",
+      subtitle: "5 straightforward questions (bindings, ngIf/ngFor, HttpClient…)",
+      estimatedMinutes: 15,
+      questions: angularMcqQuestions,
+      variantId: sel.angularMcq.join(","),
+    },
   ];
 
   return {

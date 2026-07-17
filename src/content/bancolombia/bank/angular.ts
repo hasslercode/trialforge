@@ -9,6 +9,127 @@ const angularRestrictions = [
 
 export const angularBank: PracticalVariant[] = [
   {
+    variantId: "ng-sports-results",
+    kind: "angular",
+    title: "Angular — API + list",
+    subtitle: "Consume sports results API and render the list",
+    estimatedMinutes: 50,
+    story:
+      "First exercise of the real Bancolombia-style panel: call an API of sports match results and list them in the UI (home, away, score). Manual templates only — no Reactive Forms.",
+    requirements: [
+      "On init, load matches from a service/HttpClient (`GET /api/matches` or injected stub).",
+      "Render a list with *ngFor (home vs away, score).",
+      "Show a loading flag while the request is in flight.",
+      "Show an error message if the request fails.",
+      "Optional: filter by team name with a native input (#query or $event).",
+    ],
+    acceptanceCriteria: [
+      "List renders after data arrives.",
+      "Loading / error states are handled.",
+      "No ReactiveFormsModule / FormControl.",
+      "Hidden tests pass.",
+    ],
+    restrictions: angularRestrictions,
+    starterFiles: [
+      {
+        name: "matches.service.ts",
+        language: "typescript",
+        code: `import { Injectable } from '@angular/core';
+import { Observable, of } from 'rxjs';
+import { delay } from 'rxjs/operators';
+
+export type Match = {
+  id: string;
+  home: string;
+  away: string;
+  homeScore: number;
+  awayScore: number;
+};
+
+/** In the real test this hits HttpClient. Here we stub the API. */
+@Injectable({ providedIn: 'root' })
+export class MatchesService {
+  getMatches(): Observable<Match[]> {
+    return of([
+      { id: '1', home: 'Nacional', away: 'Millonarios', homeScore: 2, awayScore: 1 },
+      { id: '2', home: 'América', away: 'Cali', homeScore: 0, awayScore: 0 },
+      { id: '3', home: 'Junior', away: 'Santa Fe', homeScore: 1, awayScore: 3 },
+    ]).pipe(delay(300));
+  }
+}
+`,
+      },
+      {
+        name: "sports-board.component.ts",
+        language: "typescript",
+        code: `import { Component, OnInit } from '@angular/core';
+import { MatchesService, Match } from './matches.service';
+
+@Component({
+  selector: 'app-sports-board',
+  templateUrl: './sports-board.component.html',
+})
+export class SportsBoardComponent implements OnInit {
+  matches: Match[] = [];
+  loading = false;
+  error = '';
+  query = '';
+
+  constructor(private matchesService: MatchesService) {}
+
+  ngOnInit() {
+    // TODO: load matches from MatchesService
+  }
+
+  get visible(): Match[] {
+    // TODO: optional filter by home/away using this.query
+    return this.matches;
+  }
+}
+`,
+      },
+      {
+        name: "sports-board.component.html",
+        language: "html",
+        code: `<section class="sports">
+  <h1>Resultados</h1>
+  <input type="search" placeholder="Filtrar equipo" />
+  <!-- loading / error -->
+  <ul>
+    <!-- *ngFor matches: home vs away — score -->
+  </ul>
+</section>
+`,
+      },
+    ],
+    hiddenTests: [
+      { id: "t1", name: "ngOnInit loads data", patterns: [/ngOnInit\s*\(/, /getMatches\s*\(/] },
+      { id: "t2", name: "subscribe or async handling", patterns: [/\.subscribe\s*\(|async/] },
+      { id: "t3", name: "loading flag", patterns: [/loading\s*=/] },
+      { id: "t4", name: "*ngFor list", patterns: [/\*ngFor/] },
+      { id: "t5", name: "template shows scores / teams", patterns: [/homeScore|awayScore|\.home|\.away/] },
+      { id: "t6", name: "no Reactive Forms", patterns: [/./], forbidden: [/ReactiveFormsModule|FormBuilder|FormControl|formControlName/] },
+    ],
+    hints: [
+      "this.loading = true; this.matchesService.getMatches().subscribe({ next, error, complete })",
+      "*ngFor=\"let m of visible\"",
+    ],
+    solution: `ngOnInit() {
+  this.loading = true;
+  this.matchesService.getMatches().subscribe({
+    next: (data) => { this.matches = data; this.loading = false; },
+    error: () => { this.error = 'No se pudieron cargar los partidos'; this.loading = false; },
+  });
+}
+get visible() {
+  const q = this.query.trim().toLowerCase();
+  if (!q) return this.matches;
+  return this.matches.filter(m =>
+    m.home.toLowerCase().includes(q) || m.away.toLowerCase().includes(q));
+}`,
+    explanation: "Http/service load in ngOnInit + *ngFor list + optional filter.",
+  },
+  {
     variantId: "ng-todo-tabs",
     kind: "angular",
     title: "Angular — Components",

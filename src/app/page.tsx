@@ -23,7 +23,14 @@ import {
   VolumeX,
   X,
 } from "lucide-react";
-import { bankStats, buildExam, collectUsedContent, examMeta, pickVariantSelection } from "@/content/bancolombia/exam";
+import {
+  bankStats,
+  buildExam,
+  collectUsedContent,
+  examMeta,
+  isValidSelection,
+  pickVariantSelection,
+} from "@/content/bancolombia/exam";
 import { McqCodeBlock, McqOptionBody } from "@/features/exam/McqRichContent";
 import { useQuestionAmbience } from "@/features/exam/useQuestionAmbience";
 import { StudyScreen } from "@/features/study/StudyScreen";
@@ -162,7 +169,7 @@ function phaseContinueLabel(session: ExamSession) {
 export default function App() {
   const [screen, setScreen] = useState<Screen>("home");
   const [app, setApp] = useState<AppState>(emptyAppState);
-  const [activeId, setActiveId] = useState("s1-mcq");
+  const [activeId, setActiveId] = useState("s1-angular");
   const [examRunning, setExamRunning] = useState(false);
   const [sidebarPinnedOpen, setSidebarPinnedOpen] = useState(false);
   const isMobile = useIsMobile();
@@ -172,7 +179,10 @@ export default function App() {
     return attemptToProgress(app.slots[app.activeSlot]);
   }, [app]);
 
-  const exam: Exam = useMemo(() => buildExam(progress.selection), [progress.selection]);
+  const exam: Exam = useMemo(
+    () => buildExam(isValidSelection(progress.selection) ? progress.selection : null),
+    [progress.selection],
+  );
 
   const overall = useMemo(() => weightedExamScore(exam.sessions, progress.results), [exam.sessions, progress.results]);
 
@@ -305,7 +315,7 @@ export default function App() {
     const slots = [...app.slots] as (ExamAttempt | null)[];
     slots[slotIndex] = attempt;
     persist({ slots, activeSlot: slotIndex });
-    setActiveId("s1-mcq");
+    setActiveId("s1-angular");
     setExamRunning(true);
     setScreen("roadmap");
   }
@@ -1013,12 +1023,12 @@ function Home({
 
       <div className="exam-fade-up-delayed mt-6 hidden gap-3 sm:grid sm:grid-cols-3 lg:grid-cols-6">
         {[
-          [`${bankStats.mcqTypescript}`, "TypeScript MCQ"],
-          [`${bankStats.mcqJsEssentials}`, "JS essentials"],
-          [`${bankStats.mcqAngularCode}`, "Angular code"],
-          [`${bankStats.mcqAws}`, "AWS scenarios"],
-          [`${bankStats.mcqCssLayouts + bankStats.mcqHtmlCssTheory}`, "HTML/CSS MCQ"],
-          [`${bankStats.logic}`, "JS/SQL practice"],
+          [`${bankStats.angular}`, "Angular practicals"],
+          [`${bankStats.mcqAws}`, "AWS MCQ"],
+          [`${bankStats.mcqHtmlCss}`, "HTML/CSS MCQ"],
+          [`${bankStats.typescript}`, "TS curry practical"],
+          [`${bankStats.mcqAngularSimple}`, "Angular MCQ"],
+          [`5`, "Phases per run"],
         ].map(([value, label]) => (
           <div
             key={label}
