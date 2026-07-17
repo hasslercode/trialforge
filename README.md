@@ -36,4 +36,4 @@ On Home, create a **progress code** (`TF-XXXX-XXXX`). The same code entered on a
 
 ## Cliente actual
 
-**Bancolombia Frontend** — 5 sesiones, 3 horas, ≥ 70%, incluye SQL en teoría/práctica.
+**Bancolombia Frontend** — 5 fases · 3 horas · ≥ 70%: Angular API → 5 AWS → 5 HTML/CSS (Grid) → TypeScript curry → 5 Angular MCQ.
